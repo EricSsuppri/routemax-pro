@@ -92,8 +92,8 @@ jobs:
           p = 'android/app/build.gradle'
           s = open(p).read()
 
-          # date-based versionCode: YYYYMMDDHHMM (always increases)
-          vcode = datetime.datetime.utcnow().strftime('%Y%m%d%H%M')
+          # versionCode = minutes since 2025-01-01 (fits 32-bit int, always increases)
+          vcode = int((datetime.datetime.utcnow() - datetime.datetime(2025, 1, 1)).total_seconds() // 60)
           print('versionCode:', vcode)
 
           # inject signingConfigs + release signing into android block
