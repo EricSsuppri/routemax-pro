@@ -1,7 +1,7 @@
-name: Build Android APK
+name: Build Signed Release AAB (Play Store)
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -66,7 +66,6 @@ jobs:
               square = ImageOps.fit(img, (size, size), Image.LANCZOS)
               for fname in ['ic_launcher.png', 'ic_launcher_round.png', 'ic_launcher_foreground.png']:
                   square.save(os.path.join(d, fname))
-          # adaptive-icon background: match the icon green
           bg = os.path.join(res, 'values', 'ic_launcher_background.xml')
           if os.path.exists(bg):
               s = open(bg).read()
@@ -81,13 +80,71 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Build Clean APK File
+      - name: Decode upload keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/routemax-upload.keystore
+          ls -la android/app/routemax-upload.keystore
+
+      - name: Configure release signing and version
+        run: |
+          python3 - <<'EOF'
+          import re, datetime
+          p = 'android/app/build.gradle'
+          s = open(p).read()
+
+          # date-based versionCode: YYYYMMDDHHMM (always increases)
+          vcode = datetime.datetime.utcnow().strftime('%Y%m%d%H%M')
+          print('versionCode:', vcode)
+
+          # inject signingConfigs + release signing into android block
+          signing = '''
+              signingConfigs {
+                  release {
+                      storeFile file('routemax-upload.keystore')
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }'''
+          # place signingConfigs right after "android {" opening
+          s2 = re.sub(r'(android\s*\{)', r'\1' + signing, s, count=1)
+          assert s2 != s, 'android block not found'
+
+          # point release buildType at the signing config
+          s3 = re.sub(
+              r'(buildTypes\s*\{\s*release\s*\{[^}]*?)(minifyEnabled)',
+              r'\1signingConfig signingConfigs.release\n            \2',
+              s2, count=1, flags=re.S)
+          # fallback if minifyEnabled pattern missed: insert before release closing
+          if s3 == s2:
+              s3 = re.sub(
+                  r'(buildTypes\s*\{\s*release\s*\{)',
+                  r'\1\n            signingConfig signingConfigs.release',
+                  s2, count=1)
+          assert s3 != s2, 'release buildType not found'
+
+          # set versionCode / versionName in defaultConfig
+          s4 = re.sub(r'versionCode\s+\d+', f'versionCode {vcode}', s3)
+          s4 = re.sub(r'versionName\s+"[^"]*"', 'versionName "1.0"', s4)
+          open(p, 'w').write(s4)
+          print('signing + version configured')
+          EOF
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build Signed Release AAB
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew bundleRelease
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: Upload Finished APK Package
+      - name: Upload Signed AAB
         uses: actions/upload-artifact@v4
         with:
-          name: RouteMaxPro-NoWatermark
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: RouteMaxPro-PlayStore-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
