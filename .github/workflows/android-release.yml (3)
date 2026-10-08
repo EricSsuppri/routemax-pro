@@ -1,0 +1,222 @@
+name: Build Signed Release AAB (Play Store)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Compile Vite Web Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+
+      - name: Setup Capacitor Native Mobile Layers
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/camera @capacitor/local-notifications
+          npx cap sync android || (npx cap add android && npx cap sync android)
+
+      - name: Add OAuth deep link to AndroidManifest
+        run: |
+          python3 - <<'EOF'
+          import re
+          p = 'android/app/src/main/AndroidManifest.xml'
+          s = open(p).read()
+          filt = '''<intent-filter>
+                  <action android:name="android.intent.action.VIEW" />
+                  <category android:name="android.intent.category.DEFAULT" />
+                  <category android:name="android.intent.category.BROWSABLE" />
+                  <data android:scheme="com.routemax.pro" android:host="oauth" />
+              </intent-filter>'''
+          if 'android:scheme="com.routemax.pro"' not in s:
+              m = re.search(r'(<activity[^>]*\.MainActivity[^>]*>)(.*?)(</activity>)', s, re.S)
+              assert m, 'MainActivity block not found in AndroidManifest.xml'
+              s = s[:m.start(3)] + filt + '\n            ' + s[m.start(3):]
+              open(p, 'w').write(s)
+              print('deep link intent-filter added')
+          else:
+              print('deep link already present')
+          EOF
+
+      - name: Add Camera permission to AndroidManifest
+        run: |
+          python3 - <<'EOF'
+          import re
+          p = 'android/app/src/main/AndroidManifest.xml'
+          s = open(p).read()
+          if 'android.permission.CAMERA' not in s:
+              m = re.search(r'<manifest[^>]*>', s)
+              assert m, 'manifest tag not found'
+              perm = chr(10) + '    <uses-permission android:name="android.permission.CAMERA" />'
+              s = s[:m.end()] + perm + s[m.end():]
+              open(p, 'w').write(s)
+              print('camera permission added')
+          else:
+              print('camera permission already present')
+          EOF
+
+      - name: Add Screenshot Watcher native plugin
+        run: |
+          python3 - <<'EOF'
+          import os, re, shutil, glob, zipfile
+          assert os.path.exists('android-custom.zip'), 'android-custom.zip not found in repo root'
+          zipfile.ZipFile('android-custom.zip').extractall('.')
+          mains = glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True)
+          assert mains, 'MainActivity.java not found'
+          pkg_dir = os.path.dirname(mains[0])
+          src_dir = 'android-custom/java/com/routemax/pro'
+          assert os.path.isdir(src_dir), 'java sources missing in android-custom.zip'
+          for f in sorted(os.listdir(src_dir)):
+              shutil.copy(os.path.join(src_dir, f), os.path.join(pkg_dir, f))
+              print('copied', f)
+          mp = mains[0]
+          s = open(mp).read()
+          if 'ScreenshotWatcherPlugin' not in s:
+              assert 'import com.getcapacitor.BridgeActivity;' in s
+              s = s.replace('import com.getcapacitor.BridgeActivity;',
+                            'import com.getcapacitor.BridgeActivity;' + chr(10) + 'import com.routemax.pro.ScreenshotWatcherPlugin;')
+              if 'void onCreate' in s:
+                  s = s.replace('super.onCreate(savedInstanceState);',
+                                'super.onCreate(savedInstanceState);' + chr(10) + '        registerPlugin(ScreenshotWatcherPlugin.class);', 1)
+              else:
+                  s = s.replace('public class MainActivity extends BridgeActivity {',
+                                'public class MainActivity extends BridgeActivity {' + chr(10) + '    @Override' + chr(10) + '    public void onCreate(android.os.Bundle savedInstanceState) {' + chr(10) + '        super.onCreate(savedInstanceState);' + chr(10) + '        registerPlugin(ScreenshotWatcherPlugin.class);' + chr(10) + '    }', 1)
+              open(mp, 'w').write(s)
+              print('plugin registered')
+          else:
+              print('plugin already registered')
+          man = 'android/app/src/main/AndroidManifest.xml'
+          ms = open(man).read()
+          for perm in ['android.permission.READ_MEDIA_IMAGES',
+                       'android.permission.READ_EXTERNAL_STORAGE',
+                       'android.permission.FOREGROUND_SERVICE',
+                       'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
+                       'android.permission.POST_NOTIFICATIONS']:
+              if perm not in ms:
+                  m = re.search(r'<manifest[^>]*>', ms)
+                  assert m, 'manifest tag not found'
+                  line = chr(10) + '    <uses-permission android:name=\"' + perm + '\"'
+                  if perm == 'android.permission.READ_EXTERNAL_STORAGE':
+                      line += ' android:maxSdkVersion=\"32\"'
+                  line += ' />'
+                  ms = ms[:m.end()] + line + ms[m.end():]
+                  print('added', perm)
+          if 'ScreenshotWatcherService' not in ms:
+              assert '</application>' in ms
+              svc = chr(10) + '    <service android:name=\"com.routemax.pro.ScreenshotWatcherService\" android:foregroundServiceType=\"dataSync\" android:exported=\"false\" />'
+              ms = ms.replace('</application>', svc + chr(10) + '    </application>', 1)
+              print('service declared')
+          open(man, 'w').write(ms)
+          EOF
+
+      - name: Install custom app icons
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq python3-pil
+          python3 - <<'EOF'
+          from PIL import Image, ImageOps
+          import os, re
+          src = 'assets/icon.png'
+          assert os.path.exists(src), 'assets/icon.png not found in repo'
+          img = Image.open(src).convert('RGBA')
+          res = 'android/app/src/main/res'
+          for name, size in [('mdpi',48),('hdpi',72),('xhdpi',96),('xxhdpi',144),('xxxhdpi',192)]:
+              d = os.path.join(res, 'mipmap-' + name)
+              os.makedirs(d, exist_ok=True)
+              square = ImageOps.fit(img, (size, size), Image.LANCZOS)
+              for fname in ['ic_launcher.png', 'ic_launcher_round.png', 'ic_launcher_foreground.png']:
+                  square.save(os.path.join(d, fname))
+          bg = os.path.join(res, 'values', 'ic_launcher_background.xml')
+          if os.path.exists(bg):
+              s = open(bg).read()
+              s2 = re.sub(r'(<color name="ic_launcher_background">)[^<]*', r'\1#0EA968', s)
+              open(bg, 'w').write(s2)
+          print('custom icons installed')
+          EOF
+
+      - name: Set up Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Decode upload keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/routemax-upload.keystore
+          ls -la android/app/routemax-upload.keystore
+
+      - name: Configure release signing and version
+        run: |
+          python3 - <<'EOF'
+          import re, datetime
+          p = 'android/app/build.gradle'
+          s = open(p).read()
+
+          # versionCode = minutes since 2025-01-01 (fits 32-bit int, always increases)
+          vcode = int((datetime.datetime.utcnow() - datetime.datetime(2025, 1, 1)).total_seconds() // 60)
+          print('versionCode:', vcode)
+
+          # inject signingConfigs + release signing into android block
+          signing = '''
+              signingConfigs {
+                  release {
+                      storeFile file('routemax-upload.keystore')
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }'''
+          # place signingConfigs right after "android {" opening
+          s2 = re.sub(r'(android\s*\{)', r'\1' + signing, s, count=1)
+          assert s2 != s, 'android block not found'
+
+          # point release buildType at the signing config
+          s3 = re.sub(
+              r'(buildTypes\s*\{\s*release\s*\{[^}]*?)(minifyEnabled)',
+              r'\1signingConfig signingConfigs.release\n            \2',
+              s2, count=1, flags=re.S)
+          # fallback if minifyEnabled pattern missed: insert before release closing
+          if s3 == s2:
+              s3 = re.sub(
+                  r'(buildTypes\s*\{\s*release\s*\{)',
+                  r'\1\n            signingConfig signingConfigs.release',
+                  s2, count=1)
+          assert s3 != s2, 'release buildType not found'
+
+          # set versionCode / versionName in defaultConfig
+          s4 = re.sub(r'versionCode\s+\d+', f'versionCode {vcode}', s3)
+          s4 = re.sub(r'versionName\s+"[^"]*"', 'versionName "1.0"', s4)
+          open(p, 'w').write(s4)
+          print('signing + version configured')
+          EOF
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build Signed Release AAB
+        run: |
+          cd android
+          ./gradlew bundleRelease
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload Signed AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: RouteMaxPro-PlayStore-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
