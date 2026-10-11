@@ -3485,9 +3485,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const lerp = (a: number[], b: number[], t: number) =>
       `rgb(${Math.round(a[0]+(b[0]-a[0])*t)},${Math.round(a[1]+(b[1]-a[1])*t)},${Math.round(a[2]+(b[2]-a[2])*t)})`;
     // 0% = Soft muted purple var(--synth-purple) (139,123,184) | 100% = Vivid var(--synth-purple-light) (167,139,250)
-    root.style.setProperty("--synth-purple", lerp([139,123,184], [167,139,250], t));
-    root.style.setProperty("--synth-pink", lerp([139,123,184], [167,139,250], t));
-    root.style.setProperty("--synth-purple-light", lerp([139,123,184], [167,139,250], t));
+    root.style.setProperty("--synth-purple", lerp([107,91,138], [196,181,253], t));
+    root.style.setProperty("--synth-pink", lerp([107,91,138], [196,181,253], t));
+    root.style.setProperty("--synth-purple-light", lerp([107,91,138], [196,181,253], t));
     // BG: 0% = #2a2140 (42,33,64) muted | 100% = #38265e (56,38,94) rich
     root.style.setProperty("--synth-bg", lerp([42,33,64], [56,38,94], t));
     // Surface: 0% = #3a2d5c (58,45,92) | 100% = #4a3377 (74,51,119)
@@ -7052,7 +7052,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </span>
               {vehicle && (
                 <span className="text-[10px] font-semibold text-teal-400 flex-shrink-0">
-                  {(vehicle.fuel === "electric" ? "Electric" : vehicle.fuel === "none" ? "E-bike" : VEHICLE_TYPE_SPECS[vehicle.type]?.fuelLabel || "")} · {vehicle.speed} mph
+                  {(vehicle.fuel === "electric" ? "Electric" : vehicle.fuel === "none" ? "E-bike" : VEHICLE_TYPE_SPECS[vehicle.type]?.fuelLabel || "")} · {vehicle.speed} {useKm ? "km/h" : "mph"}
                 </span>
               )}
               <ChevronRight className="w-4 h-4 text-zinc-600 flex-shrink-0" />
@@ -7131,11 +7131,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       className="flex items-center gap-1 pl-1.5 pr-1 py-1 rounded-full bg-teal-500/15 border border-teal-500/30 flex-shrink-0 active:scale-95 transition-transform"
                     >
                       <MapPin className="w-3 h-3 text-teal-300" />
-                      <span className="text-[10px] font-bold text-teal-300">{tripSpeed} mph</span>
+                      <span className="text-[10px] font-bold text-teal-300">{tripSpeed} {useKm ? "km/h" : "mph"}</span>
                       <X className="w-3 h-3 text-teal-300/70" />
                     </button>
                   ) : null}
-                  <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">miles</span>
+                  <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">{DIST}</span>
                 </div>
                 </GumRow>
 
@@ -7269,7 +7269,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         onChange={(e) => setReturnMileage(e.target.value)}
                         className="flex-1 min-w-0 w-0 bg-transparent text-base sm:text-lg font-bold text-white placeholder-zinc-600 outline-none"
                       />
-                      <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">miles</span>
+                      <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">{DIST}</span>
                     </div>
                     </GumRow>
                   </div>
@@ -7602,7 +7602,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <div className="flex items-center gap-2 text-xs mb-2.5 pb-2.5 border-b border-teal-500/10">
                           <MapPin className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
                           <span className="text-zinc-300 font-semibold">
-                            Using your route{tripCityMi != null && tripHwyMi != null ? ` · ${tripCityMi.toFixed(1)} city / ${tripHwyMi.toFixed(1)} hwy mi` : ""} · {tripSpeed} mph avg
+                            Using your route{tripCityMi != null && tripHwyMi != null ? ` · ${tripCityMi.toFixed(1)} city / ${tripHwyMi.toFixed(1)} hwy mi` : ""} · {tripSpeed} {useKm ? "km/h" : "mph"} avg
                           </span>
                         </div>
                       ) : null}
@@ -7642,7 +7642,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       )}
                       {tripModes.drive && mileage && tripSpeed ? (
                         <div className="text-[10px] text-zinc-500 mt-1.5 px-1">
-                          {mileage} mi ÷ {tripSpeed} mph = {fmtTripTime(tripModes.drive)}
+                          {mileage} mi ÷ {tripSpeed} {useKm ? "km/h" : "mph"} = {fmtTripTime(tripModes.drive)}
                         </div>
                       ) : null}
                       {tripWeather ? (
@@ -8634,7 +8634,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.265</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.266</div>
             </div>
           </div>
         </div>
