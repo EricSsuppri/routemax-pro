@@ -6838,7 +6838,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             {/* Platform Presets */}
             <div className="mb-4 sm:mb-5 animate-fade-in-up" style={{ animationDelay: "0.07s" }}>
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.287</span></span>
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.288</span></span>
                 {activePreset !== "custom" && (
                   <button
                     onClick={clearPreset}
@@ -7449,6 +7449,32 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <Fuel className="w-3.5 h-3.5 text-teal-400" /> {vehicle?.fuel === "electric" ? "Find chargers" : "Cheap gas"}
                       </button>
                     </div>
+                    {/* Mark as Accepted toggle */}
+                    <button
+                      onClick={async () => {
+                        if (!supabase || !isPremium) return;
+                        try {
+                          const { data: { user } } = await supabase.auth.getUser();
+                          if (!user) return;
+                          // Mark the most recent trip as accepted
+                          const { data: trips } = await supabase
+                            .from("route_history")
+                            .select("id")
+                            .eq("user_id", user.id)
+                            .order("created_at", { ascending: false })
+                            .limit(1);
+                          if (trips && trips[0]) {
+                            await supabase
+                              .from("route_history")
+                              .update({ accepted: true })
+                              .eq("id", trips[0].id);
+                          }
+                        } catch {}
+                      }}
+                      className="w-full mt-3 py-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                      <Check className="w-4 h-4" /> Mark as Accepted
+                    </button>
                   </div>
                 </div>
 
@@ -8545,7 +8571,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.287</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.288</div>
             </div>
           </div>
         </div>
