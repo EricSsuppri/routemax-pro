@@ -6021,9 +6021,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
         {/* Quarterly breakdown — tap a quarter to expand */}
         <div className="glass rounded-2xl p-4">
-          <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-            Quarterly breakdown
-          </div>
+          <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">{t((typeof localStorage !== "undefined" && localStorage.getItem("routemax_lang")) || "en", "quarterlybreakdown")}</div>
           {quarters.map((q, qi) => {
             const open = expandedQuarter === q.key;
             const hr = q.hours > 0 ? q.net / q.hours : 0;
@@ -7518,9 +7516,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
                 {/* Cost breakdown */}
                 <div className="glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-4">
-                  <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-                    Cost Breakdown
-                  </div>
+                  <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">{t((typeof localStorage !== "undefined" && localStorage.getItem("routemax_lang")) || "en", "costbreakdown")}</div>
 
                   {(tripModes || tripWeather || tripSpeed) && (
                     <div className="rounded-2xl bg-teal-500/5 border border-teal-500/15 p-3.5">
@@ -8551,7 +8547,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.271</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.272</div>
             </div>
           </div>
         </div>
@@ -9984,7 +9980,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div>
-                  <h3 className="text-base font-extrabold text-white">Basecamp</h3>
+                  <h3 className="text-base font-extrabold text-white">{t((typeof localStorage !== "undefined" && localStorage.getItem("routemax_lang")) || "en", "basecamp")}</h3>
                   <p className="text-[11px] text-zinc-500">{tr("premiumwellnesshub")}</p>
                 </div>
               </div>
