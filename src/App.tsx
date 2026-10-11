@@ -3485,7 +3485,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const root = document.documentElement;
     const lerp = (a: number[], b: number[], t: number) =>
       `rgb(${Math.round(a[0]+(b[0]-a[0])*t)},${Math.round(a[1]+(b[1]-a[1])*t)},${Math.round(a[2]+(b[2]-a[2])*t)})`;
-    // 0% = Soft muted purple #8b7bb8 (139,123,184) | 100% = Vivid #a78bfa (167,139,250)
+    // 0% = Soft muted purple #8b7bb8 (139,123,184) | 100% = Vivid var(--synth-purple-light) (167,139,250)
     root.style.setProperty("--synth-purple", lerp([139,123,184], [167,139,250], t));
     root.style.setProperty("--synth-pink", lerp([139,123,184], [167,139,250], t));
     root.style.setProperty("--synth-purple-light", lerp([139,123,184], [167,139,250], t));
@@ -3524,7 +3524,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             <div className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto">
               {langs.map(([code, name]) => (
                 <button key={code} onClick={() => setOnboardLang(code)}
-                  className={`px-3 py-2.5 rounded-xl text-sm font-semibold border active:scale-[0.98] ${onboardLang === code ? "bg-[#a78bfa]/20 border-[#a78bfa]/50 text-white" : "bg-white/5 border-white/10 text-zinc-300"}`}>
+                  className={`px-3 py-2.5 rounded-xl text-sm font-semibold border active:scale-[0.98] ${onboardLang === code ? "bg-[var(--synth-purple-light)]/20 border-[var(--synth-purple-light)]/50 text-white" : "bg-white/5 border-white/10 text-zinc-300"}`}>
                   {name}
                 </button>
               ))}
@@ -6825,7 +6825,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div className="relative mt-4 h-10" aria-hidden="true">
                   <svg viewBox="0 0 320 40" className="w-full h-10" preserveAspectRatio="none">
                     <rect x="0" y="14" width="320" height="12" rx="6" fill="rgba(255,255,255,0.06)" />
-                    <g className="animate-dash" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="14 18" opacity="0.8">
+                    <g className="animate-dash" stroke="var(--synth-purple-light)" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="14 18" opacity="0.8">
                       <line x1="-40" y1="20" x2="360" y2="20" />
                     </g>
                   </svg>
@@ -6842,7 +6842,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               className="w-full mb-5 sm:mb-6 animate-fade-in-up animate-invite glass rounded-2xl flex items-center gap-3 px-4 py-3.5 active:scale-[0.99] transition-transform text-left"
               style={{ animationDelay: "0.06s" }}
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#d8c9f5] to-[#a78bfa] flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#d8c9f5] to-[var(--synth-purple-light)] flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-4.5 h-4.5 text-[#2b1a4d] animate-twinkle" strokeWidth={2.5} />
               </div>
               <div className="min-w-0 flex-1">
@@ -8089,7 +8089,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           onClick={() => setAuthOpen(false)}
         >
           <div
-            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 animate-fade-in-up border border-[#a78bfa]/25" style={{ background: "linear-gradient(165deg, #3d2a68 0%, #2c1c52 60%, #241343 100%)" }}
+            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 animate-fade-in-up border border-[var(--synth-purple-light)]/25" style={{ background: "linear-gradient(165deg, #3d2a68 0%, #2c1c52 60%, #241343 100%)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-1">
@@ -8111,14 +8111,14 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             </p>
 
             {/* Mode toggle */}
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#241343]/60 border border-[#a78bfa]/20 mb-4">
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#241343]/60 border border-[var(--synth-purple-light)]/20 mb-4">
               {(["signin", "signup"] as const).map((m) => (
                 <button
                   key={m}
                   onClick={() => { setAuthMode(m); setAuthError(""); setAuthInfo(""); }}
                   className={`py-2 rounded-lg text-sm font-bold transition-all ${
                     authMode === m
-                      ? "bg-[#a78bfa]/15 text-[#c4b5fd] border border-[#a78bfa]/30"
+                      ? "bg-[var(--synth-purple-light)]/15 text-[#c4b5fd] border border-[var(--synth-purple-light)]/30"
                       : "text-zinc-500 border border-transparent"
                   }`}
                 >
@@ -8142,9 +8142,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               {googleBusy ? "Opening Google…" : "Continue with Google"}
             </button>
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-[#a78bfa]/20" />
+              <div className="flex-1 h-px bg-[var(--synth-purple-light)]/20" />
               <span className="text-[11px] font-semibold text-zinc-600">or</span>
-              <div className="flex-1 h-px bg-[#a78bfa]/20" />
+              <div className="flex-1 h-px bg-[var(--synth-purple-light)]/20" />
             </div>
 
             {/* Email */}
@@ -8578,7 +8578,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         onChange={(e) => setTheme77(parseInt(e.target.value))}
                         className="w-full h-2 rounded-full appearance-none cursor-pointer"
                         style={{
-                          background: "linear-gradient(90deg, #8b7bb8 0%, #a78bfa 50%, #7c3aed 100%)",
+                          background: "linear-gradient(90deg, #8b7bb8 0%, var(--synth-purple-light) 50%, var(--synth-purple) 100%)",
                         }}
                       />
                       <div className="flex justify-between mt-1">
@@ -8635,7 +8635,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.260</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.261</div>
             </div>
           </div>
         </div>
