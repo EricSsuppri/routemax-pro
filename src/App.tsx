@@ -1753,6 +1753,7 @@ function CameraCoach({ mode, onClose, onLog }: {
   const [plan, setPlan] = useState("");
   const [planBusy, setPlanBusy] = useState(false);
 
+  const [useNativeCam, setUseNativeCam] = useState(false);
   const startCam = async (f: "user" | "environment") => {
     try {
       if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
@@ -1760,7 +1761,31 @@ function CameraCoach({ mode, onClose, onLog }: {
       streamRef.current = s;
       if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play().catch(() => {}); }
       setCamErr("");
-    } catch { setCamErr("Camera blocked — allow camera access in your browser settings, or type it in manually."); }
+      setUseNativeCam(false);
+    } catch { 
+      // Fallback: use native camera plugin for still photo
+      setUseNativeCam(true);
+      setCamErr("");
+    }
+  };
+  const takeNativePhoto = async () => {
+    try {
+      setBusy(true);
+      const photo = await CapCamera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera,
+      });
+      if (photo.base64String) {
+        // Send to Gemini for analysis
+        await analyzePhoto(photo.base64String);
+      }
+    } catch (e) {
+      setCamErr("Camera unavailable. Please type it in manually.");
+    } finally {
+      setBusy(false);
+    }
   };
   useEffect(() => {
     startCam(facing);
@@ -8541,7 +8566,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.277</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.278</div>
             </div>
           </div>
         </div>
@@ -8824,7 +8849,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 </div>
               </div>
               <p className="text-[11px] text-zinc-500 mb-2.5 leading-relaxed">Snap your meal, drink or snack — AI reads the nutrients.</p>
-              <input ref={buddyFileRef} type="file" accept="image/*,video/*" onChange={onBuddyFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+              <input ref={buddyFileRef} type="file" accept="image/*" capture="environment" onChange={onBuddyFile} className="hidden" aria-hidden="true" tabIndex={-1} />
               {buddyScanImg ? (
                 <div className="relative inline-block mb-2.5">
                   <img src={buddyScanImg} alt="Scan" className="h-24 w-auto rounded-xl border border-zinc-700/60" />
