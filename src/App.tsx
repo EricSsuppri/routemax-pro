@@ -1608,7 +1608,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           </button>
         </div>
       ) : null}
-      <input ref={fileRef} type="file" accept="image/*,video/*" onChange={onFilePicked} className="hidden" aria-hidden="true" tabIndex={-1} />
+      <input ref={fileRef} type="file" accept="image/*" onChange={onFilePicked} className="hidden" aria-hidden="true" tabIndex={-1} />
       <div className="glass-input rounded-full flex items-center gap-1.5 pl-2 pr-1.5 py-1.5">
         <button
           onClick={() => openPicker(true)}
@@ -5642,7 +5642,7 @@ SUMMARY (${bookPeriod}): ${book.trips} trips, ${book.miles.toFixed(1)} miles, ${
 RECENT TRIPS: ${tripDetails || "No individual trips in range."}
 
 Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms are most vs least profitable, (2) fuel efficiency vs expected, (3) cost per mile trend, (4) one specific actionable tip using their real data. Be concise, use their numbers, no generic advice.`;
-                          const res = await callGemini(prompt);
+                          const res = await askGemini(prompt, undefined, false);
                           setBookAiSummary(res);
                         } catch { setBookAiSummary("Could not generate insights. Try again."); }
                         setBookAiBusy(false);
@@ -6697,7 +6697,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
   const breakEven = results ? results.totalCost : 0;
 
   return (
-    <div className="min-h-screen bg-[#241343] text-zinc-100">
+    <div className="min-h-screen bg-transparent text-zinc-100">
       {/* Ambient gradient backdrop */}
       <div ref={orbParRef} className="fixed inset-0 pointer-events-none overflow-hidden" style={{ willChange: "transform" }}>
         <div className="orb-a absolute -top-64 -right-56 w-80 h-80 bg-teal-500/[0.07] rounded-full blur-[130px]" />
@@ -8634,7 +8634,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.293</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.294</div>
             </div>
           </div>
         </div>
@@ -8917,7 +8917,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 </div>
               </div>
               <p className="text-[11px] text-zinc-500 mb-2.5 leading-relaxed">Snap your meal, drink or snack — AI reads the nutrients.</p>
-              <input ref={buddyFileRef} type="file" accept="image/*,video/*" onChange={onBuddyFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+              <input ref={buddyFileRef} type="file" accept="image/*" onChange={onBuddyFile} className="hidden" aria-hidden="true" tabIndex={-1} />
               {buddyScanImg ? (
                 <div className="relative inline-block mb-2.5">
                   <img src={buddyScanImg} alt="Scan" className="h-24 w-auto rounded-xl border border-zinc-700/60" />
@@ -9867,7 +9867,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="min-w-0 w-full bg-zinc-900/70 border border-zinc-700/60 rounded-xl px-3 py-2.5 text-xs font-semibold text-white outline-none" />
                   </div>
                   <input value={expNote} onChange={(e) => setExpNote(e.target.value)} placeholder="Note (optional)" className="w-full bg-zinc-900/70 border border-zinc-700/60 rounded-xl px-3 py-2.5 text-xs font-semibold text-white placeholder-zinc-600 outline-none" />
-                  <input ref={expFileRef} type="file" accept="image/*,video/*" onChange={onExpFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+                  <input ref={expFileRef} type="file" accept="image/*" onChange={onExpFile} className="hidden" aria-hidden="true" tabIndex={-1} />
                   {expReceipt ? (
                     <div className="relative inline-block">
                       <img src={expReceipt} alt="Receipt" className="h-20 w-auto rounded-xl border border-zinc-700/60" />
