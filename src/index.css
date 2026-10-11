@@ -137,7 +137,7 @@ input[type="number"] {
 
 /* Champagne gold primary button */
 .btn-champagne {
-  background: linear-gradient(135deg, #c4b5fd 0%, var(--synth-purple-light) 35%, #d4a94e 70%, var(--synth-purple-light) 100%);
+  background: linear-gradient(135deg, var(--synth-purple-light) 0%, var(--synth-purple-light) 35%, #d4a94e 70%, var(--synth-purple-light) 100%);
   color: #191408;
   box-shadow: 0 8px 28px rgba(230, 197, 124, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
@@ -227,7 +227,7 @@ input[type="number"] {
   width: 16px;
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(90deg, #c4b5fd, transparent);
+  background: linear-gradient(90deg, var(--synth-purple-light), transparent);
 }
 @keyframes drawer-in {
   from { transform: translateX(-102%); }
@@ -329,7 +329,7 @@ input[type="number"] {
 .ai-says {
   background: linear-gradient(135deg, rgba(45,212,191,0.10), rgba(243,216,148,0.06));
   border: 1px solid rgba(45,212,191,0.22);
-  border-left: 3px solid #f472b6;
+  border-left: 3px solid var(--synth-pink);
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 13px;
@@ -469,8 +469,8 @@ input[type="number"] {
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 /* Basecamp text readability */
-.basecamp-light .text-zinc-400 { color: #d4c8f0 !important; }
-.basecamp-light .text-zinc-500 { color: #c2b3e5 !important; }
+.basecamp-light .text-zinc-400 { color: var(--synth-purple-light) !important; }
+.basecamp-light .text-zinc-500 { color: var(--synth-purple-light) !important; }
 
 @keyframes sat-pulse { 0%, 100% { transform: scale(1); opacity: 0.75; } 50% { transform: scale(1.4); opacity: 0.3; } }
 .animate-sat-pulse { animation: sat-pulse 1.8s ease-in-out infinite; }
@@ -546,7 +546,7 @@ body { color: #f5f0ff !important; }
 
 /* Blend: purple identity + original theme readability */
 /* Bright lavender for text accents (readable on dark) */
-.text-teal-300, .text-teal-400 { color: #c4b5fd !important; }
+.text-teal-300, .text-teal-400 { color: var(--synth-purple-light) !important; }
 .text-teal-500 { color: var(--synth-purple-light) !important; }
 /* Rich purple for backgrounds/buttons */
 .bg-teal-400, .bg-teal-500 { background-color: var(--synth-purple) !important; }
@@ -610,7 +610,7 @@ input[type="range"]::-moz-range-thumb {
 /* ---- Bulb glow (v2.252) — luminous like light from within ---- */
 /* Glowing accent text */
 .text-glow-purple {
-  color: #c4b5fd;
+  color: var(--synth-purple-light);
   text-shadow: 0 0 12px rgba(196, 181, 253, 0.6), 0 0 24px rgba(167, 139, 250, 0.3);
 }
 .text-glow-gold {
