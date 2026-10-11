@@ -3500,11 +3500,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const [onboardLang, setOnboardLang] = useState("en");
   const [onboardCountry, setOnboardCountry] = useState("US");
   const completeOnboarding = () => {
-    setAppLang(onboardLang);
-    setAppCountry(onboardCountry);
     try {
-      localStorage.setItem("routemax_lang", onboardLang);
-      localStorage.setItem("routemax_country", onboardCountry);
       localStorage.setItem("routemax_onboarded", "1");
     } catch {}
     setShowOnboarding(false);
@@ -3517,27 +3513,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 overflow-y-auto" style={{ background: "linear-gradient(165deg, #3d2a68 0%, #2c1c52 60%, #241343 100%)" }}>
         <div className="w-full max-w-sm text-center py-8">
           <div className="text-3xl font-extrabold text-white mb-2">Welcome to RouteMax</div>
-          <p className="text-sm text-[var(--synth-purple-light)] mb-6">Let's set up your language and country.</p>
-          <div className="text-left mb-4">
-            <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">Language</div>
-            <div className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto">
-              {langs.map(([code, name]) => (
-                <button key={code} onClick={() => setOnboardLang(code)}
-                  className={`px-3 py-2.5 rounded-xl text-sm font-semibold border active:scale-[0.98] ${onboardLang === code ? "bg-[var(--synth-purple-light)]/20 border-[var(--synth-purple-light)]/50 text-white" : "bg-white/5 border-white/10 text-zinc-300"}`}>
-                  {name}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="text-left mb-6">
-            <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">Country</div>
-            <select value={onboardCountry} onChange={(e) => setOnboardCountry(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-semibold outline-none">
-              {Object.entries(COUNTRY_DB).map(([code, info]) => (
-                <option key={code} value={code} className="bg-[#2c1c52]">{info.name}</option>
-              ))}
-            </select>
-          </div>
+          <p className="text-sm text-[var(--synth-purple-light)] mb-6">Know your real earnings before every trip.</p>
           <button onClick={completeOnboarding}
             className="w-full py-4 rounded-2xl font-extrabold text-[#241343] active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg, #f7dc8f, #d4a94e)" }}>
@@ -8534,35 +8510,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <ChevronRight className="w-4 h-4 text-zinc-600 ml-auto" />
                       </button>
                     </div>
-                    {/* Language collapsible */}
-                    <div className="mt-2">
-                      <button onClick={() => setLangSettingsOpen(!langSettingsOpen)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.98]">
-                        <span className="text-xs font-bold text-zinc-200">{tr("language")}</span>
-                        <span className="text-zinc-500 text-xs">{langSettingsOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {langSettingsOpen && (
-                        <div className="mt-1 rounded-xl bg-zinc-900/40 border border-zinc-800/40 overflow-hidden max-h-48 overflow-y-auto">
-                          {[
-                            ["en", "English"], ["es", "Español"], ["fr", "Français"], ["de", "Deutsch"],
-                            ["pt", "Português"], ["it", "Italiano"], ["nl", "Nederlands"], ["pl", "Polski"],
-                            ["ru", "Русский"], ["uk", "Українська"], ["ar", "العربية"], ["hi", "हिन्दी"],
-                            ["zh", "中文 (简体)"], ["ja", "日本語"], ["ko", "한국어"],
-                          ].map(([code, name]) => (
-                            <button
-                              key={code}
-                              onClick={() => {
-                                setAppLang(code);
-                                try { localStorage.setItem("routemax_lang", code); } catch {}
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 text-left active:opacity-70 border-b border-zinc-800/20 last:border-0"
-                            >
-                              <span className="text-xs font-semibold text-zinc-200">{name}</span>
-                              {appLang === code && <span className="text-teal-400 text-xs">✓</span>}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+
                     {/* Theme 77 intensity slider */}
                     <div className="mt-2 rounded-xl bg-zinc-800/40 border border-zinc-700/40 px-3 py-3">
                       <div className="flex items-center justify-between mb-2">
@@ -8585,47 +8533,6 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <span className="text-[9px] text-zinc-500">Vivid</span>
                       </div>
                     </div>
-                    {/* Country picker */}
-                    <div className="mt-2">
-                      <button onClick={() => setCountrySettingsOpen(!countrySettingsOpen)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.98]">
-                        <span className="text-xs font-bold text-zinc-200">{tr("country")}</span>
-                        <span className="text-zinc-500 text-xs">{countrySettingsOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {countrySettingsOpen && (
-                        <div className="mt-1 rounded-xl bg-zinc-900/40 border border-zinc-800/40 overflow-hidden max-h-48 overflow-y-auto">
-                          {Object.entries(COUNTRY_DB).map(([code, info]) => (
-                            <button
-                              key={code}
-                              onClick={() => {
-                                setAppCountry(code);
-                                try { localStorage.setItem("routemax_country", code); } catch {}
-                                // Auto-adjust units to country default
-                                const c = COUNTRY_DB[code];
-                                if (c) {
-                                  setUseKm(!c.miles);
-                                  try { localStorage.setItem("routemax_use_km", c.miles ? "0" : "1"); } catch {}
-                                }
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 text-left active:opacity-70 border-b border-zinc-800/20 last:border-0"
-                            >
-                              <span className="text-xs font-semibold text-zinc-200">{info.name}</span>
-                              <span className="flex items-center gap-1.5">
-                                <span className="text-[10px] text-zinc-500">{info.currency}</span>
-                                {appCountry === code && <span className="text-teal-400 text-xs">✓</span>}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-2 px-3 py-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/40">
-                      <div className="text-[10px] text-zinc-500 leading-relaxed">
-                        {countryInfo.name} · {countryInfo.currency} ({countryInfo.symbol}) · {countryInfo.miles ? "Miles" : "Kilometers"} · {countryInfo.taxSystem}
-                      </div>
-                      <div className="text-[10px] text-zinc-600 mt-1">
-                        Mileage: {countryInfo.symbol}{countryInfo.mileageRate}/{countryInfo.miles ? "mi" : "km"} — {countryInfo.mileageLabel}
-                      </div>
-                    </div>
                   </div>
 
 
@@ -8634,7 +8541,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.273</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.274</div>
             </div>
           </div>
         </div>
