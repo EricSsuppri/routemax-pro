@@ -1264,7 +1264,7 @@ function PremiumBuyButton({ onUnlocked }: { onUnlocked: () => void }) {
         disabled={busy}
         className="block w-full py-3 rounded-xl bg-gradient-to-r from-[#ffecd0] to-[#ffecd0] text-sm font-extrabold text-[#0f0f16] active:scale-[0.98] transition-transform disabled:opacity-60"
       >
-        {busy ? tr("processing") : price ? `${tr("upgradetopremium")} — ${price}` : tr("upgradetopremium")}
+        {busy ? "Processing…" : price ? `Upgrade to Premium — ${price}` : "Upgrade to Premium"}
       </button>
       {err ? <p className="text-[11px] text-red-400 mt-2 leading-relaxed">{err}</p> : null}
       <button
@@ -1313,7 +1313,7 @@ function PremiumBanner({ onUnlocked }: { onUnlocked: () => void }) {
             </div>
             <div className="text-left min-w-0">
               <div className="text-sm font-extrabold text-white">
-                {busy ? tr("processing") : price ? `${tr("upgradetopremium")} — ${price}` : tr("upgradetopremium")}
+                {busy ? "Processing…" : price ? `Upgrade to Premium — ${price}` : "Upgrade to Premium"}
               </div>
               <div className="text-[11px] text-zinc-500 font-medium">
                 History, compare, reports, tax tracking &amp; more
@@ -8416,7 +8416,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                               onClick={() => { setSettingsOpen(false); setBuddyPaywall(true); }}
                               className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left active:opacity-70 border-b border-zinc-800/40"
                             >
-                              <span className="text-[11px] font-semibold text-teal-400">{tr("upgradetopremium")}</span>
+                              <span className="text-[11px] font-semibold text-teal-400">Upgrade to Premium</span>
                             </button>
                           )}
                           <button
@@ -8634,7 +8634,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.268</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.269</div>
             </div>
           </div>
         </div>
