@@ -425,7 +425,7 @@ input[type="number"] {
 .posh-drawer {
   background:
     radial-gradient(120% 50% at 50% 0%, rgba(167, 139, 250, 0.15), transparent 60%),
-    linear-gradient(165deg, #11434e 0%, #0e3540 60%, #0a2530 100%);
+    linear-gradient(165deg, #3d2a68 0%, #2c1c52 60%, #241343 100%);
   border-right: 1px solid rgba(167, 139, 250, 0.18);
   box-shadow: 16px 0 48px rgba(0, 0, 0, 0.35);
 }
@@ -522,78 +522,39 @@ input[type="number"] {
   animation: fade-in 0.25s ease;
 }
 
-/* ===== DARK ROAD THEME (asphalt + yellow stripes) ===== */
+/* ===== SYNTHWAVE THEME #77 (purple dominant) ===== */
 :root {
-  --synth-pink: #f7dc8f;
-  --synth-pink-dark: #d4a94e;
-  --synth-purple: #f7dc8f;
-  --synth-purple-light: #ffe9a8;
-  --synth-bg: #0d0d0f;
-  --synth-surface: #16161a;
-  --synth-card: #1c1c22;
+  --synth-pink: var(--synth-purple-light);
+  --synth-pink-dark: var(--synth-purple);
+  --synth-purple: var(--synth-purple-light);
+  --synth-purple-light: var(--synth-purple-light);
+  --synth-bg: #38265e;
+  --synth-surface: #4a3377;
+  --synth-card: #2d1d52;
   --synth-text-bright: #ffffff;
-  --synth-text-dim: #b0b0b8;
-  /* Road colors */
-  --road-asphalt: #0d0d0f;
-  --road-stripe: #f7dc8f;
-  --road-stripe-dim: #d4a94e;
-  /* Icon teal kept for accents */
-  --icon-teal: #1a8a9c;
-  --icon-teal-light: #2bb3c7;
+  --synth-text-dim: #d4c5f0;
 }
-/* Animated road background - pure CSS (reliable) */
-body {
-  background-color: #0d0d0f !important;
-  background-image:
-    /* Asphalt texture */
-    radial-gradient(ellipse at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(255,255,255,0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 70%),
-    /* Yellow center dashes - animated */
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 60px,
-      rgba(247, 220, 143, 0.25) 60px,
-      rgba(247, 220, 143, 0.25) 100px,
-      transparent 100px,
-      transparent 160px
-    );
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 320px;
-  animation: roadMove 2s linear infinite;
-}
-@keyframes roadMove {
-  0% { background-position: 0 0, 0 0, 0 0, center 0; }
-  100% { background-position: 0 0, 0 0, 0 0, center 320px; }
-}
-
 
 /* Readability: brighten body text and muted text on the lighter bg */
-body { color: #faf6ec !important; }
-.text-zinc-500 { color: #c9bda0 !important; }
-.text-zinc-400 { color: #dccfae !important; }
-.text-zinc-300 { color: #f0e6cc !important; }
+body { color: #f5f0ff !important; }
+.text-zinc-500 { color: #b8a8d8 !important; }
+.text-zinc-400 { color: #c9bce8 !important; }
+.text-zinc-300 { color: #ddd3f5 !important; }
 .bg-zinc-900\/40, .bg-zinc-900\/30, .bg-zinc-900\/60 { background-color: rgba(45, 29, 82, 0.7) !important; }
 .bg-zinc-800\/40 { background-color: rgba(58, 36, 105, 0.5) !important; }
 .border-zinc-800\/40, .border-zinc-700\/40 { border-color: rgba(139, 108, 199, 0.25) !important; }
 
-/* Icon teal: real teal from the fuel gauge icon, blended with purple base */
-/* Bright teal for text accents */
-.text-teal-300 { color: var(--icon-teal-light) !important; }
-.text-teal-400 { color: var(--icon-teal) !important; }
-.text-teal-500 { color: var(--icon-teal-dark) !important; }
-/* Teal for backgrounds/buttons */
-.bg-teal-400 { background-color: var(--icon-teal-light) !important; }
-.bg-teal-500 { background-color: var(--icon-teal) !important; }
-.bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(26, 138, 156, 0.20) !important; }
-.border-teal-400 { border-color: var(--icon-teal-light) !important; }
-.border-teal-500 { border-color: var(--icon-teal) !important; }
-.border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(26, 138, 156, 0.35) !important; }
-.from-teal-400, .from-teal-500 { --tw-gradient-from: var(--icon-teal) !important; }
-.to-teal-400, .to-teal-500 { --tw-gradient-to: var(--icon-teal-dark) !important; }
-/* Cream highlights from icon background */
-.text-cream, .text-\[\#f5e6c8\] { color: var(--icon-cream) !important; }
-.bg-cream\/10 { background-color: rgba(245, 230, 200, 0.10) !important; }
+/* Blend: purple identity + original theme readability */
+/* Bright lavender for text accents (readable on dark) */
+.text-teal-300, .text-teal-400 { color: var(--synth-purple-light) !important; }
+.text-teal-500 { color: var(--synth-purple-light) !important; }
+/* Rich purple for backgrounds/buttons */
+.bg-teal-400, .bg-teal-500 { background-color: var(--synth-purple) !important; }
+.bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(139, 92, 246, 0.20) !important; }
+.border-teal-400, .border-teal-500 { border-color: var(--synth-purple) !important; }
+.border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(139, 92, 246, 0.35) !important; }
+.from-teal-400, .from-teal-500 { --tw-gradient-from: var(--synth-purple) !important; }
+.to-teal-400, .to-teal-500 { --tw-gradient-to: #6d28d9 !important; }
 /* Champagne gold highlights (from original theme) for key CTAs */
 .text-\[\#f7dc8f\], .text-amber-200, .text-amber-300 { color: #f7dc8f !important; }
 .bg-\[\#f7dc8f\]\/10, .bg-amber-400\/10 { background-color: rgba(243, 216, 148, 0.12) !important; }
@@ -701,36 +662,4 @@ input[type="range"]::-moz-range-thumb {
 }
 .bulb-card {
   box-shadow: 0 4px 20px rgba(124,58,237,0.15), inset 0 1px 0 rgba(167,139,250,0.2), 0 0 30px rgba(139,92,246,0.1);
-}
-
-/* Prevent big numbers from being squeezed/cut off */
-.stat-number {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: visible;
-  font-size: clamp(14px, 4vw, 20px);
-}
-
-/* ===== LIGHT MODE (Instagram/X style toggle) ===== */
-body.light-mode {
-  background-color: #f5f0e8 !important;
-  color: #1a1a1a !important;
-}
-body.light-mode .bg-zinc-900\/40,
-body.light-mode .bg-zinc-900\/30,
-body.light-mode .bg-zinc-900\/50,
-body.light-mode .bg-zinc-900\/60 {
-  background-color: rgba(255, 255, 255, 0.9) !important;
-}
-body.light-mode .bg-zinc-800\/40,
-body.light-mode .bg-zinc-800\/70 {
-  background-color: rgba(240, 235, 225, 0.9) !important;
-}
-body.light-mode .text-white { color: #1a1a1a !important; }
-body.light-mode .text-zinc-200 { color: #2a2a2a !important; }
-body.light-mode .text-zinc-300 { color: #3a3a3a !important; }
-body.light-mode .text-zinc-400 { color: #4a4a4a !important; }
-body.light-mode .border-zinc-700\/40,
-body.light-mode .border-zinc-800\/40 {
-  border-color: rgba(0, 0, 0, 0.1) !important;
 }
