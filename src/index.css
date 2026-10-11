@@ -541,32 +541,30 @@ input[type="number"] {
   --icon-teal: #1a8a9c;
   --icon-teal-light: #2bb3c7;
 }
-/* Photorealistic animated road background */
+/* Animated road background - pure CSS (reliable) */
 body {
   background-color: #0d0d0f !important;
-  background-image: url("./road-bg.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: repeat-y;
-  animation: roadMove 3s linear infinite;
+  background-image:
+    /* Asphalt texture */
+    radial-gradient(ellipse at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(255,255,255,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 70%),
+    /* Yellow center dashes - animated */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 60px,
+      rgba(247, 220, 143, 0.25) 60px,
+      rgba(247, 220, 143, 0.25) 100px,
+      transparent 100px,
+      transparent 160px
+    );
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 320px;
+  animation: roadMove 2s linear infinite;
 }
-/* Road treadmill - moves toward viewer */
 @keyframes roadMove {
-  0% { background-position: center 0; }
-  100% { background-position: center 720px; }
-}
-/* Dark overlay for text readability */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(13, 13, 15, 0.5);
-  pointer-events: none;
-  z-index: 0;
-}
-#root {
-  position: relative;
-  z-index: 1;
+  0% { background-position: 0 0, 0 0, 0 0, center 0; }
+  100% { background-position: 0 0, 0 0, 0 0, center 320px; }
 }
 
 
