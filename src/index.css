@@ -425,7 +425,7 @@ input[type="number"] {
 .posh-drawer {
   background:
     radial-gradient(120% 50% at 50% 0%, rgba(167, 139, 250, 0.15), transparent 60%),
-    linear-gradient(165deg, #3d2a68 0%, #2c1c52 60%, #241343 100%);
+    linear-gradient(165deg, #11434e 0%, #0e3540 60%, #0a2530 100%);
   border-right: 1px solid rgba(167, 139, 250, 0.18);
   box-shadow: 16px 0 48px rgba(0, 0, 0, 0.35);
 }
@@ -522,18 +522,18 @@ input[type="number"] {
   animation: fade-in 0.25s ease;
 }
 
-/* ===== THEME 77 + ICON BLEND (purple base + teal/cream from icon) ===== */
+/* ===== ICON THEME (teal fuel gauge + cream) ===== */
 :root {
-  --synth-pink: var(--synth-purple-light);
-  --synth-pink-dark: var(--synth-purple);
-  --synth-purple: var(--synth-purple-light);
-  --synth-purple-light: var(--synth-purple-light);
-  --synth-bg: #38265e;
-  --synth-surface: #4a3377;
-  --synth-card: #2d1d52;
-  --synth-text-bright: #ffffff;
-  --synth-text-dim: #d4c5f0;
-  /* Icon colors: teal fuel gauge + cream */
+  --synth-pink: #2bb3c7;
+  --synth-pink-dark: #136b7a;
+  --synth-purple: #1a8a9c;
+  --synth-purple-light: #2bb3c7;
+  --synth-bg: #f5e6c8;
+  --synth-surface: #efe0c0;
+  --synth-card: #ffffff;
+  --synth-text-bright: #1a3a40;
+  --synth-text-dim: #4a6b70;
+  /* Icon colors */
   --icon-teal: #1a8a9c;
   --icon-teal-light: #2bb3c7;
   --icon-teal-dark: #136b7a;
@@ -542,10 +542,10 @@ input[type="number"] {
 }
 
 /* Readability: brighten body text and muted text on the lighter bg */
-body { color: #f5f0ff !important; }
-.text-zinc-500 { color: #b8a8d8 !important; }
-.text-zinc-400 { color: #c9bce8 !important; }
-.text-zinc-300 { color: #ddd3f5 !important; }
+body { color: #faf6ec !important; }
+.text-zinc-500 { color: #c9bda0 !important; }
+.text-zinc-400 { color: #dccfae !important; }
+.text-zinc-300 { color: #f0e6cc !important; }
 .bg-zinc-900\/40, .bg-zinc-900\/30, .bg-zinc-900\/60 { background-color: rgba(45, 29, 82, 0.7) !important; }
 .bg-zinc-800\/40 { background-color: rgba(58, 36, 105, 0.5) !important; }
 .border-zinc-800\/40, .border-zinc-700\/40 { border-color: rgba(139, 108, 199, 0.25) !important; }
