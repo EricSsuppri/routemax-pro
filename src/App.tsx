@@ -3477,6 +3477,14 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       return v ? Math.min(100, Math.max(0, parseInt(v))) : 65;
     } catch { return 65; }
   });
+  const [isLightMode, setIsLightMode] = useState(() => {
+    try { return localStorage.getItem("routemax_lightmode") === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("routemax_lightmode", isLightMode ? "1" : "0"); } catch {}
+    if (isLightMode) document.body.classList.add("light-mode");
+    else document.body.classList.remove("light-mode");
+  }, [isLightMode]);
   // Apply theme blend to CSS variables (Theme 77 family only)
   useEffect(() => {
     try { localStorage.setItem("routemax_theme77", String(theme77)); } catch {}
@@ -6830,7 +6838,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             {/* Platform Presets */}
             <div className="mb-4 sm:mb-5 animate-fade-in-up" style={{ animationDelay: "0.07s" }}>
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.285</span></span>
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.286</span></span>
                 {activePreset !== "custom" && (
                   <button
                     onClick={clearPreset}
@@ -8511,26 +8519,22 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </button>
                     </div>
 
-                    {/* Theme 77 intensity slider */}
+                    {/* Appearance: Dark / Light toggle (like Instagram/X) */}
                     <div className="mt-2 rounded-xl bg-zinc-800/40 border border-zinc-700/40 px-3 py-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-zinc-200">Theme 77</span>
-                        <span className="text-[10px] font-bold text-[var(--synth-purple-light)]">{theme77}%</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={theme77}
-                        onChange={(e) => setTheme77(parseInt(e.target.value))}
-                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                        style={{
-                          background: "linear-gradient(90deg, var(--synth-purple) 0%, var(--synth-purple-light) 50%, var(--synth-purple) 100%)",
-                        }}
-                      />
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[9px] text-zinc-500">Soft</span>
-                        <span className="text-[9px] text-zinc-500">Vivid</span>
+                      <div className="text-xs font-bold text-zinc-200 mb-2">Appearance</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setIsLightMode(false)}
+                          className={`py-2.5 rounded-xl text-xs font-bold border active:scale-[0.98] ${!isLightMode ? "bg-zinc-900 border-zinc-600 text-white" : "bg-white/5 border-white/10 text-zinc-400"}`}
+                        >
+                          🌙 Dark
+                        </button>
+                        <button
+                          onClick={() => setIsLightMode(true)}
+                          className={`py-2.5 rounded-xl text-xs font-bold border active:scale-[0.98] ${isLightMode ? "bg-amber-100 border-amber-300 text-amber-900" : "bg-white/5 border-white/10 text-zinc-400"}`}
+                        >
+                          ☀️ Light
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -8541,7 +8545,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.285</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.286</div>
             </div>
           </div>
         </div>
