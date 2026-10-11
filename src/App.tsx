@@ -3512,7 +3512,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   // Onboarding overlay JSX
   const renderOnboarding = () => {
     if (!showOnboarding) return null;
-    const langs: [string, string][] = [["en","English"],["es","Español"],["fr","Français"],["de","Deutsch"],["pt","Português"],["it","Italiano"],["nl","Nederlands"],["pl","Polski"],["ru","Русский"],["uk","Українська"],["ar","العربية"],["hi","हिन्दी"],["zh","中文 (简体)"],["zh-TW","中文 (繁體)"],["ja","日本語"],["ko","한국어"]];
+    const langs: [string, string][] = [["en","English"],["es","Español"],["fr","Français"],["de","Deutsch"],["pt","Português"],["it","Italiano"],["nl","Nederlands"],["pl","Polski"],["ru","Русский"],["uk","Українська"],["ar","العربية"],["hi","हिन्दी"],["zh","中文 (简体)"],["ja","日本語"],["ko","한국어"]];
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 overflow-y-auto" style={{ background: "linear-gradient(165deg, #3d2a68 0%, #2c1c52 60%, #241343 100%)" }}>
         <div className="w-full max-w-sm text-center py-8">
@@ -8546,7 +8546,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                             ["en", "English"], ["es", "Español"], ["fr", "Français"], ["de", "Deutsch"],
                             ["pt", "Português"], ["it", "Italiano"], ["nl", "Nederlands"], ["pl", "Polski"],
                             ["ru", "Русский"], ["uk", "Українська"], ["ar", "العربية"], ["hi", "हिन्दी"],
-                            ["zh", "中文 (简体)"], ["zh-TW", "中文 (繁體)"], ["ja", "日本語"], ["ko", "한국어"],
+                            ["zh", "中文 (简体)"], ["ja", "日本語"], ["ko", "한국어"],
                           ].map(([code, name]) => (
                             <button
                               key={code}
@@ -8634,7 +8634,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.262</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.263</div>
             </div>
           </div>
         </div>
