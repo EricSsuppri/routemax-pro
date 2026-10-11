@@ -3510,22 +3510,43 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       return v ? Math.min(100, Math.max(0, parseInt(v))) : 65;
     } catch { return 65; }
   });
-  // Apply theme blend to CSS variables (Theme 77 family only)
+  const [themeMode, setThemeMode] = useState<"dark"|"medium"|"light">(() => {
+    try {
+      const v = localStorage.getItem("routemax_thememode");
+      return (v === "light" || v === "medium") ? v : "dark";
+    } catch { return "dark"; }
+  });
+  // Apply theme: dark/medium/light mode + intensity slider (dark road with yellow stripes)
   useEffect(() => {
-    try { localStorage.setItem("routemax_theme77", String(theme77)); } catch {}
+    try { 
+      localStorage.setItem("routemax_theme77", String(theme77));
+      localStorage.setItem("routemax_thememode", themeMode);
+    } catch {}
     const t = theme77 / 100;
     const root = document.documentElement;
     const lerp = (a: number[], b: number[], t: number) =>
       `rgb(${Math.round(a[0]+(b[0]-a[0])*t)},${Math.round(a[1]+(b[1]-a[1])*t)},${Math.round(a[2]+(b[2]-a[2])*t)})`;
-    // 0% = Soft muted purple var(--synth-purple) (139,123,184) | 100% = Vivid var(--synth-purple-light) (167,139,250)
-    root.style.setProperty("--synth-purple", lerp([107,91,138], [196,181,253], t));
-    root.style.setProperty("--synth-pink", lerp([107,91,138], [196,181,253], t));
-    root.style.setProperty("--synth-purple-light", lerp([107,91,138], [196,181,253], t));
-    // BG: 0% = #2a2140 (42,33,64) muted | 100% = #38265e (56,38,94) rich
-    root.style.setProperty("--synth-bg", lerp([42,33,64], [56,38,94], t));
-    // Surface: 0% = #3a2d5c (58,45,92) | 100% = #4a3377 (74,51,119)
-    root.style.setProperty("--synth-surface", lerp([58,45,92], [74,51,119], t));
-  }, [theme77]);
+    
+    // Base colors per mode
+    const modes = {
+      dark:   { bg: [[13,13,15], [20,20,25]], surface: [[22,22,26], [35,35,42]], card: [[28,28,34], [45,45,55]], text: [[255,255,255], [255,255,255]] },
+      medium: { bg: [[45,45,50], [65,65,72]], surface: [[60,60,66], [85,85,95]], card: [[75,75,82], [105,105,115]], text: [[255,255,255], [255,255,255]] },
+      light:  { bg: [[245,240,232], [255,252,245]], surface: [[235,228,215], [250,245,235]], card: [[255,255,255], [255,255,255]], text: [[26,26,26], [13,13,13]] },
+    };
+    const m = modes[themeMode];
+    
+    // Apply lerped colors to CSS variables (full app)
+    root.style.setProperty("--synth-bg", lerp(m.bg[0], m.bg[1], t));
+    root.style.setProperty("--synth-surface", lerp(m.surface[0], m.surface[1], t));
+    root.style.setProperty("--synth-card", lerp(m.card[0], m.card[1], t));
+    root.style.setProperty("--synth-text-bright", lerp(m.text[0], m.text[1], t));
+    // Yellow stripe accent intensity
+    root.style.setProperty("--synth-purple", lerp([212,169,78], [247,220,143], t));
+    root.style.setProperty("--synth-purple-light", lerp([212,169,78], [255,233,168], t));
+    root.style.setProperty("--synth-pink", lerp([212,169,78], [247,220,143], t));
+    // Body background
+    document.body.style.backgroundColor = lerp(m.bg[0], m.bg[1], t);
+  }, [theme77, themeMode]);
   // First-launch onboarding: country + language picker
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try { return !localStorage.getItem("routemax_onboarded"); } catch { return true; }
@@ -8544,10 +8565,22 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </button>
                     </div>
 
-                    {/* Theme 77 intensity slider */}
+                    {/* Theme mode: Dark / Medium / Light */}
                     <div className="mt-2 rounded-xl bg-zinc-800/40 border border-zinc-700/40 px-3 py-3">
+                      <div className="text-xs font-bold text-zinc-200 mb-2">Appearance</div>
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        {(["dark", "medium", "light"] as const).map((m) => (
+                          <button
+                            key={m}
+                            onClick={() => setThemeMode(m)}
+                            className={`py-2.5 rounded-xl text-xs font-bold capitalize border active:scale-[0.98] ${themeMode === m ? "bg-[var(--synth-purple)]/20 border-[var(--synth-purple)]/50 text-white" : "bg-white/5 border-white/10 text-zinc-400"}`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-zinc-200">Theme 77</span>
+                        <span className="text-xs font-bold text-zinc-200">Intensity</span>
                         <span className="text-[10px] font-bold text-[var(--synth-purple-light)]">{theme77}%</span>
                       </div>
                       <input
@@ -8574,7 +8607,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.279</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.280</div>
             </div>
           </div>
         </div>
