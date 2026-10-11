@@ -3487,10 +3487,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const root = document.documentElement;
     const lerp = (a: number[], b: number[], t: number) =>
       `rgb(${Math.round(a[0]+(b[0]-a[0])*t)},${Math.round(a[1]+(b[1]-a[1])*t)},${Math.round(a[2]+(b[2]-a[2])*t)})`;
-    // 0% = Soft muted purple var(--synth-purple) (139,123,184) | 100% = Vivid var(--synth-purple-light) (167,139,250)
-    root.style.setProperty("--synth-purple", lerp([107,91,138], [196,181,253], t));
-    root.style.setProperty("--synth-pink", lerp([107,91,138], [196,181,253], t));
-    root.style.setProperty("--synth-purple-light", lerp([107,91,138], [196,181,253], t));
+    // Teal/cream/gold (icon colors) - no purple
+    root.style.setProperty("--synth-purple", lerp([45,212,191], [94,234,212], t));
+    root.style.setProperty("--synth-pink", lerp([232,200,126], [247,220,143], t));
+    root.style.setProperty("--synth-purple-light", lerp([94,234,212], [153,246,228], t));
     // BG: 0% = #2a2140 (42,33,64) muted | 100% = #38265e (56,38,94) rich
     root.style.setProperty("--synth-bg", lerp([42,33,64], [56,38,94], t));
     // Surface: 0% = #3a2d5c (58,45,92) | 100% = #4a3377 (74,51,119)
@@ -6833,7 +6833,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             {/* Platform Presets */}
             <div className="mb-4 sm:mb-5 animate-fade-in-up" style={{ animationDelay: "0.07s" }}>
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.290</span></span>
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.291</span></span>
                 {activePreset !== "custom" && (
                   <button
                     onClick={clearPreset}
@@ -8568,7 +8568,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.290</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.291</div>
             </div>
           </div>
         </div>
