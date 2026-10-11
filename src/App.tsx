@@ -3510,12 +3510,12 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     if (!showOnboarding) return null;
     const langs: [string, string][] = [["en","English"],["es","Español"],["fr","Français"],["de","Deutsch"],["pt","Português"],["it","Italiano"],["nl","Nederlands"],["pl","Polski"],["ru","Русский"],["uk","Українська"],["ar","العربية"],["hi","हिन्दी"],["zh","中文 (简体)"],["ja","日本語"],["ko","한국어"]];
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 overflow-y-auto" style={{ background: "linear-gradient(165deg, #11434e 0%, #0e3540 60%, #0a2530 100%)" }}>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 overflow-y-auto" style={{ background: "linear-gradient(165deg, #16161a 0%, #1c1c22 60%, #0d0d0f 100%)" }}>
         <div className="w-full max-w-sm text-center py-8">
           <div className="text-3xl font-extrabold text-white mb-2">Welcome to RouteMax</div>
           <p className="text-sm text-[var(--synth-purple-light)] mb-6">Know your real earnings before every trip.</p>
           <button onClick={completeOnboarding}
-            className="w-full py-4 rounded-2xl font-extrabold text-[#0a2530] active:scale-[0.98]"
+            className="w-full py-4 rounded-2xl font-extrabold text-[#0d0d0f] active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg, #f7dc8f, #d4a94e)" }}>
             Get Started →
           </button>
@@ -6673,7 +6673,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
   const breakEven = results ? results.totalCost : 0;
 
   return (
-    <div className="min-h-screen bg-[#0a2530] text-zinc-100">
+    <div className="min-h-screen bg-[#0d0d0f] text-zinc-100">
       {/* Ambient gradient backdrop */}
       <div ref={orbParRef} className="fixed inset-0 pointer-events-none overflow-hidden" style={{ willChange: "transform" }}>
         <div className="orb-a absolute -top-64 -right-56 w-80 h-80 bg-teal-500/[0.07] rounded-full blur-[130px]" />
@@ -8064,7 +8064,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           onClick={() => setAuthOpen(false)}
         >
           <div
-            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 animate-fade-in-up border border-[var(--synth-purple-light)]/25" style={{ background: "linear-gradient(165deg, #11434e 0%, #0e3540 60%, #0a2530 100%)" }}
+            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 animate-fade-in-up border border-[var(--synth-purple-light)]/25" style={{ background: "linear-gradient(165deg, #16161a 0%, #1c1c22 60%, #0d0d0f 100%)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-1">
@@ -8086,7 +8086,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             </p>
 
             {/* Mode toggle */}
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#0a2530]/60 border border-[var(--synth-purple-light)]/20 mb-4">
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#0d0d0f]/60 border border-[var(--synth-purple-light)]/20 mb-4">
               {(["signin", "signup"] as const).map((m) => (
                 <button
                   key={m}
@@ -8541,7 +8541,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.276</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.277</div>
             </div>
           </div>
         </div>
