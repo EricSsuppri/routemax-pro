@@ -4890,12 +4890,37 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     // A new screenshot landed while the watcher runs: read it with AI and
     // pop a notification the driver can tap to load the offer.
     ScreenshotWatcher.addListener("screenshotDetected", async ({ imageBase64 }) => {
+      const notifId = Math.floor(Date.now() / 1000) % 100000;
       try {
-        const reply = await askGemini(OFFER_SCAN_PROMPT, imageBase64);
+        // Instant feedback: show "Scanning..." immediately
+        await LocalNotifications.schedule({
+          notifications: [{ id: notifId, title: "Scanning offer...", body: "Reading screenshot..." }],
+        }).catch(() => {});
+        // Compress image for speed: resize to max 768px wide
+        let compressed = imageBase64;
+        try {
+          const img = new Image();
+          await new Promise((resolve, reject) => {
+            img.onload = resolve; img.onerror = reject;
+            img.src = "data:image/jpeg;base64," + imageBase64;
+          });
+          const maxW = 768;
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+          compressed = canvas.toDataURL("image/jpeg", 0.7).split(",")[1];
+        } catch {}
+        const reply = await askGemini(OFFER_SCAN_PROMPT, compressed);
         const data = parseAiJson<{ payout: number; miles: number }>(reply);
         const hasPayout = typeof data.payout === "number" && data.payout > 0;
         const hasMiles = typeof data.miles === "number" && data.miles > 0;
-        if (!hasPayout && !hasMiles) return; // not an offer screenshot
+        if (!hasPayout && !hasMiles) {
+          // Not an offer - cancel the scanning notification
+          await LocalNotifications.cancel({ notifications: [{ id: notifId }] }).catch(() => {});
+          return;
+        }
         const title =
           "Offer scanned: " +
           (hasPayout ? "$" + data.payout : "?") +
@@ -4903,7 +4928,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         await LocalNotifications.schedule({
           notifications: [
             {
-              id: Math.floor(Date.now() / 1000) % 100000,
+              id: notifId,
               title,
               body: "Tap to load it into the calculator.",
               extra: { payout: data.payout, miles: data.miles },
@@ -4912,6 +4937,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         });
       } catch {
         // never disturb the driver over a failed background scan
+        await LocalNotifications.cancel({ notifications: [{ id: notifId }] }).catch(() => {});
       }
     })
       .then((h) => {
@@ -8634,7 +8660,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.295</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.296</div>
             </div>
           </div>
         </div>
