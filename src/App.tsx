@@ -8541,7 +8541,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.274</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.275</div>
             </div>
           </div>
         </div>
