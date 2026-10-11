@@ -541,9 +541,32 @@ input[type="number"] {
   --icon-teal: #1a8a9c;
   --icon-teal-light: #2bb3c7;
 }
-/* Dark road background (simple, reliable) */
+/* Photorealistic animated road background */
 body {
   background-color: #0d0d0f !important;
+  background-image: url("./road-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: repeat-y;
+  animation: roadMove 3s linear infinite;
+}
+/* Road treadmill - moves toward viewer */
+@keyframes roadMove {
+  0% { background-position: center 0; }
+  100% { background-position: center 720px; }
+}
+/* Dark overlay for text readability */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 13, 15, 0.5);
+  pointer-events: none;
+  z-index: 0;
+}
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 
