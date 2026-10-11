@@ -610,20 +610,22 @@ input[type="range"]::-moz-range-thumb {
 /* ---- Bulb glow (v2.252) — luminous like light from within ---- */
 /* Glowing accent text */
 .text-glow-purple {
-  color: var(--synth-purple-light);
-  text-shadow: 0 0 12px rgba(196, 181, 253, 0.6), 0 0 24px rgba(167, 139, 250, 0.3);
+  text-shadow: 0 0 8px var(--synth-purple-light), 0 0 20px var(--synth-purple), 0 0 35px var(--synth-purple);
+  filter: brightness(1.15);
 }
 .text-glow-gold {
-  color: #f7dc8f;
-  text-shadow: 0 0 12px rgba(247, 220, 143, 0.6), 0 0 24px rgba(212, 169, 78, 0.3);
+  text-shadow: 0 0 8px #f7dc8f, 0 0 20px #e8c87e, 0 0 35px #d4a94e;
+  filter: brightness(1.15);
 }
 /* Glowing active tab */
 .tab-active-glow {
-  box-shadow: 0 0 16px rgba(167, 139, 250, 0.35), inset 0 0 12px rgba(167, 139, 250, 0.15);
+  box-shadow: 0 0 15px var(--synth-purple), 0 0 30px var(--synth-purple-light), inset 0 0 12px rgba(167,139,250,0.3);
+  filter: brightness(1.1);
 }
 /* Radial light behind hero */
 .hero-glow {
-  position: relative;
+  text-shadow: 0 0 10px var(--synth-purple-light), 0 0 25px var(--synth-purple), 0 0 45px var(--synth-purple);
+  filter: brightness(1.2);
 }
 .hero-glow::before {
   content: "";
@@ -640,4 +642,24 @@ input[type="range"]::-moz-range-thumb {
 /* Intensified dot glow */
 .animate-drive > div {
   box-shadow: 0 0 16px 4px rgba(196, 181, 253, 0.9), 0 0 32px 8px rgba(167, 139, 250, 0.4) !important;
+}
+
+/* Bulb-under effect: elements look lit from underneath */
+.bulb-under {
+  position: relative;
+}
+.bulb-under::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 10%;
+  right: 10%;
+  height: 8px;
+  background: radial-gradient(ellipse at center, var(--synth-purple-light) 0%, transparent 70%);
+  filter: blur(6px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.bulb-card {
+  box-shadow: 0 4px 20px rgba(124,58,237,0.15), inset 0 1px 0 rgba(167,139,250,0.2), 0 0 30px rgba(139,92,246,0.1);
 }
