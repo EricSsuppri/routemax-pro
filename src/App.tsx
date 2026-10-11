@@ -763,14 +763,6 @@ export function t(lang: string, key: string): string {
   const l = TRANSLATIONS[lang] || TRANSLATIONS.en;
   return l[key] || TRANSLATIONS.en[key] || key;
 }
-// Format money with commas: 588085.00 → 588,085.00
-function fmtMoney(n: number): string {
-  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-function fmtNum(n: number): string {
-  return n.toLocaleString("en-US");
-}
-
 
 function formatCurrency(n: number): string {
   const currency = getAppCurrency();
@@ -1324,7 +1316,7 @@ function PremiumBanner({ onUnlocked }: { onUnlocked: () => void }) {
                 {busy ? "Processing…" : price ? `Upgrade to Premium — ${price}` : "Upgrade to Premium"}
               </div>
               <div className="text-[11px] text-zinc-500 font-medium">
-                History, compare, reports, tax tracking & more
+                History, compare, reports, tax tracking &amp; more
               </div>
             </div>
           </div>
@@ -1428,29 +1420,12 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
   const [attachImg, setAttachImg] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const openPicker = async (camera: boolean) => {
-    if (busy) return;
-    try {
-      const photo = await CapCamera.getPhoto({
-        quality: 85,
-        allowEditing: false,
-        resultType: CameraResultType.Base64,
-        source: camera ? CameraSource.Camera : CameraSource.Prompt,
-      });
-      if (photo.base64String) {
-        // Convert base64 to File-like object and call onFilePicked
-        const byteChars = atob(photo.base64String);
-        const byteNums = new Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-        const byteArray = new Uint8Array(byteNums);
-        const blob = new Blob([byteArray], { type: `image/${photo.format}` });
-        const file = new File([blob], `photo.${photo.format}`, { type: `image/${photo.format}` });
-        // Call the handler directly
-        await onFilePicked({ target: { files: [file], value: "" } } as any);
-      }
-    } catch (e) {
-      // User cancelled or error - do nothing
-    }
+  const openPicker = (camera: boolean) => {
+    const el = fileRef.current;
+    if (!el || busy) return;
+    if (camera) el.setAttribute("capture", "environment");
+    else el.removeAttribute("capture");
+    el.click();
   };
   const onFilePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files && e.target.files[0];
@@ -1778,7 +1753,6 @@ function CameraCoach({ mode, onClose, onLog }: {
   const [plan, setPlan] = useState("");
   const [planBusy, setPlanBusy] = useState(false);
 
-  const [useNativeCam, setUseNativeCam] = useState(false);
   const startCam = async (f: "user" | "environment") => {
     try {
       if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
@@ -1786,31 +1760,7 @@ function CameraCoach({ mode, onClose, onLog }: {
       streamRef.current = s;
       if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play().catch(() => {}); }
       setCamErr("");
-      setUseNativeCam(false);
-    } catch { 
-      // Fallback: use native camera plugin for still photo
-      setUseNativeCam(true);
-      setCamErr("");
-    }
-  };
-  const takeNativePhoto = async () => {
-    try {
-      setBusy(true);
-      const photo = await CapCamera.getPhoto({
-        quality: 80,
-        allowEditing: false,
-        resultType: CameraResultType.Base64,
-        source: CameraSource.Camera,
-      });
-      if (photo.base64String) {
-        // Send to Gemini for analysis
-        await analyzePhoto(photo.base64String);
-      }
-    } catch (e) {
-      setCamErr("Camera unavailable. Please type it in manually.");
-    } finally {
-      setBusy(false);
-    }
+    } catch { setCamErr("Camera blocked — allow camera access in your browser settings, or type it in manually."); }
   };
   useEffect(() => {
     startCam(facing);
@@ -2361,25 +2311,12 @@ function AppInner() {
   const [expViewId, setExpViewId] = useState<string | null>(null);
   const expFileRef = useRef<HTMLInputElement>(null);
   const expTotal = expenses.reduce((sum, x) => sum + (x.amount || 0), 0);
-  const openExpPicker = async (camera: boolean) => {
-    if (expScanBusy) return;
-    try {
-      const photo = await CapCamera.getPhoto({
-        quality: 85,
-        allowEditing: false,
-        resultType: CameraResultType.Base64,
-        source: camera ? CameraSource.Camera : CameraSource.Prompt,
-      });
-      if (photo.base64String) {
-        const byteChars = atob(photo.base64String);
-        const byteNums = new Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-        const byteArray = new Uint8Array(byteNums);
-        const blob = new Blob([byteArray], { type: `image/${photo.format}` });
-        const file = new File([blob], `receipt.${photo.format}`, { type: `image/${photo.format}` });
-        await onExpFile({ target: { files: [file], value: "" } } as any);
-      }
-    } catch (e) {}
+  const openExpPicker = (camera: boolean) => {
+    const el = expFileRef.current;
+    if (!el || expScanBusy) return;
+    if (camera) el.setAttribute("capture", "environment");
+    else el.removeAttribute("capture");
+    el.click();
   };
     const onExpFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files && e.target.files[0];
@@ -3540,43 +3477,22 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       return v ? Math.min(100, Math.max(0, parseInt(v))) : 65;
     } catch { return 65; }
   });
-  const [themeMode, setThemeMode] = useState<"dark"|"medium"|"light">(() => {
-    try {
-      const v = localStorage.getItem("routemax_thememode");
-      return (v === "light" || v === "medium") ? v : "dark";
-    } catch { return "dark"; }
-  });
-  // Apply theme: dark/medium/light mode + intensity slider (dark road with yellow stripes)
+  // Apply theme blend to CSS variables (Theme 77 family only)
   useEffect(() => {
-    try { 
-      localStorage.setItem("routemax_theme77", String(theme77));
-      localStorage.setItem("routemax_thememode", themeMode);
-    } catch {}
+    try { localStorage.setItem("routemax_theme77", String(theme77)); } catch {}
     const t = theme77 / 100;
     const root = document.documentElement;
     const lerp = (a: number[], b: number[], t: number) =>
       `rgb(${Math.round(a[0]+(b[0]-a[0])*t)},${Math.round(a[1]+(b[1]-a[1])*t)},${Math.round(a[2]+(b[2]-a[2])*t)})`;
-    
-    // Base colors per mode
-    const modes = {
-      dark:   { bg: [[13,13,15], [20,20,25]], surface: [[22,22,26], [35,35,42]], card: [[28,28,34], [45,45,55]], text: [[255,255,255], [255,255,255]] },
-      medium: { bg: [[45,45,50], [65,65,72]], surface: [[60,60,66], [85,85,95]], card: [[75,75,82], [105,105,115]], text: [[255,255,255], [255,255,255]] },
-      light:  { bg: [[245,240,232], [255,252,245]], surface: [[235,228,215], [250,245,235]], card: [[255,255,255], [255,255,255]], text: [[26,26,26], [13,13,13]] },
-    };
-    const m = modes[themeMode];
-    
-    // Apply lerped colors to CSS variables (full app)
-    root.style.setProperty("--synth-bg", lerp(m.bg[0], m.bg[1], t));
-    root.style.setProperty("--synth-surface", lerp(m.surface[0], m.surface[1], t));
-    root.style.setProperty("--synth-card", lerp(m.card[0], m.card[1], t));
-    root.style.setProperty("--synth-text-bright", lerp(m.text[0], m.text[1], t));
-    // Yellow stripe accent intensity
-    root.style.setProperty("--synth-purple", lerp([212,169,78], [247,220,143], t));
-    root.style.setProperty("--synth-purple-light", lerp([212,169,78], [255,233,168], t));
-    root.style.setProperty("--synth-pink", lerp([212,169,78], [247,220,143], t));
-    // Body background
-    document.body.style.backgroundColor = lerp(m.bg[0], m.bg[1], t);
-  }, [theme77, themeMode]);
+    // 0% = Soft muted purple var(--synth-purple) (139,123,184) | 100% = Vivid var(--synth-purple-light) (167,139,250)
+    root.style.setProperty("--synth-purple", lerp([107,91,138], [196,181,253], t));
+    root.style.setProperty("--synth-pink", lerp([107,91,138], [196,181,253], t));
+    root.style.setProperty("--synth-purple-light", lerp([107,91,138], [196,181,253], t));
+    // BG: 0% = #2a2140 (42,33,64) muted | 100% = #38265e (56,38,94) rich
+    root.style.setProperty("--synth-bg", lerp([42,33,64], [56,38,94], t));
+    // Surface: 0% = #3a2d5c (58,45,92) | 100% = #4a3377 (74,51,119)
+    root.style.setProperty("--synth-surface", lerp([58,45,92], [74,51,119], t));
+  }, [theme77]);
   // First-launch onboarding: country + language picker
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try { return !localStorage.getItem("routemax_onboarded"); } catch { return true; }
@@ -5663,7 +5579,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("fuelcost")}</div>
-                  <div className="text-lg font-extrabold text-white">{countryInfo.symbol}{fmtMoney(book.fuelCost)}</div>
+                  <div className="text-lg font-extrabold text-white">{countryInfo.symbol}{book.fuelCost.toFixed(2)}</div>
                   <div className="text-[10px] text-zinc-600">{countryInfo.symbol}{bookCostPerMile.toFixed(2)}/{DIST} total cost</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
@@ -5673,12 +5589,12 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("grossearnings")}</div>
-                  <div className="text-lg font-extrabold text-teal-300">{countryInfo.symbol}{fmtMoney(book.gross)}</div>
+                  <div className="text-lg font-extrabold text-teal-300">{countryInfo.symbol}{book.gross.toFixed(2)}</div>
                   <div className="text-[10px] text-zinc-600">{countryInfo.symbol}{bookEarnPerMile.toFixed(2)}/{DIST}</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("netprofit")}</div>
-                  <div className={"text-lg font-extrabold " + (book.net >= 0 ? "text-green-400" : "text-red-400")}>{countryInfo.symbol}{fmtMoney(book.net)}</div>
+                  <div className={"text-lg font-extrabold " + (book.net >= 0 ? "text-green-400" : "text-red-400")}>{countryInfo.symbol}{book.net.toFixed(2)}</div>
                   <div className="text-[10px] text-zinc-600">{countryInfo.symbol}{bookHourly.toFixed(2)}/hr · {book.hours.toFixed(1)} hrs</div>
                 </div>
               </div>
@@ -5744,24 +5660,24 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     </style></head><body>
                       <h1>RouteMax — Bookkeeping Report</h1>
                       <div class="meta">${periodLabel} · ${countryInfo.name} · Generated ${new Date().toLocaleDateString()}</div>
-                      <h2>${tr("summary")}</h2>
+                      <h2>{tr("summary")}</h2>
                       <table>
-                        <tr><th>${tr("metric")}</th><th>${tr("value")}</th></tr>
-                        <tr><td>${tr("trips")}</td><td>${book.trips}</td></tr>
-                        <tr><td>${useKm ? "Kilometers driven" : "Miles driven"}</td><td>${book.miles.toFixed(1)}</td></tr>
+                        <tr><th>{tr("metric")}</th><th>{tr("value")}</th></tr>
+                        <tr><td>{tr("trips")}</td><td>${book.trips}</td></tr>
+                        <tr><td>{useKm ? "Kilometers driven" : "Miles driven"}</td><td>${book.miles.toFixed(1)}</td></tr>
                         <tr><td>Gas used</td><td>${book.gallons.toFixed(1)} gal (${bookMpg.toFixed(1)} MPG)</td></tr>
                         <tr><td>Fuel cost</td><td>${countryInfo.symbol}${book.fuelCost.toFixed(2)}</td></tr>
                         <tr><td>Other expenses</td><td>${countryInfo.symbol}${bookOtherCosts.toFixed(2)}</td></tr>
-                        <tr><td>${tr("totalexpenses")}</td><td>${countryInfo.symbol}${book.totalCost.toFixed(2)}</td></tr>
+                        <tr><td>{tr("totalexpenses")}</td><td>${countryInfo.symbol}${book.totalCost.toFixed(2)}</td></tr>
                         <tr><td>Gross earnings</td><td>${countryInfo.symbol}${book.gross.toFixed(2)}</td></tr>
                         <tr><td class="total">Net profit</td><td class="total ${book.net >= 0 ? "positive" : "negative"}">${countryInfo.symbol}${book.net.toFixed(2)}</td></tr>
-                        <tr><td>${tr("hoursdriven")}</td><td>${book.hours.toFixed(1)}</td></tr>
-                        <tr><td>${tr("earningsperhour")}</td><td>${countryInfo.symbol}${bookHourly.toFixed(2)}</td></tr>
-                        <tr><td>${tr("costpermile")}</td><td>${countryInfo.symbol}${bookCostPerMile.toFixed(2)}</td></tr>
+                        <tr><td>{tr("hoursdriven")}</td><td>${book.hours.toFixed(1)}</td></tr>
+                        <tr><td>{tr("earningsperhour")}</td><td>${countryInfo.symbol}${bookHourly.toFixed(2)}</td></tr>
+                        <tr><td>{tr("costpermile")}</td><td>${countryInfo.symbol}${bookCostPerMile.toFixed(2)}</td></tr>
                       </table>
-                      ${bookAiSummary ? `<h2>${tr("aiinsights")}</h2><p style="white-space: pre-line; font-size: 14px; line-height: 1.6;">${bookAiSummary}</p>` : ""}
-                      <h2>${tr("tripdetails")}</h2>
-                      <table><tr><th>${tr("date")}</th><th>${tr("distance")}</th><th>Payout</th><th>Net</th></tr>
+                      ${bookAiSummary ? `<h2>{tr("aiinsights")}</h2><p style="white-space: pre-line; font-size: 14px; line-height: 1.6;">${bookAiSummary}</p>` : ""}
+                      <h2>{tr("tripdetails")}</h2>
+                      <table><tr><th>{tr("date")}</th><th>{tr("distance")}</th><th>Payout</th><th>Net</th></tr>
                       ${bookRows.map((r) => `<tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${distVal(r.mileage || 0).toFixed(1)} {DIST}</td><td>${countryInfo.symbol}${(r.payout || 0).toFixed(2)}</td><td>${countryInfo.symbol}${(r.net_profit || 0).toFixed(2)}</td></tr>`).join("")}
                       </table>
                       <div class="meta" style="margin-top: 30px;">Mileage rate: ${countryInfo.symbol}${countryInfo.mileageRate}/${countryInfo.miles ? "mi" : "km"} — ${countryInfo.mileageLabel}</div>
@@ -6914,7 +6830,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             {/* Platform Presets */}
             <div className="mb-4 sm:mb-5 animate-fade-in-up" style={{ animationDelay: "0.07s" }}>
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.284</span></span>
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.285</span></span>
                 {activePreset !== "custom" && (
                   <button
                     onClick={clearPreset}
@@ -7816,7 +7732,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-zinc-200">{tr("totaltripcost")}</div>
-                        <div className="text-[11px] text-zinc-500 truncate">Fuel + wear & tear{results.returnMileage > 0 ? " + return" : ""}</div>
+                        <div className="text-[11px] text-zinc-500 truncate">Fuel + wear &amp; tear{results.returnMileage > 0 ? " + return" : ""}</div>
                       </div>
                     </div>
                     <div className="text-base sm:text-lg font-bold text-red-400 flex-shrink-0">
@@ -8595,22 +8511,10 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </button>
                     </div>
 
-                    {/* Theme mode: Dark / Medium / Light */}
+                    {/* Theme 77 intensity slider */}
                     <div className="mt-2 rounded-xl bg-zinc-800/40 border border-zinc-700/40 px-3 py-3">
-                      <div className="text-xs font-bold text-zinc-200 mb-2">Appearance</div>
-                      <div className="grid grid-cols-3 gap-2 mb-3">
-                        {(["dark", "medium", "light"] as const).map((m) => (
-                          <button
-                            key={m}
-                            onClick={() => setThemeMode(m)}
-                            className={`py-2.5 rounded-xl text-xs font-bold capitalize border active:scale-[0.98] ${themeMode === m ? "bg-[var(--synth-purple)]/20 border-[var(--synth-purple)]/50 text-white" : "bg-white/5 border-white/10 text-zinc-400"}`}
-                          >
-                            {m}
-                          </button>
-                        ))}
-                      </div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-zinc-200">Intensity</span>
+                        <span className="text-xs font-bold text-zinc-200">Theme 77</span>
                         <span className="text-[10px] font-bold text-[var(--synth-purple-light)]">{theme77}%</span>
                       </div>
                       <input
@@ -8637,7 +8541,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.284</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.285</div>
             </div>
           </div>
         </div>
@@ -8920,7 +8824,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 </div>
               </div>
               <p className="text-[11px] text-zinc-500 mb-2.5 leading-relaxed">Snap your meal, drink or snack — AI reads the nutrients.</p>
-              <input ref={buddyFileRef} type="file" accept="image/*" capture="environment" onChange={onBuddyFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+              <input ref={buddyFileRef} type="file" accept="image/*,video/*" onChange={onBuddyFile} className="hidden" aria-hidden="true" tabIndex={-1} />
               {buddyScanImg ? (
                 <div className="relative inline-block mb-2.5">
                   <img src={buddyScanImg} alt="Scan" className="h-24 w-auto rounded-xl border border-zinc-700/60" />
@@ -10378,7 +10282,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <Sparkles className="w-4 h-4 text-teal-300 flex-shrink-0" />
                     <span className="text-xs font-bold text-teal-200">{tr("aivehiclehelper")}</span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mb-2.5 leading-relaxed">Describe your car in your own words — I'll find it, even if it's not in the list.</p>
+                  <p className="text-[11px] text-zinc-400 mb-2.5 leading-relaxed">Describe your car in your own words — I&apos;ll find it, even if it&apos;s not in the list.</p>
                   <div className="flex gap-2">
                     <input
                       value={aiHelperText}
