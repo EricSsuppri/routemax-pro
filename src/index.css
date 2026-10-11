@@ -522,7 +522,7 @@ input[type="number"] {
   animation: fade-in 0.25s ease;
 }
 
-/* ===== SYNTHWAVE THEME #77 (purple dominant) ===== */
+/* ===== THEME 77 + ICON BLEND (purple base + teal/cream from icon) ===== */
 :root {
   --synth-pink: var(--synth-purple-light);
   --synth-pink-dark: var(--synth-purple);
@@ -533,6 +533,12 @@ input[type="number"] {
   --synth-card: #2d1d52;
   --synth-text-bright: #ffffff;
   --synth-text-dim: #d4c5f0;
+  /* Icon colors: teal fuel gauge + cream */
+  --icon-teal: #1a8a9c;
+  --icon-teal-light: #2bb3c7;
+  --icon-teal-dark: #136b7a;
+  --icon-cream: #f5e6c8;
+  --icon-cream-dim: #e8d5b0;
 }
 
 /* Readability: brighten body text and muted text on the lighter bg */
@@ -544,17 +550,23 @@ body { color: #f5f0ff !important; }
 .bg-zinc-800\/40 { background-color: rgba(58, 36, 105, 0.5) !important; }
 .border-zinc-800\/40, .border-zinc-700\/40 { border-color: rgba(139, 108, 199, 0.25) !important; }
 
-/* Blend: purple identity + original theme readability */
-/* Bright lavender for text accents (readable on dark) */
-.text-teal-300, .text-teal-400 { color: var(--synth-purple-light) !important; }
-.text-teal-500 { color: var(--synth-purple-light) !important; }
-/* Rich purple for backgrounds/buttons */
-.bg-teal-400, .bg-teal-500 { background-color: var(--synth-purple) !important; }
-.bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(139, 92, 246, 0.20) !important; }
-.border-teal-400, .border-teal-500 { border-color: var(--synth-purple) !important; }
-.border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(139, 92, 246, 0.35) !important; }
-.from-teal-400, .from-teal-500 { --tw-gradient-from: var(--synth-purple) !important; }
-.to-teal-400, .to-teal-500 { --tw-gradient-to: #6d28d9 !important; }
+/* Icon teal: real teal from the fuel gauge icon, blended with purple base */
+/* Bright teal for text accents */
+.text-teal-300 { color: var(--icon-teal-light) !important; }
+.text-teal-400 { color: var(--icon-teal) !important; }
+.text-teal-500 { color: var(--icon-teal-dark) !important; }
+/* Teal for backgrounds/buttons */
+.bg-teal-400 { background-color: var(--icon-teal-light) !important; }
+.bg-teal-500 { background-color: var(--icon-teal) !important; }
+.bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(26, 138, 156, 0.20) !important; }
+.border-teal-400 { border-color: var(--icon-teal-light) !important; }
+.border-teal-500 { border-color: var(--icon-teal) !important; }
+.border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(26, 138, 156, 0.35) !important; }
+.from-teal-400, .from-teal-500 { --tw-gradient-from: var(--icon-teal) !important; }
+.to-teal-400, .to-teal-500 { --tw-gradient-to: var(--icon-teal-dark) !important; }
+/* Cream highlights from icon background */
+.text-cream, .text-\[\#f5e6c8\] { color: var(--icon-cream) !important; }
+.bg-cream\/10 { background-color: rgba(245, 230, 200, 0.10) !important; }
 /* Champagne gold highlights (from original theme) for key CTAs */
 .text-\[\#f7dc8f\], .text-amber-200, .text-amber-300 { color: #f7dc8f !important; }
 .bg-\[\#f7dc8f\]\/10, .bg-amber-400\/10 { background-color: rgba(243, 216, 148, 0.12) !important; }
