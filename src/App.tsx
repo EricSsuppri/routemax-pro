@@ -1754,13 +1754,8 @@ function CameraCoach({ mode, onClose, onLog }: {
   const [planBusy, setPlanBusy] = useState(false);
 
   const startCam = async (f: "user" | "environment") => {
-    try {
-      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: f }, audio: false });
-      streamRef.current = s;
-      if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play().catch(() => {}); }
-      setCamErr("");
-    } catch { setCamErr("Camera blocked — allow camera access in your browser settings, or type it in manually."); }
+    // Use Capacitor Camera (not getUserMedia — crashes on Android WebView)
+    setCamErr("Tap the camera button below to take a photo.");
   };
   useEffect(() => {
     startCam(facing);
@@ -6838,7 +6833,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             {/* Platform Presets */}
             <div className="mb-4 sm:mb-5 animate-fade-in-up" style={{ animationDelay: "0.07s" }}>
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.289</span></span>
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Presets <span className="text-zinc-700 normal-case tracking-normal">· v2.290</span></span>
                 {activePreset !== "custom" && (
                   <button
                     onClick={clearPreset}
@@ -8573,7 +8568,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.289</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.290</div>
             </div>
           </div>
         </div>
