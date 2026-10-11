@@ -6337,7 +6337,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           className="glass rounded-2xl p-3 text-center active:opacity-70 animate-fade-in-up"
           style={{ animationDelay: delay || "0s" }}
         >
-          <div className={`text-lg font-extrabold ${valueClass}`}>{anim ? <AnimatedNumber value={anim.v} format={anim.f} /> : value}</div>
+          <div className={`text-xl font-extrabold break-words ${valueClass}`}>{anim ? <AnimatedNumber value={anim.v} format={anim.f} /> : value}</div>
           <div className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mt-0.5 flex items-center justify-center gap-1">
             {label}
             <ChevronDown className={`w-3 h-3 text-zinc-600 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -6348,11 +6348,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
     const providerSummary = Object.entries(byProvider)
       .map(([label, v]) => `${label}: ${v.n} trips, ${formatCurrency(v.net)} net`)
       .join("; ");
-    const acceptedPayouts = accepted.map((r) => `$${r.payout ?? 0}`).join(", ");
+    const acceptedPayouts = accepted.map((r) => formatCurrency(r.payout ?? 0)).join(", ");
     return (
       <div>
         {acceptedHeader}
-        <div className="grid grid-cols-3 gap-2 mb-2">
+        <div className="flex flex-col gap-2 mb-2">
           {acceptedBox("trips", "Trips", accepted.length, "text-white", { v: accepted.length, f: (n) => String(Math.round(n)) }, "0.06s")}
           {acceptedBox("net", "Net", formatCurrency(totalNet), totalNet >= 0 ? "text-teal-400" : "text-red-400", { v: totalNet, f: formatCurrency }, "0.12s")}
           {acceptedBox("miles", "Miles", formatNumber(totalMiles, 0), "text-white", { v: totalMiles, f: (n) => formatNumber(n, 0) }, "0.18s")}
@@ -8634,7 +8634,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.294</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.295</div>
             </div>
           </div>
         </div>
