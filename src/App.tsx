@@ -1428,12 +1428,29 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
   const [attachImg, setAttachImg] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const openPicker = (camera: boolean) => {
-    const el = fileRef.current;
-    if (!el || busy) return;
-    if (camera) el.setAttribute("capture", "environment");
-    else el.removeAttribute("capture");
-    el.click();
+  const openPicker = async (camera: boolean) => {
+    if (busy) return;
+    try {
+      const photo = await CapCamera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: camera ? CameraSource.Camera : CameraSource.Prompt,
+      });
+      if (photo.base64String) {
+        // Convert base64 to File-like object and call onFilePicked
+        const byteChars = atob(photo.base64String);
+        const byteNums = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+        const byteArray = new Uint8Array(byteNums);
+        const blob = new Blob([byteArray], { type: `image/${photo.format}` });
+        const file = new File([blob], `photo.${photo.format}`, { type: `image/${photo.format}` });
+        // Call the handler directly
+        await onFilePicked({ target: { files: [file], value: "" } } as any);
+      }
+    } catch (e) {
+      // User cancelled or error - do nothing
+    }
   };
   const onFilePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files && e.target.files[0];
@@ -2344,12 +2361,25 @@ function AppInner() {
   const [expViewId, setExpViewId] = useState<string | null>(null);
   const expFileRef = useRef<HTMLInputElement>(null);
   const expTotal = expenses.reduce((sum, x) => sum + (x.amount || 0), 0);
-  const openExpPicker = (camera: boolean) => {
-    const el = expFileRef.current;
-    if (!el || expScanBusy) return;
-    if (camera) el.setAttribute("capture", "environment");
-    else el.removeAttribute("capture");
-    el.click();
+  const openExpPicker = async (camera: boolean) => {
+    if (expScanBusy) return;
+    try {
+      const photo = await CapCamera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: camera ? CameraSource.Camera : CameraSource.Prompt,
+      });
+      if (photo.base64String) {
+        const byteChars = atob(photo.base64String);
+        const byteNums = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+        const byteArray = new Uint8Array(byteNums);
+        const blob = new Blob([byteArray], { type: `image/${photo.format}` });
+        const file = new File([blob], `receipt.${photo.format}`, { type: `image/${photo.format}` });
+        await onExpFile({ target: { files: [file], value: "" } } as any);
+      }
+    } catch (e) {}
   };
     const onExpFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files && e.target.files[0];
@@ -8607,7 +8637,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.280</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.281</div>
             </div>
           </div>
         </div>
