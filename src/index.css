@@ -6,7 +6,7 @@
 
 :root {
   --color-bg: #0a0014;
-  --color-gold: #a78bfa;
+  --color-gold: var(--synth-purple-light);
   --color-gold-deep: #b08d3e;
   --color-champagne: #ffecd0;
   --color-surface: #14141c;
@@ -137,7 +137,7 @@ input[type="number"] {
 
 /* Champagne gold primary button */
 .btn-champagne {
-  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 35%, #d4a94e 70%, #a78bfa 100%);
+  background: linear-gradient(135deg, #c4b5fd 0%, var(--synth-purple-light) 35%, #d4a94e 70%, var(--synth-purple-light) 100%);
   color: #191408;
   box-shadow: 0 8px 28px rgba(230, 197, 124, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
@@ -214,7 +214,7 @@ input[type="number"] {
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #8b5cf6;
+  color: var(--synth-purple);
   padding-bottom: 8px;
   margin-bottom: 6px;
   border-bottom: 1px solid rgba(243, 216, 148, 0.16);
@@ -524,10 +524,10 @@ input[type="number"] {
 
 /* ===== SYNTHWAVE THEME #77 (purple dominant) ===== */
 :root {
-  --synth-pink: #a78bfa;
-  --synth-pink-dark: #8b5cf6;
-  --synth-purple: #a78bfa;
-  --synth-purple-light: #a78bfa;
+  --synth-pink: var(--synth-purple-light);
+  --synth-pink-dark: var(--synth-purple);
+  --synth-purple: var(--synth-purple-light);
+  --synth-purple-light: var(--synth-purple-light);
   --synth-bg: #38265e;
   --synth-surface: #4a3377;
   --synth-card: #2d1d52;
@@ -547,13 +547,13 @@ body { color: #f5f0ff !important; }
 /* Blend: purple identity + original theme readability */
 /* Bright lavender for text accents (readable on dark) */
 .text-teal-300, .text-teal-400 { color: #c4b5fd !important; }
-.text-teal-500 { color: #a78bfa !important; }
+.text-teal-500 { color: var(--synth-purple-light) !important; }
 /* Rich purple for backgrounds/buttons */
-.bg-teal-400, .bg-teal-500 { background-color: #8b5cf6 !important; }
+.bg-teal-400, .bg-teal-500 { background-color: var(--synth-purple) !important; }
 .bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(139, 92, 246, 0.20) !important; }
-.border-teal-400, .border-teal-500 { border-color: #8b5cf6 !important; }
+.border-teal-400, .border-teal-500 { border-color: var(--synth-purple) !important; }
 .border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(139, 92, 246, 0.35) !important; }
-.from-teal-400, .from-teal-500 { --tw-gradient-from: #8b5cf6 !important; }
+.from-teal-400, .from-teal-500 { --tw-gradient-from: var(--synth-purple) !important; }
 .to-teal-400, .to-teal-500 { --tw-gradient-to: #6d28d9 !important; }
 /* Champagne gold highlights (from original theme) for key CTAs */
 .text-\[\#f7dc8f\], .text-amber-200, .text-amber-300 { color: #f7dc8f !important; }
@@ -593,7 +593,7 @@ input[type="range"]::-webkit-slider-thumb {
   height: 20px;
   border-radius: 50%;
   background: #f7dc8f;
-  border: 2px solid #a78bfa;
+  border: 2px solid var(--synth-purple-light);
   box-shadow: 0 0 10px rgba(247, 220, 143, 0.5);
   cursor: pointer;
 }
@@ -602,7 +602,7 @@ input[type="range"]::-moz-range-thumb {
   height: 20px;
   border-radius: 50%;
   background: #f7dc8f;
-  border: 2px solid #a78bfa;
+  border: 2px solid var(--synth-purple-light);
   box-shadow: 0 0 10px rgba(247, 220, 143, 0.5);
   cursor: pointer;
 }
