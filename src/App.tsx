@@ -1393,7 +1393,7 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-const APP_VERSION = "2.327";
+const APP_VERSION = "2.328";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -5619,32 +5619,32 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("milesdriven")}</div>
-                  <div className="text-lg font-extrabold text-white">{book.miles.toFixed(1)}</div>
+                  <div className="text-lg font-extrabold text-white">{fmtNum(book.miles, 1)}</div>
                   <div className="text-[10px] text-zinc-600">{book.trips} trips</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("gasused")}</div>
-                  <div className="text-lg font-extrabold text-white">{book.gallons.toFixed(1)} gal</div>
+                  <div className="text-lg font-extrabold text-white">{fmtNum(book.gallons, 1)} gal</div>
                   <div className="text-[10px] text-zinc-600">{fuelEffVal(bookMpg).toFixed(1)} {FUEL_EFF} avg</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("fuelcost")}</div>
-                  <div className="text-lg font-extrabold text-white">{countryInfo.symbol}{book.fuelCost.toFixed(2)}</div>
+                  <div className="text-lg font-extrabold text-white">{countryInfo.symbol}{fmtNum(book.fuelCost)}</div>
                   <div className="text-[10px] text-zinc-600">{countryInfo.symbol}{bookCostPerMile.toFixed(2)}/{DIST} total cost</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("otherexpenses")}</div>
-                  <div className="text-lg font-extrabold text-white">{countryInfo.symbol}{bookOtherCosts.toFixed(2)}</div>
+                  <div className="text-lg font-extrabold text-white">{countryInfo.symbol}{fmtNum(bookOtherCosts)}</div>
                   <div className="text-[10px] text-zinc-600">{tr("wearmaintenaetc")}</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("grossearnings")}</div>
-                  <div className="text-lg font-extrabold text-amber-300">{countryInfo.symbol}{book.gross.toFixed(2)}</div>
+                  <div className="text-lg font-extrabold text-amber-300">{countryInfo.symbol}{fmtNum(book.gross)}</div>
                   <div className="text-[10px] text-zinc-600">{countryInfo.symbol}{bookEarnPerMile.toFixed(2)}/{DIST}</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("netprofit")}</div>
-                  <div className={"text-lg font-extrabold " + (book.net >= 0 ? "text-green-400" : "text-red-400")}>{countryInfo.symbol}{book.net.toFixed(2)}</div>
+                  <div className={"text-lg font-extrabold " + (book.net >= 0 ? "text-green-400" : "text-red-400")}>{countryInfo.symbol}{fmtNum(book.net)}</div>
                   <div className="text-[10px] text-zinc-600">{countryInfo.symbol}{bookHourly.toFixed(2)}/hr · {book.hours.toFixed(1)} hrs</div>
                 </div>
               </div>
@@ -5663,7 +5663,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                           ).join("; ");
                           const prompt = `You are a bookkeeping assistant for a gig driver in ${countryInfo.name}. Analyze this real trip data and give 4-5 specific, data-driven insights.
 
-SUMMARY (${bookPeriod}): ${book.trips} trips, ${book.miles.toFixed(1)} miles, ${book.gallons.toFixed(1)} gallons (${fuelEffVal(bookMpg).toFixed(1)} {FUEL_EFF} avg), fuel ${countryInfo.symbol}${book.fuelCost.toFixed(2)}, other costs ${countryInfo.symbol}${bookOtherCosts.toFixed(2)}, gross ${countryInfo.symbol}${book.gross.toFixed(2)}, net ${countryInfo.symbol}${book.net.toFixed(2)}, ${countryInfo.symbol}${bookHourly.toFixed(2)}/hr, ${countryInfo.symbol}${bookCostPerMile.toFixed(2)}/mile cost.
+SUMMARY (${bookPeriod}): ${book.trips} trips, ${fmtNum(book.miles, 1)} miles, ${fmtNum(book.gallons, 1)} gallons (${fuelEffVal(bookMpg).toFixed(1)} {FUEL_EFF} avg), fuel ${countryInfo.symbol}${book.fuelCost.toFixed(2)}, other costs ${countryInfo.symbol}${bookOtherCosts.toFixed(2)}, gross ${countryInfo.symbol}${book.gross.toFixed(2)}, net ${countryInfo.symbol}${book.net.toFixed(2)}, ${countryInfo.symbol}${bookHourly.toFixed(2)}/hr, ${countryInfo.symbol}${bookCostPerMile.toFixed(2)}/mile cost.
 
 RECENT TRIPS: ${tripDetails || "No individual trips in range."}
 
