@@ -203,7 +203,7 @@ const PRESETS: Preset[] = [
   { key: "instacart", label: "Instacart", icon: ShoppingBag, payout: "18", mileage: "15", gasPrice: "3.50", mpg: "22", wear: "0.30", accent: "text-green-400", bg: "bg-green-500/15 border-green-500/30" },
   { key: "charter", label: "Charter", icon: Plane, payout: "450", mileage: "180", gasPrice: "6.50", mpg: "12", wear: "1.00", accent: "text-[#ffecd0]", bg: "bg-[#ffecd0]/15 border-[#ffecd0]/30" },
   { key: "ferry", label: "Ferry", icon: Ship, payout: "120", mileage: "40", gasPrice: "4.50", mpg: "3", wear: "0.80", accent: "text-cyan-400", bg: "bg-cyan-500/15 border-cyan-500/30" },
-  { key: "rideshare", label: "Rideshare", icon: Users, payout: "14", mileage: "12", gasPrice: "3.50", mpg: "25", wear: "0.30", accent: "text-violet-400", bg: "bg-violet-500/15 border-violet-500/30" },
+  { key: "rideshare", label: "Rideshare", icon: Users, payout: "14", mileage: "12", gasPrice: "3.50", mpg: "25", wear: "0.30", accent: "text-teal-400", bg: "bg-teal-500/15 border-teal-500/30" },
   { key: "trucking", label: "Trucking", icon: Truck, payout: "800", mileage: "500", gasPrice: "4.00", mpg: "6.5", wear: "0.45", accent: "text-orange-400", bg: "bg-orange-500/15 border-orange-500/30" },
   { key: "ebike", label: "E-Bike", icon: Bike, payout: "9", mileage: "8", gasPrice: "0", mpg: "100", wear: "0.10", accent: "text-lime-400", bg: "bg-lime-500/15 border-lime-500/30" },
 ];
@@ -1868,7 +1868,7 @@ function CameraCoach({ mode, onClose, onLog }: {
               <button key={ex} onClick={() => { setExercise(ex); setReps(0); setFeedback(""); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-teal-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
             ))}
           </div>
-          <button onClick={getPlan} disabled={planBusy} className="w-full mt-2 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/30 text-xs font-bold text-violet-200 active:scale-[0.98] disabled:opacity-50">
+          <button onClick={getPlan} disabled={planBusy} className="w-full mt-2 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-200 active:scale-[0.98] disabled:opacity-50">
             {planBusy ? "Building your plan…" : "📋 Get my 7-day workout plan (AI sees you + your history)"}
           </button>
         </div>
@@ -1886,8 +1886,8 @@ function CameraCoach({ mode, onClose, onLog }: {
         <div className="mx-4 mt-3 p-3 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[12px] text-zinc-200 leading-relaxed">{feedback}</div>
       )}
       {plan && (
-        <div className="mx-4 mt-3 p-4 rounded-xl bg-violet-500/10 border border-violet-500/25 max-h-64 overflow-y-auto">
-          <div className="text-[11px] font-bold text-violet-200 uppercase tracking-wider mb-2">{tr("your7dayplan")}</div>
+        <div className="mx-4 mt-3 p-4 rounded-xl bg-teal-500/10 border border-teal-500/25 max-h-64 overflow-y-auto">
+          <div className="text-[11px] font-bold text-teal-200 uppercase tracking-wider mb-2">{tr("your7dayplan")}</div>
           <div className="text-[12px] text-zinc-200 leading-relaxed whitespace-pre-line">{plan}</div>
         </div>
       )}
@@ -5772,7 +5772,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             ) : (
               <div>
                 <p className="text-xs text-zinc-300 leading-relaxed">{briefing.summary}</p>
-                <div className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/25 p-3">
+                <div className="mt-3 rounded-xl bg-teal-500/10 border border-teal-500/25 p-3">
                   <div className="text-[10px] font-bold text-violet-300 uppercase tracking-wider mb-1">
                     Coach's tip
                   </div>
@@ -8591,7 +8591,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.306</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.307</div>
             </div>
           </div>
         </div>
@@ -9045,23 +9045,23 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 {expandedCard !== "sleep" && (
 <button
                   onClick={(e) => { e.stopPropagation(); setExpandedCard("sleep"); }}
-                  className="ml-2 flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 active:scale-95"
+                  className="ml-2 flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
                   aria-label="Expand to full screen"
                 >
-                  <Maximize2 className="w-3.5 h-3.5 text-indigo-300" />
-                  <span className="text-[10px] font-bold text-indigo-300">Expand</span>
+                  <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
+                  <span className="text-[10px] font-bold text-teal-300">Expand</span>
                 </button>
                   )}
-                <div className="text-xs font-bold text-indigo-300 ml-2">{sleepHrs > 0 ? `${sleepHrs} hrs` : "Not logged"}</div>
+                <div className="text-xs font-bold text-teal-300 ml-2">{sleepHrs > 0 ? `${sleepHrs} hrs` : "Not logged"}</div>
               </div>
               <div className="flex gap-1.5 mb-3">
                 {Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className={`flex-1 h-2 rounded-full ${i < Math.round(sleepHrs) ? "bg-indigo-400" : "bg-zinc-800"}`} />
+                  <div key={i} className={`flex-1 h-2 rounded-full ${i < Math.round(sleepHrs) ? "bg-teal-400" : "bg-zinc-800"}`} />
                 ))}
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {[6, 7, 8, 9].map((h) => (
-                  <button key={h} onClick={() => logSleep(h)} className={`py-2 rounded-xl text-xs font-bold active:scale-95 ${sleepHrs === h ? "bg-indigo-500 text-white" : "bg-zinc-800 border border-zinc-700 text-zinc-300"}`}>{h}h</button>
+                  <button key={h} onClick={() => logSleep(h)} className={`py-2 rounded-xl text-xs font-bold active:scale-95 ${sleepHrs === h ? "bg-teal-500 text-white" : "bg-zinc-800 border border-zinc-700 text-zinc-300"}`}>{h}h</button>
                 ))}
               </div>
               <div className="grid grid-cols-4 gap-2 mt-2">
@@ -9070,9 +9070,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => logSleep(0)} className="py-2 rounded-xl bg-zinc-800/60 border border-zinc-700/60 text-[11px] font-bold text-zinc-500 active:scale-95 col-span-2">{tr("clear")}</button>
               </div>
               {/* Auto progress brief — always visible, updates with your data */}
-              <div className="mt-2 px-3 py-2 rounded-xl bg-indigo-500/8 border border-indigo-500/15">
+              <div className="mt-2 px-3 py-2 rounded-xl bg-teal-500/8 border border-teal-500/15">
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  📊 <span className="font-bold text-indigo-300">{sleepHrs}h last night</span>
+                  📊 <span className="font-bold text-teal-300">{sleepHrs}h last night</span>
                   {" · "}{bcWeekStats.avgSleep.toFixed(1)}h/night avg
                   {(8 - bcWeekStats.avgSleep) * 7 > 0.5 && ` · ⚠️ ${((8 - bcWeekStats.avgSleep) * 7).toFixed(1)}h debt`}
                   {(8 - bcWeekStats.avgSleep) * 7 <= 0.5 && ` · ✅ on track`}
@@ -9082,7 +9082,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button
                 onClick={() => askCardAi("sleep-sum", `Summarize your sleep: ${bcWeekStats.avgSleep.toFixed(1)}h/night avg, ${sleepHrs}h last night. In 2-3 sentences: sleep quality assessment, biggest concern, one observation.`)}
                 disabled={aiBusy["sleep-sum"]}
-                className="w-full mt-2 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-[11px] font-bold text-indigo-300 active:scale-[0.98] disabled:opacity-50"
+                className="w-full mt-2 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
               >
                 {aiBusy["sleep-sum"] ? "Analyzing…" : "✨ AI summary — how am I doing?"}
               </button>
@@ -9091,33 +9091,33 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div className="mt-3 pt-3 border-t border-zinc-800/60">
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-indigo-300">{bcWeekStats.avgSleep.toFixed(1)}h</div>
+                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.avgSleep.toFixed(1)}h</div>
                       <div className="text-[10px] text-zinc-500">avg/night</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-indigo-300">{Math.max(0, (8 - bcWeekStats.avgSleep) * 7).toFixed(1)}h</div>
+                      <div className="text-lg font-bold text-teal-300">{Math.max(0, (8 - bcWeekStats.avgSleep) * 7).toFixed(1)}h</div>
                       <div className="text-[10px] text-zinc-500">sleep debt/wk</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-indigo-300">{bcWeekStats.avgSleep >= 7 ? "✅" : "⚠️"}</div>
+                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.avgSleep >= 7 ? "✅" : "⚠️"}</div>
                       <div className="text-[10px] text-zinc-500">7h+ goal</div>
                     </div>
                   </div>
                   <button
                       onClick={() => askCardAi("sleep", `You are a wellness coach for gig drivers who work irregular hours. You average ${bcWeekStats.avgSleep.toFixed(1)} hours of sleep/night. Give 3 practical tips for better sleep with an unpredictable schedule — naps, wind-down, environment. Short and actionable.`)}
                       disabled={aiBusy["sleep"]}
-                      className="w-full py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold text-indigo-300/80 active:scale-[0.98] disabled:opacity-50"
+                      className="w-full py-2 rounded-xl bg-teal-500/10 border border-indigo-500/20 text-[11px] font-bold text-teal-300/80 active:scale-[0.98] disabled:opacity-50"
                     >
                       {aiBusy["sleep"] ? "…" : "😴 Tips"}
                     </button>
                   {aiTips["sleep"] && <div className="ai-says mt-2 text-[12px] leading-relaxed whitespace-pre-line">{aiTips["sleep"]}</div>}
                   {expandedCard === "sleep" && (
                     <div className="mt-4 space-y-3 animate-fade-in-up">
-                      <div className="rounded-2xl bg-gradient-to-br from-indigo-500/15 to-purple-500/10 border border-indigo-500/25 p-4">
-                        <div className="text-[13px] font-bold text-indigo-300 mb-2">{tr("yoursleepstory")}</div>
+                      <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-teal-500/10 border border-teal-500/25 p-4">
+                        <div className="text-[13px] font-bold text-teal-300 mb-2">{tr("yoursleepstory")}</div>
                         <div className="text-[12px] text-zinc-300 leading-relaxed">
                           {sleepHrs > 0 ? (
-                            <>Last night: <span className="font-bold text-indigo-300">{sleepHrs} hours</span>. {sleepHrs >= 7 ? "Solid rest — your body got what it needs." : sleepHrs >= 5 ? "A bit short. Try winding down 30 min earlier tonight." : "That's rough. Prioritize rest today — your safety depends on it."}</>
+                            <>Last night: <span className="font-bold text-teal-300">{sleepHrs} hours</span>. {sleepHrs >= 7 ? "Solid rest — your body got what it needs." : sleepHrs >= 5 ? "A bit short. Try winding down 30 min earlier tonight." : "That's rough. Prioritize rest today — your safety depends on it."}</>
                           ) : (
                             <>{tr("loglastnights")}</>
                           )}
@@ -9144,11 +9144,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 {expandedCard !== "mood" && (
 <button
                   onClick={(e) => { e.stopPropagation(); setExpandedCard("mood"); }}
-                  className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 active:scale-95"
+                  className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
                   aria-label="Expand to full screen"
                 >
-                  <Maximize2 className="w-3.5 h-3.5 text-purple-300" />
-                  <span className="text-[10px] font-bold text-purple-300">Expand</span>
+                  <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
+                  <span className="text-[10px] font-bold text-teal-300">Expand</span>
                 </button>
                   )}
                 {mood > 0 && (
@@ -9202,11 +9202,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               {/* Mood treasure — only in fullscreen */}
               {expandedCard === "mood" && (
                 <div className="mt-4 space-y-3 animate-fade-in-up">
-                  <div className="rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/10 border border-purple-500/25 p-4">
-                    <div className="text-[13px] font-bold text-purple-300 mb-2">{tr("yourvibecheck")}</div>
+                  <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-teal-400/10 border border-teal-500/25 p-4">
+                    <div className="text-[13px] font-bold text-teal-300 mb-2">{tr("yourvibecheck")}</div>
                     <div className="text-[12px] text-zinc-300 leading-relaxed">
                       {mood > 0 ? (
-                        <>Mood: <span className="font-bold text-purple-300">{mood}/5</span>, Energy: <span className="font-bold text-purple-300">{energy}/5</span>. {mood >= 4 ? "You're glowing! Ride this wave." : mood >= 3 ? "Solid middle ground. A good break could push you higher." : "Tough day. Be kind to yourself — tomorrow is fresh."}</>
+                        <>Mood: <span className="font-bold text-teal-300">{mood}/5</span>, Energy: <span className="font-bold text-teal-300">{energy}/5</span>. {mood >= 4 ? "You're glowing! Ride this wave." : mood >= 3 ? "Solid middle ground. A good break could push you higher." : "Tough day. Be kind to yourself — tomorrow is fresh."}</>
                       ) : (
                         <>{tr("checkinabove")}</>
                       )}
@@ -9554,7 +9554,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => setCamMode("workout")} className="py-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-xs font-bold text-sky-200 active:scale-[0.98]">
                   📷 Rep counter
                 </button>
-                <button onClick={() => setCamMode("stretch")} className="py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/30 text-xs font-bold text-violet-200 active:scale-[0.98]">
+                <button onClick={() => setCamMode("stretch")} className="py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-200 active:scale-[0.98]">
                   📷 Form coach
                 </button>
               </div>
