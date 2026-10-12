@@ -1,77 +1,20 @@
-/* Global Color Theme Configuration Token Keys */
-:root {
-  --color-gold-primary: #D4AF37;
-  --color-gold-glow: rgba(212, 175, 55, 0.35);
-  --color-bg-dark: #0D0D0D;
-  --color-card-bg: #141414;
-  --color-basecamp-bg: #0F0E0C;
-  --color-text-main: #FFFFFF;
-  --color-text-muted: #8E8E93;
-}
+@import "tailwindcss";
 
-body {
-  background-color: var(--color-bg-dark);
-  color: var(--color-text-main);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-/* Moving Road Infinite Background Style Structure loop */
-.road-simulation-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 0;
-  background-color: var(--color-bg-dark);
-}
-
-.road-moving-texture {
-  width: 100%;
-  height: 200%;
-  background-image: url('./road-bg.jpg');
-  background-repeat: repeat-y;
-  background-size: cover;
-  opacity: 0.18;
-  animation: driveSimulationLoop 25s linear infinite;
-  pointer-events: none;
-}
-
+/* 🏎️ Live Moving Driving Road Animation Keyframes Setup */
 @keyframes driveSimulationLoop {
-  0% { transform: translateY(-50%); }
-  100% { transform: translateY(0%); }
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
 }
 
-.dashboard-shading-tint {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(13,13,13,0.6) 0%, rgba(13,13,13,0.85) 100%);
-  z-index: 1;
-  pointer-events: none;
+/* Base Utility to Hide Scrollbars for a Clean Native Application Look */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
-
-/* Unified Gold Themed Components - Replaces any purple/teal highlights */
-.card-eric-ai {
-  background: #141310;
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  border-radius: 16px;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.6);
-}
-
-/* Basecamp Modal Sheet Design Adjustment */
-.basecamp-modal-sheet {
-  background-color: var(--color-basecamp-bg);
-  border-top: 2px solid var(--color-gold-primary);
-  border-radius: 24px 24px 0 0;
-  box-shadow: 0px -4px 30px rgba(212, 175, 55, 0.15);
-}
-
-.basecamp-highlight-text {
-  color: var(--color-gold-primary);
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
