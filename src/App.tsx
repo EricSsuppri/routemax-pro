@@ -998,7 +998,6 @@ const FREE_VS_PREMIUM: { label: string; free: boolean; premium: boolean }[] = [
   { label: "Basecamp wellness hub (water, sleep, breaks, mover, mood)", free: false, premium: true },
   { label: "AI summaries for every wellness card", free: false, premium: true },
   { label: "Wellness scanner (photo/video + manual entry + AI feedback + scan history)", free: false, premium: true },
-  { label: "Camera coach (rep counter, form coach, workout plans)", free: false, premium: true },
   { label: "Full-screen card expansion with bonus stories & tips", free: false, premium: true },
   { label: "Per-card history, Clear, Recover & Delete Forever", free: false, premium: true },
   { label: "Custom break alarm (full songs, hrs/mins/secs, ring-until-time)", free: false, premium: true },
@@ -1394,7 +1393,7 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-const APP_VERSION = "2.326";
+const APP_VERSION = "2.327";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
