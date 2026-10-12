@@ -3502,7 +3502,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             <select value={onboardCountry} onChange={(e) => setOnboardCountry(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-semibold outline-none">
               {Object.entries(COUNTRY_DB).map(([code, info]) => (
-                <option key={code} value={code} className="bg-[#2c1c52]">{info.name}</option>
+                <option key={code} value={code} className="bg-[#0d0d0f]">{info.name}</option>
               ))}
             </select>
           </div>
@@ -6836,7 +6836,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               style={{ animationDelay: "0.06s" }}
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--synth-purple-light)] to-[var(--synth-purple-light)] flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-4.5 h-4.5 text-[#2b1a4d] animate-twinkle" strokeWidth={2.5} />
+                <Sparkles className="w-4.5 h-4.5 text-[#0a0a0f] animate-twinkle" strokeWidth={2.5} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-bold text-zinc-200">{tr("askericanything")}</div>
@@ -8104,7 +8104,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             </p>
 
             {/* Mode toggle */}
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#241343]/60 border border-[var(--synth-purple-light)]/20 mb-4">
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#0d0d0f]/60 border border-[var(--synth-purple-light)]/20 mb-4">
               {(["signin", "signup"] as const).map((m) => (
                 <button
                   key={m}
@@ -8586,7 +8586,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.309</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.310</div>
             </div>
           </div>
         </div>
