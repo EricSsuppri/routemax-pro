@@ -8283,7 +8283,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                       <div>
                         <div className="text-sm font-bold text-white">{appName}</div>
-                        <div className="text-[11px] text-zinc-500">Version 2.320</div>
+                        <div className="text-[11px] text-zinc-500">Version 2.321</div>
                       </div>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">
@@ -8545,7 +8545,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.320</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.321</div>
             </div>
           </div>
         </div>
@@ -8715,9 +8715,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => bumpWaterOz(32)} className="py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98]">+32oz</button>
                 <button onClick={() => bumpWaterOz(-8)} disabled={waterOz === 0} className="py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95 disabled:opacity-40">−8oz</button>
               </div>
-              <button onClick={() => setCamMode("water")} className="w-full mt-2 py-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-xs font-bold text-sky-200 active:scale-[0.98]">
-                📷 Scan my bottle — AI logs the ounces
-              </button>
+
               {bcStreak >= 2 && (
                 <div className="mt-3 flex items-center gap-2 text-[11px] font-bold text-amber-300">
                   <span className="text-base">🔥</span> {bcStreak}-day hydration streak!
@@ -9504,14 +9502,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => bumpMove("stretches", 1)} className="flex-1 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95">+ Stretch</button>
                 <button onClick={() => { if (bcToday.workouts > 0) bumpMove("workouts", -1); else if (bcToday.stretches > 0) bumpMove("stretches", -1); }} disabled={bcToday.workouts + bcToday.stretches === 0} className="px-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95 disabled:opacity-40">−</button>
               </div>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <button onClick={() => setCamMode("workout")} className="py-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-xs font-bold text-sky-200 active:scale-[0.98]">
-                  📷 Rep counter
-                </button>
-                <button onClick={() => setCamMode("stretch")} className="py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98]">
-                  📷 Form coach
-                </button>
-              </div>
+
               {/* Always-visible AI summary */}
               <button
                 onClick={() => askCardAi("mover-sum", `Summarize your movement: ${bcWeekStats.workouts} sessions this week, ${bcToday.workouts} workouts + ${bcToday.stretches} stretches today. In 2-3 sentences: activity level assessment, consistency pattern, one key observation.`)}
