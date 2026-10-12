@@ -450,11 +450,11 @@ input[type="number"] {
    dark enough that every word stays readable. */
 .basecamp-light {
   background:
-    radial-gradient(120% 55% at 50% 0%, rgba(20, 184, 166, 0.18), transparent 62%),
-    linear-gradient(165deg, rgba(13, 148, 136, 0.98), rgba(15, 118, 110, 0.97) 52%, rgba(19, 78, 74, 0.98));
+    radial-gradient(120% 55% at 50% 0%, rgba(212, 169, 78, 0.18), transparent 62%),
+    linear-gradient(165deg, rgba(61, 42, 26, 0.98), rgba(44, 28, 16, 0.97) 52%, rgba(36, 26, 8, 0.98));
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
-  border-color: rgba(20, 184, 166, 0.25);
+  border-color: rgba(212, 169, 78, 0.25);
   box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.35);
 }
 /* cards become light teal glass */
