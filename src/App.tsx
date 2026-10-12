@@ -1393,7 +1393,7 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-const APP_VERSION = "2.328";
+const APP_VERSION = "2.329";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -6444,7 +6444,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <input
               ref={taxFileRef}
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -6468,7 +6468,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           {taxImportMsg ? (
             <div className="text-xs text-zinc-400 mt-2 text-center">{taxImportMsg}</div>
           ) : null}
-          <div className="text-[10px] text-zinc-600 mt-1.5 text-center">Snap a fuel, maintenance, or supply receipt — AI extracts the amount, vendor, and category, then saves it to your expenses.</div>
+          <div className="text-[10px] text-zinc-600 mt-1.5 text-center">Snap or upload a fuel, maintenance, or supply receipt (photo or PDF) — AI extracts the amount, vendor, and category, then saves it to your expenses.</div>
         </div>
 
         <div className="glass rounded-2xl p-5 text-center border border-amber-500/15 animate-glowpulse">
