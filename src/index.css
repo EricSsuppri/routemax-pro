@@ -665,16 +665,18 @@ input[type="range"]::-moz-range-thumb {
 }
 
 
-/* Hyperrealistic animated road background */
+/* Hyperrealistic animated road background with readability overlay */
 body {
   background-color: #0d0d0f !important;
-  background-image: url('./road-bg.jpg') !important;
-  background-size: cover !important;
-  background-position: center top !important;
-  background-repeat: no-repeat !important;
+  background-image:
+    linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.65) 100%),
+    url('./road-bg.jpg') !important;
+  background-size: cover, cover !important;
+  background-position: center top, center top !important;
+  background-repeat: no-repeat, no-repeat !important;
   animation: roadScroll 40s linear infinite;
 }
 @keyframes roadScroll {
-  0% { background-position: center 0%; }
-  100% { background-position: center 100%; }
+  0% { background-position: center top, center 0%; }
+  100% { background-position: center top, center 100%; }
 }
