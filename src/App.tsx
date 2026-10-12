@@ -5,15 +5,13 @@ export default function App() {
   const [basecampVisible, setBasecampVisible] = useState(false);
 
   return (
-    <div className="relative min-h-screen bg-[#0D0D0D] text-white overflow-x-hidden selection:bg-[#D4AF37]/30">
+    <div className="relative min-h-screen bg-[#0D0D0D] text-white overflow-x-hidden select-none">
       
       {/* 🛣️ LIVE ANIMATED DRIVING ROAD BACKGROUND */}
       <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none bg-[#0D0D0D]">
-        <div className="w-full h-[200%] opacity-15 pointer-events-none animate-[driveSimulationLoop_25s_linear_infinite]"
-             style={{ backgroundImage: "url('/road-bg.jpg')", backgroundRepeat: 'repeat-y', backgroundSize: 'cover' }}>
-        </div>
-        {/* Shading Vignette Layer */}
-        <div className="absolute inset-0 bg-radial-gradient from-black/40 to-[#0D0D0D]/95 pointer-events-none" />
+        <div className="animated-road-bg"></div>
+        {/* Shading Contrast Vignette Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-[#0D0D0D]/90 pointer-events-none" />
       </div>
 
       {/* FOREGROUND APPLICATION LAYOUT */}
@@ -22,18 +20,18 @@ export default function App() {
         {/* Top Header Section */}
         <div className="flex justify-between items-center p-4 pt-8">
           <div className="flex items-center space-x-3">
-            <span className="text-white text-2xl cursor-pointer select-none">≡</span>
+            <span className="text-white text-2xl cursor-pointer">≡</span>
             <div>
               <div className="text-[#D4AF37] font-bold text-lg tracking-wide">RouteMax Pro</div>
               <div className="text-zinc-500 text-xs">True Profit Calculator</div>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-white text-lg cursor-pointer select-none">?</span>
-            {/* Basecamp Dashboard View toggle icon layout */}
+            <span className="text-white text-lg cursor-pointer">?</span>
+            {/* Basecamp Dashboard View toggle icon */}
             <div 
               onClick={() => setBasecampVisible(!basecampVisible)} 
-              className="w-9 h-9 rounded-full bg-[#1C1A14] border border-[#D4AF37] flex justify-center items-center cursor-pointer active:scale-95 transition-transform"
+              className="w-9 h-9 rounded-full bg-[#1C1A14] border border-[#D4AF37] flex justify-center items-center cursor-pointer"
             >
               <span className="text-base">⛺</span>
             </div>
@@ -57,7 +55,7 @@ export default function App() {
           ))}
         </div>
 
-        {/* Dynamic Context Tabs Conditional Viewport Layout */}
+        {/* Dynamic Context Tabs Viewport Layout */}
         {activeTab === 'Calculator' && (
           <div className="p-4 space-y-5">
             <div>
@@ -68,11 +66,11 @@ export default function App() {
             {/* Core Golden Timeline display asset block */}
             <div className="h-1 bg-zinc-900 rounded-full relative my-4">
               <div className="h-full w-[45%] bg-[#D4AF37]" />
-              <div className="absolute left-[45%] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />
+              <div className="absolute left-[45%] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#D4AF37]" />
             </div>
 
             {/* Ask Eric Anything Card (Cleaned to fix purple/teal shadow borders) */}
-            <div className="flex items-center p-4 bg-[#141310] border border-[#D4AF37]/20 rounded-2xl shadow-xl shadow-black/40">
+            <div className="flex items-center p-4 bg-[#141310] border border-[#D4AF37]/20 rounded-2xl">
               <div className="bg-[#1C1A15] p-2.5 rounded-xl">
                 <span className="text-lg">✨</span>
               </div>
@@ -98,7 +96,7 @@ export default function App() {
                   <span className="text-xl mb-1">📦</span>
                   <span className="text-zinc-300 text-[11px] font-medium">Amazon I</span>
                 </div>
-                <div className="bg-[#141414] w-11 h-11 rounded-xl flex justify-center items-center border border-dashed border-zinc-800 cursor-pointer active:bg-zinc-900">
+                <div className="bg-[#141414] w-11 h-11 rounded-xl flex justify-center items-center border border-dashed border-zinc-800 cursor-pointer">
                   <span className="text-zinc-500 text-xl">+</span>
                 </div>
               </div>
@@ -126,7 +124,7 @@ export default function App() {
             
             <div className="bg-[#141414] border border-zinc-900 p-4 rounded-xl">
               <div className="text-zinc-500 text-xs font-medium">Total Profit</div>
-              <div className="text-[#D4AF37] text-2xl font-black mt-1">$1,245.50</div>
+              <div className="text-[#D4AF37] text-2xl font-black mt-1">\$1,245.50</div>
             </div>
           </div>
         )}
@@ -134,7 +132,7 @@ export default function App() {
 
       {/* ⛺ BASECAMP EXPANDABLE WORKSPACE DRAWER MODAL SHEET */}
       {basecampVisible && (
-        <div className="fixed inset-x-0 bottom-0 z-50 bg-[#0F0E0C] border-t-2 border-[#D4AF37] rounded-t-[24px] p-5 shadow-[0_-10px_30px_rgba(212,175,55,0.08)] animate-slideUp max-h-[85%] overflow-y-auto">
+        <div className="fixed inset-x-0 bottom-0 z-50 bg-[#0F0E0C] border-t-2 border-[#D4AF37] rounded-t-[24px] p-5 max-h-[85%] overflow-y-auto">
           {/* Central Drawer Structural Notch drag line */}
           <div className="w-10 h-1 bg-zinc-800 rounded-full mx-auto mb-4" />
           
@@ -160,19 +158,19 @@ export default function App() {
           {/* Horizontal Swiper Action Layout List Container */}
           <div className="flex space-x-4 overflow-x-auto pb-2 scrollbar-none">
             <div className="flex flex-col items-center min-w-[90px]">
-              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl shadow-inner">🧑‍🦱</div>
+              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl">🧑‍🦱</div>
               <div className="text-white font-bold text-xs mt-2 text-center">Hydrate</div>
               <div className="text-[#D4AF37] text-[11px] mt-0.5 text-center">Log a glass</div>
             </div>
 
             <div className="flex flex-col items-center min-w-[90px]">
-              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl shadow-inner">🏋️‍♀️</div>
+              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl">🏋️‍♀️</div>
               <div className="text-white font-bold text-xs mt-2 text-center">Work out</div>
               <div className="text-[#D4AF37] text-[11px] mt-0.5 text-center">5-min break</div>
             </div>
 
             <div className="flex flex-col items-center min-w-[90px]">
-              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl shadow-inner">🧘</div>
+              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl">🧘</div>
               <div className="text-white font-bold text-xs mt-2 text-center">Stretch</div>
               <div className="text-[#D4AF37] text-[11px] mt-0.5 text-center">Best move</div>
             </div>
@@ -180,3 +178,13 @@ export default function App() {
           
           {/* Minimize toggle anchor block trigger link */}
           <div 
+            onClick={() => setBasecampVisible(false)}
+            className="mt-6 bg-[#1A1814] p-3 rounded-xl border border-[#D4AF37]/20 flex justify-center items-center cursor-pointer text-[#D4AF37] font-bold text-xs tracking-wider uppercase"
+          >
+            Minimize Basecamp
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
