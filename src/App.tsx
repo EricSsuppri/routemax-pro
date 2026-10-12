@@ -3448,8 +3448,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const [theme77, setTheme77] = useState(() => {
     try {
       const v = localStorage.getItem("routemax_theme77");
-      return v ? Math.min(100, Math.max(0, parseInt(v))) : 65;
-    } catch { return 65; }
+      // Theme 77 disabled - using gold/dark theme instead. Force 0.
+      return 0;
+    } catch { return 0; }
   });
   // Apply theme blend to CSS variables (Theme 77 family only)
   useEffect(() => {
@@ -3458,14 +3459,12 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const root = document.documentElement;
     const lerp = (a: number[], b: number[], t: number) =>
       `rgb(${Math.round(a[0]+(b[0]-a[0])*t)},${Math.round(a[1]+(b[1]-a[1])*t)},${Math.round(a[2]+(b[2]-a[2])*t)})`;
-    // 0% = Soft muted purple var(--synth-purple) (139,123,184) | 100% = Vivid var(--synth-purple-light) (167,139,250)
-    root.style.setProperty("--synth-purple", lerp([107,91,138], [196,181,253], t));
-    root.style.setProperty("--synth-pink", lerp([107,91,138], [196,181,253], t));
-    root.style.setProperty("--synth-purple-light", lerp([107,91,138], [196,181,253], t));
-    // BG: 0% = #2a2140 (42,33,64) muted | 100% = #38265e (56,38,94) rich
-    root.style.setProperty("--synth-bg", lerp([42,33,64], [56,38,94], t));
-    // Surface: 0% = #3a2d5c (58,45,92) | 100% = #4a3377 (74,51,119)
-    root.style.setProperty("--synth-surface", lerp([58,45,92], [74,51,119], t));
+    // Gold/dark theme - no purple
+    root.style.setProperty("--synth-purple", "#e6c57c");
+    root.style.setProperty("--synth-pink", "#e6c57c");
+    root.style.setProperty("--synth-purple-light", "#e6c57c");
+    root.style.setProperty("--synth-bg", "#0d0d0f");
+    root.style.setProperty("--synth-surface", "#1a1a1f");
   }, [theme77]);
   // First-launch onboarding: country + language picker
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -8634,7 +8633,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.302</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.303</div>
             </div>
           </div>
         </div>
