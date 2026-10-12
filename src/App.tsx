@@ -1006,7 +1006,7 @@ const FREE_VS_PREMIUM: { label: string; free: boolean; premium: boolean }[] = [
   { label: "Accepted trips + tax counting", free: false, premium: true },
   { label: "Compare two offers", free: false, premium: true },
   { label: "Earnings reports", free: false, premium: true },
-  { label: "Mileage log with CSV export + AI guide", free: false, premium: true },
+  { label: "Mileage log + AI guide", free: false, premium: true },
   { label: "Expense tracking with AI summaries", free: false, premium: true },
   { label: "Recently deleted recovery", free: false, premium: true },
 ];
@@ -1385,6 +1385,15 @@ function PremiumBanner({ onUnlocked }: { onUnlocked: () => void }) {
 // Reusable follow-up chat with Eric — dropped under every Eric answer
 // (verdict, weekly briefing, shift planner) so the user can keep asking.
 /** If a chat reply ever comes back as JSON, pull out the human-readable text. */
+
+// Format numbers with commas: 1234.56 -> "1,234.56", $1234 -> "$1,234"
+const fmtNum = (n: number | string, decimals = 2): string => {
+  const num = typeof n === "string" ? parseFloat(n) : n;
+  if (isNaN(num)) return "0";
+  return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+};
+const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
+
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
     .replace(/&apos;/g, "'").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
@@ -1565,7 +1574,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
     <div className="mt-3 pt-3 border-t border-zinc-800/60">
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0">
+          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-2.5 h-2.5 text-[#191408]" strokeWidth={2.5} />
           </div>
           <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
@@ -1593,7 +1602,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
               </div>
             ) : (
               <div key={i} className="flex items-start gap-2 animate-fade-in-up">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Sparkles className="w-3 h-3 text-[#191408]" strokeWidth={2.5} />
                 </div>
                 <div className="max-w-[80%] rounded-2xl rounded-tl-md px-3.5 py-2.5 text-xs leading-relaxed glass text-zinc-200 ai-bubble">
@@ -1604,7 +1613,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           )}
           {busy && (
             <div className="flex items-start gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-3 h-3 text-[#191408]" strokeWidth={2.5} />
               </div>
               <div className="rounded-2xl rounded-tl-md px-4 py-3.5 glass flex items-center gap-1.5">
@@ -1663,7 +1672,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           onClick={send}
           disabled={busy || (!input.trim() && !attachImg)}
           aria-label="Send"
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform disabled:opacity-40 shadow-lg shadow-[#e8c87e]/20"
+          className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform disabled:opacity-40 shadow-lg shadow-[#e8c87e]/20"
         >
           <ArrowRight className="w-4 h-4 text-[#191408]" strokeWidth={2.5} />
         </button>
@@ -3530,7 +3539,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           </div>
           <button onClick={completeOnboarding}
             className="w-full py-4 rounded-2xl font-extrabold text-[#241a08] active:scale-[0.98]"
-            style={{ background: "linear-gradient(135deg, #f7dc8f, #d4a94e)" }}>
+            style={{ background: "linear-gradient(135deg, #f7dc8f, #c9a86a)" }}>
             Get Started →
           </button>
         </div>
@@ -3824,7 +3833,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     { tab: "basecamp" as TabKey, title: "Basecamp Wellness", text: "Your driver wellness hub. Track water, sleep, mood, breaks, and movement. Tap any card to expand it, or hit ⤢ for fullscreen with bonus stories, stats, and tips.", icon: "🏕️" },
     { tab: "basecamp" as TabKey, title: "Card History & Controls", text: "Every card has Clear + History buttons. Tap History to see every input with dates, plus Recover and Delete Forever. The Wellness Scanner also saves every meal scan with photos.", icon: "📝" },
     { tab: "basecamp" as TabKey, title: "Break Alarm", text: "Set break timers with custom alarm sounds — upload any full song! Choose how long it rings (hours/minutes/seconds), or set it to ring until a specific time like 4:20 PM.", icon: "⏰" },
-    { tab: "reports" as TabKey, title: "Reports & Tax", text: "Monthly and quarterly earnings reports, IRS mileage log with CSV export, and expense tracking with AI summaries. Everything you need for tax season.", icon: "📊" },
+    { tab: "reports" as TabKey, title: "Reports & Tax", text: "Monthly and quarterly earnings reports, IRS mileage log, and expense tracking with AI summaries. Everything you need for tax season.", icon: "📊" },
     { tab: "eric" as TabKey, title: "Eric — AI Coach", text: "Ask Eric anything: 'Should I take this order?' 'When should I drive?' He can open Basecamp or fill the calculator for you. Send photos AND videos — he can see them too.", icon: "🤖" },
     { tab: "more" as TabKey, title: "Settings & More", text: "Tap the menu button (top left) for settings, premium, support, Terms of Service, and account options. Your profile lives here.", icon: "⚙️" },
   ];
@@ -6116,23 +6125,17 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           })}
         </div>
 
-        {/* IRS Mileage Log — deductible miles with export */}
+        {/* IRS Mileage Log — deductible miles */}
         <div className="glass rounded-2xl p-4 mt-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-amber-300" />
               <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{countryInfo.taxSystem} Mileage Log</div>
             </div>
-            <button
-              onClick={exportIrsCsv}
-              disabled={history.length === 0}
-              className="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" /> Export CSV
-            </button>
+
           </div>
           <p className="text-[11px] text-zinc-500 mb-3 leading-relaxed">
-            {countryInfo.taxSystem} requires date, destination, business purpose, and distance for every deduction. Fill in the details below — export when you're ready for taxes.
+            {countryInfo.taxSystem} requires date, destination, business purpose, and distance for every deduction. Fill in the details below — you're ready for taxes.
           </p>
           <button
             onClick={() => askCardAi("irs-guide", `You are a tax advisor for gig drivers in ${countryInfo.name}. Explain in 3-4 short sentences: (1) what ${countryInfo.taxSystem} requires for mileage deductions (date, destination, business purpose, distance), (2) the standard rate is ${countryInfo.symbol}${countryInfo.mileageRate}/${countryInfo.miles ? "mile" : "km"} — ${countryInfo.mileageLabel}, (3) one common mistake that gets deductions rejected, (4) encourage them to fill in destination and purpose for each trip above. Practical, clear, no fluff.`)}
@@ -7955,7 +7958,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     </div>
                     <p className="text-sm font-bold text-white">{tr("routehistoryis")}</p>
                     <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">
-                      Upgrade to auto-save every route, export your tax mileage log and see earnings reports.
+                      Upgrade to auto-save every route, see your tax mileage log and see earnings reports.
                     </p>
                     <div className="mt-3.5">
                       <FreeVsPremium compact />
@@ -8058,7 +8061,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           >
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center">
                   <Sparkles className="w-4.5 h-4.5 text-[#191408]" strokeWidth={2.5} />
                 </div>
                 <div>
@@ -8238,7 +8241,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="flex items-center gap-2">
                     <div className="text-[22px] font-extrabold text-white tracking-tight leading-tight">RouteMax</div>
                     {isPremium ? (
-                      <span className="text-[9px] font-extrabold tracking-[0.18em] text-[#191408] bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] rounded-md px-1.5 py-0.5">PRO</span>
+                      <span className="text-[9px] font-extrabold tracking-[0.18em] text-[#191408] bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] rounded-md px-1.5 py-0.5">PRO</span>
                     ) : null}
                   </div>
                   <div className="text-[10px] text-[#a89a80] font-semibold tracking-[0.24em] uppercase mt-1">{tr("conciergmenu")}</div>
@@ -8280,7 +8283,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                       <div>
                         <div className="text-sm font-bold text-white">{appName}</div>
-                        <div className="text-[11px] text-zinc-500">Version 2.319</div>
+                        <div className="text-[11px] text-zinc-500">Version 2.320</div>
                       </div>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">
@@ -8542,7 +8545,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.319</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.320</div>
             </div>
           </div>
         </div>
