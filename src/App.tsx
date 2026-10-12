@@ -1574,7 +1574,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
     <div className="mt-3 pt-3 border-t border-zinc-800/60">
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0">
+          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-2.5 h-2.5 text-[#191408]" strokeWidth={2.5} />
           </div>
           <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
@@ -1602,7 +1602,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
               </div>
             ) : (
               <div key={i} className="flex items-start gap-2 animate-fade-in-up">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Sparkles className="w-3 h-3 text-[#191408]" strokeWidth={2.5} />
                 </div>
                 <div className="max-w-[80%] rounded-2xl rounded-tl-md px-3.5 py-2.5 text-xs leading-relaxed glass text-zinc-200 ai-bubble">
@@ -1613,7 +1613,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           )}
           {busy && (
             <div className="flex items-start gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-3 h-3 text-[#191408]" strokeWidth={2.5} />
               </div>
               <div className="rounded-2xl rounded-tl-md px-4 py-3.5 glass flex items-center gap-1.5">
@@ -1672,7 +1672,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           onClick={send}
           disabled={busy || (!input.trim() && !attachImg)}
           aria-label="Send"
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform disabled:opacity-40 shadow-lg shadow-[#e8c87e]/20"
+          className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform disabled:opacity-40 shadow-lg shadow-[#e8c87e]/20"
         >
           <ArrowRight className="w-4 h-4 text-[#191408]" strokeWidth={2.5} />
         </button>
@@ -3539,7 +3539,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           </div>
           <button onClick={completeOnboarding}
             className="w-full py-4 rounded-2xl font-extrabold text-[#241a08] active:scale-[0.98]"
-            style={{ background: "linear-gradient(135deg, #f7dc8f, #c9a86a)" }}>
+            style={{ background: "linear-gradient(135deg, #f7dc8f, #d4a94e)" }}>
             Get Started →
           </button>
         </div>
@@ -8061,7 +8061,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           >
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] flex items-center justify-center">
                   <Sparkles className="w-4.5 h-4.5 text-[#191408]" strokeWidth={2.5} />
                 </div>
                 <div>
@@ -8241,7 +8241,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="flex items-center gap-2">
                     <div className="text-[22px] font-extrabold text-white tracking-tight leading-tight">RouteMax</div>
                     {isPremium ? (
-                      <span className="text-[9px] font-extrabold tracking-[0.18em] text-[#191408] bg-gradient-to-br from-[#f7dc8f] to-[#c9a86a] rounded-md px-1.5 py-0.5">PRO</span>
+                      <span className="text-[9px] font-extrabold tracking-[0.18em] text-[#191408] bg-gradient-to-br from-[#f7dc8f] to-[#d4a94e] rounded-md px-1.5 py-0.5">PRO</span>
                     ) : null}
                   </div>
                   <div className="text-[10px] text-[#a89a80] font-semibold tracking-[0.24em] uppercase mt-1">{tr("conciergmenu")}</div>
@@ -8283,7 +8283,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                       <div>
                         <div className="text-sm font-bold text-white">{appName}</div>
-                        <div className="text-[11px] text-zinc-500">Version 2.321</div>
+                        <div className="text-[11px] text-zinc-500">Version 2.322</div>
                       </div>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">
@@ -8545,7 +8545,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.321</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.322</div>
             </div>
           </div>
         </div>
@@ -9860,8 +9860,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               {/* Fullscreen-exclusive: money wisdom + laughs */}
               {expandedCard === "expenses" && (
                 <div className="mt-4 space-y-3 animate-fade-in-up">
-                  <div className="rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/10 border border-emerald-500/25 p-4">
-                    <div className="text-[13px] font-bold text-emerald-300 mb-2">{tr("yourmoneystory")}</div>
+                  <div className="rounded-2xl bg-gradient-to-br from-amber-500/15 to-yellow-600/10 border border-amber-500/25 p-4">
+                    <div className="text-[13px] font-bold text-amber-300 mb-2">{tr("yourmoneystory")}</div>
                     <div className="text-[12px] text-zinc-300 leading-relaxed">
                       {expenses.length > 0 ? (
                         <>You've logged <span className="font-bold text-emerald-300">{expenses.length} expenses</span> totaling <span className="font-bold text-emerald-300">{formatCurrency(expenses.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0))}</span>. Every receipt you save is money back at tax time. You're playing the long game.</>
