@@ -8507,69 +8507,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <ChevronRight className="w-4 h-4 text-zinc-600 ml-auto" />
                       </button>
                     </div>
-                    {/* Language collapsible */}
-                    <div className="mt-2">
-                      <button onClick={() => setLangSettingsOpen(!langSettingsOpen)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.98]">
-                        <span className="text-xs font-bold text-zinc-200">{tr("language")}</span>
-                        <span className="text-zinc-500 text-xs">{langSettingsOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {langSettingsOpen && (
-                        <div className="mt-1 rounded-xl bg-zinc-900/40 border border-zinc-800/40 overflow-hidden max-h-48 overflow-y-auto">
-                          {[
-                            ["en", "English"], ["es", "Español"], ["fr", "Français"], ["de", "Deutsch"],
-                            ["pt", "Português"], ["it", "Italiano"], ["nl", "Nederlands"], ["pl", "Polski"],
-                            ["ru", "Русский"], ["uk", "Українська"], ["ar", "العربية"], ["hi", "हिन्दी"],
-                            ["zh", "中文 (简体)"], ["ja", "日本語"], ["ko", "한국어"],
-                          ].map(([code, name]) => (
-                            <button
-                              key={code}
-                              onClick={() => {
-                                setAppLang(code);
-                                try { localStorage.setItem("routemax_lang", code); } catch {}
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 text-left active:opacity-70 border-b border-zinc-800/20 last:border-0"
-                            >
-                              <span className="text-xs font-semibold text-zinc-200">{name}</span>
-                              {appLang === code && <span className="text-teal-400 text-xs">✓</span>}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {/* Language removed - English only */}
 
-                    {/* Country picker */}
-                    <div className="mt-2">
-                      <button onClick={() => setCountrySettingsOpen(!countrySettingsOpen)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.98]">
-                        <span className="text-xs font-bold text-zinc-200">{tr("country")}</span>
-                        <span className="text-zinc-500 text-xs">{countrySettingsOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {countrySettingsOpen && (
-                        <div className="mt-1 rounded-xl bg-zinc-900/40 border border-zinc-800/40 overflow-hidden max-h-48 overflow-y-auto">
-                          {Object.entries(COUNTRY_DB).map(([code, info]) => (
-                            <button
-                              key={code}
-                              onClick={() => {
-                                setAppCountry(code);
-                                try { localStorage.setItem("routemax_country", code); } catch {}
-                                // Auto-adjust units to country default
-                                const c = COUNTRY_DB[code];
-                                if (c) {
-                                  setUseKm(!c.miles);
-                                  try { localStorage.setItem("routemax_use_km", c.miles ? "0" : "1"); } catch {}
-                                }
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 text-left active:opacity-70 border-b border-zinc-800/20 last:border-0"
-                            >
-                              <span className="text-xs font-semibold text-zinc-200">{info.name}</span>
-                              <span className="flex items-center gap-1.5">
-                                <span className="text-[10px] text-zinc-500">{info.currency}</span>
-                                {appCountry === code && <span className="text-teal-400 text-xs">✓</span>}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+
+                    {/* Country removed - US only */}
+
                     <div className="mt-2 px-3 py-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/40">
                       <div className="text-[10px] text-zinc-500 leading-relaxed">
                         {countryInfo.name} · {countryInfo.currency} ({countryInfo.symbol}) · {countryInfo.miles ? "Miles" : "Kilometers"} · {countryInfo.taxSystem}
@@ -8586,7 +8528,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.310</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.311</div>
             </div>
           </div>
         </div>
