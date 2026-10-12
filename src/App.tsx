@@ -1,220 +1,182 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, Animated, Easing, Dimensions } from 'react-native';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+import React, { useState } from 'react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('Calculator');
   const [basecampVisible, setBasecampVisible] = useState(false);
 
-  // Smooth driving animation setup
-  const drivingAnimation = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const startDriving = () => {
-      drivingAnimation.setValue(0);
-      Animated.timing(drivingAnimation, {
-        toValue: 1,
-        duration: 25000, // Very slow and relaxing driving speed
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }).start(() => startDriving());
-    };
-    startDriving();
-  }, [drivingAnimation]);
-
-  const translateY = drivingAnimation.interpolate({
-    inputRange:,
-    outputRange: [-SCREEN_HEIGHT, 0],
-  });
-
   return (
-    <View style={styles.container}>
+    <div className="relative min-h-screen bg-[#0D0D0D] text-white overflow-x-hidden selection:bg-[#D4AF37]/30">
+      
       {/* 🛣️ LIVE ANIMATED DRIVING ROAD BACKGROUND */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Animated.Image
-          source={require('./road-bg.jpg')}
-          style={[styles.roadLayer, { transform: [{ translateY }] }]}
-          resizeMode="cover"
-        />
-        <Animated.Image
-          source={require('./road-bg.jpg')}
-          style={[
-            styles.roadLayer,
-            { transform: [{ translateY: Animated.add(translateY, SCREEN_HEIGHT) }] },
-          ]}
-          resizeMode="cover"
-        />
-        <View style={styles.darkDarkOverlay} />
-      </View>
+      <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none bg-[#0D0D0D]">
+        <div className="w-full h-[200%] opacity-15 pointer-events-none animate-[driveSimulationLoop_25s_linear_infinite]"
+             style={{ backgroundImage: "url('/road-bg.jpg')", backgroundRepeat: 'repeat-y', backgroundSize: 'cover' }}>
+        </div>
+        {/* Shading Vignette Layer */}
+        <div className="absolute inset-0 bg-radial-gradient from-black/40 to-[#0D0D0D]/95 pointer-events-none" />
+      </div>
 
       {/* FOREGROUND APPLICATION LAYOUT */}
-      <ScrollView style={styles.foregroundContent}>
-        {/* Top Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.menuIcon}>≡</Text>
-            <View>
-              <Text style={styles.logoText}>RouteMax Pro</Text>
-              <Text style={styles.subLogoText}>True Profit Calculator</Text>
-            </View>
-          </View>
-          <View style={styles.headerRight}>
-            <Text style={styles.helpIcon}>?</Text>
-            {/* Basecamp view toggle icon at the top right */}
-            <TouchableOpacity onPress={() => setBasecampVisible(!basecampVisible)} style={styles.profileCircle}>
-              <Text style={{ fontSize: 16 }}>⛺</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Top Tabs */}
-        <View style={styles.tabContainer}>
-          {['Calculator', 'Compare', 'Reports', 'Tax', 'Accepted'].map((tab) => (
-            <TouchableOpacity 
-              key={tab} 
-              onPress={() => setActiveTab(tab)}
-              style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
+      <div className="relative z-10 pb-24">
+        
+        {/* Top Header Section */}
+        <div className="flex justify-between items-center p-4 pt-8">
+          <div className="flex items-center space-x-3">
+            <span className="text-white text-2xl cursor-pointer select-none">≡</span>
+            <div>
+              <div className="text-[#D4AF37] font-bold text-lg tracking-wide">RouteMax Pro</div>
+              <div className="text-zinc-500 text-xs">True Profit Calculator</div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-white text-lg cursor-pointer select-none">?</span>
+            {/* Basecamp Dashboard View toggle icon layout */}
+            <div 
+              onClick={() => setBasecampVisible(!basecampVisible)} 
+              className="w-9 h-9 rounded-full bg-[#1C1A14] border border-[#D4AF37] flex justify-center items-center cursor-pointer active:scale-95 transition-transform"
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
-            </TouchableOpacity>
+              <span className="text-base">⛺</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Primary Dashboard Navigation Tabs */}
+        <div className="flex justify-around mt-2 border-b border-zinc-900">
+          {['Calculator', 'Compare', 'Reports', 'Tax', 'Accepted'].map((tab) => (
+            <div 
+              key={tab} 
+              onClick={() => setActiveTab(tab)}
+              className={`p-2.5 text-xs font-medium cursor-pointer transition-all border-b-2 ${
+                activeTab === tab 
+                  ? 'text-[#D4AF37] border-[#D4AF37] font-bold' 
+                  : 'text-zinc-500 border-transparent'
+              }`}
+            >
+              {tab}
+            </div>
           ))}
-        </View>
+        </div>
 
-        {/* Tab content logic */}
+        {/* Dynamic Context Tabs Conditional Viewport Layout */}
         {activeTab === 'Calculator' && (
-          <View style={styles.paddedContent}>
-            <Text style={styles.heroText}>Know your real earnings before every trip.</Text>
-            <Text style={styles.subHeroText}>Fuel, wear & time — factored in automatically.</Text>
+          <div className="p-4 space-y-5">
+            <div>
+              <h1 className="text-white text-2xl font-black mt-2 leading-tight">Know your real earnings before every trip.</h1>
+              <p className="text-zinc-400 text-sm mt-1.5">Fuel, wear & time — factored in automatically.</p>
+            </div>
             
-            <View style={styles.timelineContainer}>
-              <View style={styles.timelineLine} />
-              <View style={styles.timelineNodeActive} />
-            </View>
+            {/* Core Golden Timeline display asset block */}
+            <div className="h-1 bg-zinc-900 rounded-full relative my-4">
+              <div className="h-full w-[45%] bg-[#D4AF37]" />
+              <div className="absolute left-[45%] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />
+            </div>
 
-            {/* Ask Eric Card (Pure Gold Theme, No Teal/Purple Highlights) */}
-            <View style={styles.ericCard}>
-              <View style={styles.ericIconContainer}>
-                <Text style={styles.ericStar}>✨</Text>
-              </View>
-              <View style={styles.ericTextContainer}>
-                <Text style={styles.ericTitle}>Ask Eric anything</Text>
-                <Text style={styles.ericSubTitle}>Which offer should I take? How's my we...</Text>
-              </View>
-              <Text style={styles.arrowRight}>&gt;</Text>
-            </View>
+            {/* Ask Eric Anything Card (Cleaned to fix purple/teal shadow borders) */}
+            <div className="flex items-center p-4 bg-[#141310] border border-[#D4AF37]/20 rounded-2xl shadow-xl shadow-black/40">
+              <div className="bg-[#1C1A15] p-2.5 rounded-xl">
+                <span className="text-lg">✨</span>
+              </div>
+              <div className="flex-1 ml-3">
+                <div className="text-white font-bold text-sm">Ask Eric anything</div>
+                <div className="text-zinc-500 text-xs mt-0.5">Which offer should I take? How's my we...</div>
+              </div>
+              <span className="text-zinc-600 text-sm font-semibold">&gt;</span>
+            </div>
 
-            <Text style={styles.sectionHeader}>QUICK PRESETS <Text style={styles.versionText}>• v2.259</Text></Text>
-            <View style={styles.presetRow}>
-              <View style={[styles.presetItem, styles.activePreset]}>
-                <Text style={styles.presetIcon}>🚲</Text>
-                <Text style={styles.presetLabel}>DoorDash</Text>
-              </View>
-              <View style={styles.presetItem}>
-                <Text style={styles.presetIcon}>📦</Text>
-                <Text style={styles.presetLabel}>Amazon I</Text>
-              </View>
-              <View style={styles.addPresetButton}>
-                <Text style={styles.addPresetText}>+</Text>
-              </View>
-            </View>
+            {/* Quick Presets Subsection Grid */}
+            <div className="space-y-3">
+              <div className="text-zinc-500 text-[11px] font-bold tracking-widest uppercase">
+                QUICK PRESETS <span className="text-zinc-700 font-medium normal-case ml-1">• v2.259</span>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <div className="bg-[#1A1813] p-3 rounded-xl flex flex-col items-center min-w-[75px] border border-[#D4AF37]">
+                  <span className="text-xl mb-1">🚲</span>
+                  <span className="text-white text-[11px] font-medium">DoorDash</span>
+                </div>
+                <div className="bg-[#141414] p-3 rounded-xl flex flex-col items-center min-w-[75px] border border-zinc-900">
+                  <span className="text-xl mb-1">📦</span>
+                  <span className="text-zinc-300 text-[11px] font-medium">Amazon I</span>
+                </div>
+                <div className="bg-[#141414] w-11 h-11 rounded-xl flex justify-center items-center border border-dashed border-zinc-800 cursor-pointer active:bg-zinc-900">
+                  <span className="text-zinc-500 text-xl">+</span>
+                </div>
+              </div>
+            </div>
 
-            <View style={styles.vehicleCard}>
-              <Text style={styles.vehicleIcon}>🚗</Text>
-              <View style={styles.vehicleInfo}>
-                <Text style={styles.vehicleTitle}>Toyota Camry 2007–2...</Text>
-                <Text style={styles.vehicleDetails}>Gas • 25 mph</Text>
-              </View>
-              <Text style={styles.arrowRight}>&gt;</Text>
-            </View>
-          </View>
+            {/* Active Registered Vehicle Cell Row */}
+            <div className="flex items-center bg-[#141414] border border-zinc-900 p-4 rounded-2xl">
+              <span className="text-2xl">🚗</span>
+              <div className="flex-1 ml-3">
+                <div className="text-white font-semibold text-sm">Toyota Camry 2007–2...</div>
+                <div className="text-[#D4AF37] text-xs font-medium mt-0.5">Gas • 25 mph</div>
+              </div>
+              <span className="text-zinc-600 text-sm">&gt;</span>
+            </div>
+          </div>
         )}
 
-        {/* Reports panel with Export Buttons permanently removed */}
+        {/* Performance reports page area with document downloads completely erased */}
         {activeTab === 'Reports' && (
-          <View style={styles.paddedContent}>
-            <Text style={styles.heroText}>Performance Reports</Text>
-            <Text style={styles.subHeroText}>Detailed summary of your true margins and shift allocations.</Text>
+          <div className="p-4 space-y-4">
+            <div>
+              <h1 className="text-white text-2xl font-black mt-2">Performance Reports</h1>
+              <p className="text-zinc-400 text-sm mt-1">Detailed summary of your true margins and shift allocations.</p>
+            </div>
             
-            <View style={styles.metricsContainer}>
-              <Text style={styles.metricLabel}>Total Profit</Text>
-              <Text style={styles.metricValue}>$1,245.50</Text>
-            </View>
-          </View>
+            <div className="bg-[#141414] border border-zinc-900 p-4 rounded-xl">
+              <div className="text-zinc-500 text-xs font-medium">Total Profit</div>
+              <div className="text-[#D4AF37] text-2xl font-black mt-1">$1,245.50</div>
+            </div>
+          </div>
         )}
-      </ScrollView>
+      </div>
 
-      {/* ⛺ BASECAMP BOTTOM SHEET MODAL VIEW (Teal removed, matching the main dashboard) */}
+      {/* ⛺ BASECAMP EXPANDABLE WORKSPACE DRAWER MODAL SHEET */}
       {basecampVisible && (
-        <View style={styles.basecampSheet}>
-          <View style={styles.dragHandle} />
+        <div className="fixed inset-x-0 bottom-0 z-50 bg-[#0F0E0C] border-t-2 border-[#D4AF37] rounded-t-[24px] p-5 shadow-[0_-10px_30px_rgba(212,175,55,0.08)] animate-slideUp max-h-[85%] overflow-y-auto">
+          {/* Central Drawer Structural Notch drag line */}
+          <div className="w-10 h-1 bg-zinc-800 rounded-full mx-auto mb-4" />
           
-          <Text style={styles.basecampTitle}>Basecamp</Text>
-          <Text style={styles.basecampDescription}>
+          <div className="text-[#D4AF37] text-2xl font-black tracking-wide">Basecamp</div>
+          <p className="text-zinc-400 text-xs leading-relaxed mt-2 font-normal">
             Your base for every journey. Track hydration, time your breaks, log expenses, scan meals for fuel value, check route weather, and ask the coach anything — here for you before, during, and after every trip.
-          </Text>
+          </p>
 
-          {/* Live Weather Card with soft gold accent lines */}
-          <View style={styles.weatherWidget}>
-            <View style={styles.weatherInfoRow}>
-              <Text style={styles.weatherIcon}>☀️</Text>
-              <View style={styles.weatherTextContainer}>
-                <Text style={styles.weatherLabel}>LIVE WEATHER</Text>
-                <Text style={styles.weatherData}>42°F • Clear sky</Text>
-              </View>
-            </View>
-            <Text style={styles.refreshIcon}>🔄</Text>
-          </View>
+          {/* Real-time Weather Integration Component */}
+          <div className="flex justify-between items-center bg-[#171512] border border-[#D4AF37]/10 rounded-xl p-4 mt-5">
+            <div className="flex items-center space-x-3">
+              <span className="text-3xl">☀️</span>
+              <div>
+                <div className="text-[#D4AF37] text-[10px] font-black tracking-wider">LIVE WEATHER</div>
+                <div className="text-white text-base font-bold mt-0.5">42°F • Clear sky</div>
+              </div>
+            </div>
+            <span className="text-zinc-500 text-base cursor-pointer">🔄</span>
+          </div>
 
-          <Text style={styles.sectionLabel}>CREW IN ACTION — TAP TO JOIN IN</Text>
+          <div className="text-zinc-500 text-[10px] font-bold tracking-widest mt-6 mb-3 uppercase">CREW IN ACTION — TAP TO JOIN IN</div>
           
-          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.crewRow}>
-            <View style={styles.crewCard}>
-              <View style={styles.placeholderAvatar}><Text style={{color: '#fff'}}>🧑‍🦱</Text></View>
-              <Text style={styles.cardTitleText}>Hydrate</Text>
-              <Text style={styles.cardSubtitleText}>Log a glass</Text>
-            </View>
+          {/* Horizontal Swiper Action Layout List Container */}
+          <div className="flex space-x-4 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex flex-col items-center min-w-[90px]">
+              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl shadow-inner">🧑‍🦱</div>
+              <div className="text-white font-bold text-xs mt-2 text-center">Hydrate</div>
+              <div className="text-[#D4AF37] text-[11px] mt-0.5 text-center">Log a glass</div>
+            </div>
 
-            <View style={styles.crewCard}>
-              <View style={styles.placeholderAvatar}><Text style={{color: '#fff'}}>🏋️‍♀️</Text></View>
-              <Text style={styles.cardTitleText}>Work out</Text>
-              <Text style={styles.cardSubtitleText}>5-min break</Text>
-            </View>
+            <div className="flex flex-col items-center min-w-[90px]">
+              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl shadow-inner">🏋️‍♀️</div>
+              <div className="text-white font-bold text-xs mt-2 text-center">Work out</div>
+              <div className="text-[#D4AF37] text-[11px] mt-0.5 text-center">5-min break</div>
+            </div>
 
-            <View style={styles.crewCard}>
-              <View style={styles.placeholderAvatar}><Text style={{color: '#fff'}}>🧘</Text></View>
-              <Text style={styles.cardTitleText}>Stretch</Text>
-              <Text style={styles.cardSubtitleText}>Best move</Text>
-            </View>
-          </ScrollView>
+            <div className="flex flex-col items-center min-w-[90px]">
+              <div className="w-20 h-20 rounded-xl bg-zinc-900 border border-zinc-800 flex justify-center items-center text-3xl shadow-inner">🧘</div>
+              <div className="text-white font-bold text-xs mt-2 text-center">Stretch</div>
+              <div className="text-[#D4AF37] text-[11px] mt-0.5 text-center">Best move</div>
+            </div>
+          </div>
           
-          <TouchableOpacity style={styles.closeButton} onPress={() => setBasecampVisible(false)}>
-            <Text style={styles.closeButtonText}>Minimize Basecamp</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D0D0D' },
-  roadLayer: { position: 'absolute', left: 0, right: 0, top: 0, width: '100%', height: SCREEN_HEIGHT, opacity: 0.18 },
-  darkDarkOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(13, 13, 13, 0.82)' },
-  foregroundContent: { flex: 1, backgroundColor: 'transparent' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, alignItems: 'center', marginTop: 20 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center' },
-  menuIcon: { color: '#FFFFFF', fontSize: 24, marginRight: 12 },
-  logoText: { color: '#D4AF37', fontWeight: 'bold', fontSize: 18 },
-  subLogoText: { color: '#8E8E93', fontSize: 12 },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-  helpIcon: { color: '#FFFFFF', fontSize: 18, marginRight: 16 },
-  profileCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#1C1A14', borderWidth: 1, borderColor: '#D4AF37', justifyContent: 'center', alignItems: 'center' },
-  tabContainer: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 8 },
-  tabButton: { paddingVertical: 10, paddingHorizontal: 6 },
-  activeTabButton: { borderBottomWidth: 2, borderBottomColor: '#D4AF37' },
-  tabText: { color: '#8E8E93', fontSize: 13 },
-  activeTabText: { color: '#D4AF37', fontWeight: 'bold' },
-  paddedContent: { padding: 16 },
-  heroText: { color: '#FFFFFF', fontSize: 26, fontWeight: 'bold', marginTop: 10, marginBottom: 8 },
-  subHeroText: { color: '#8E8E93', fontSize: 15, marginBottom: 16 },
+          {/* Minimize toggle anchor block trigger link */}
+          <div 
