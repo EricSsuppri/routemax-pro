@@ -78,6 +78,32 @@ import {
 import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { askGemini, parseAiJson, isAiConfigured } from "@/lib/ai";
+
+// Android-safe file export: uses Web Share API (works on Android) with Blob fallback
+const shareFile = async (content: string, filename: string, mimeType: string) => {
+  const blob = new Blob([content], { type: mimeType });
+  const file = new File([blob], filename, { type: mimeType });
+  // Try native share (Android)
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return true;
+    } catch (e) {
+      // User cancelled or share failed, fall through to download
+      if ((e as Error).name === 'AbortError') return true;
+    }
+  }
+  // Fallback: traditional download
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  return true;
+};
 import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { ScreenshotWatcher } from "@/lib/screenshot-watcher";
 import { LocalNotifications } from "@capacitor/local-notifications";
@@ -2447,13 +2473,7 @@ function AppInner() {
     const total = history.reduce((s, h) => s + h.mileage, 0);
     const totalDeduction = history.reduce((s, h) => s + h.mileage * irsRateFor(h.created_at), 0);
     const csv = "Date,Destination,Business Purpose,Miles,Deduction ($)\n" + rows.join("\n") + `\n,,,Total:,${total.toFixed(1)},$${totalDeduction.toFixed(2)}`;
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `irs-mileage-log-${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    shareFile(csv, `irs-mileage-log-${new Date().toISOString().split("T")[0]}.csv`, "text/csv");
   };
   const saveIrsDetail = (id: string, field: "dest" | "purpose", value: string) => {
     setIrsDetails((prev) => {
@@ -5700,9 +5720,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </table>
                       <div class="meta" style="margin-top: 30px;">Mileage rate: ${countryInfo.symbol}${countryInfo.mileageRate}/${countryInfo.miles ? "mi" : "km"} — ${countryInfo.mileageLabel}</div>
                     </body></html>`;
-                    const blob = new Blob([html], { type: "text/html" });
-                    const url = URL.createObjectURL(blob);
-                    window.open(url, "_blank");
+                    shareFile(html, `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.html`, "text/html");
                   }}
                   className="flex-1 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-1.5"
                 >
@@ -5724,13 +5742,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         (r.hours || 0).toFixed(2),
                       ].join(","))
                     ].join("\n");
-                    const blob = new Blob([csv], { type: "text/csv" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.csv`;
-                    a.click();
-                    URL.revokeObjectURL(url);
+                    shareFile(csv, `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv");
                   }}
                   className="flex-1 py-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 text-xs font-bold text-zinc-300 active:scale-[0.98] flex items-center justify-center gap-1.5"
                 >
@@ -8528,7 +8540,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.311</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.312</div>
             </div>
           </div>
         </div>
