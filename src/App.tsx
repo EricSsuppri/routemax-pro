@@ -1033,8 +1033,8 @@ function FreeVsPremium({ compact }: { compact?: boolean }) {
   return (
     <div className="rounded-2xl border border-zinc-800/70 overflow-hidden text-left">
       <div className="grid grid-cols-[1fr_48px_60px] items-center bg-zinc-900/70">
-        <div className="px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.14em] text-zinc-600">{tr("routemaxvsroutemax")}</div>
-        <div className="py-2 text-center text-[10px] font-extrabold uppercase tracking-[0.14em] text-zinc-500">{tr("routemax")}</div>
+        <div className="px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.14em] text-zinc-600">RouteMax vs RouteMax Pro</div>
+        <div className="py-2 text-center text-[10px] font-extrabold uppercase tracking-[0.14em] text-zinc-500">RouteMax</div>
         <div className="py-2 text-center text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#f7dc8f] bg-[#f7dc8f]/10">Pro</div>
       </div>
       {FREE_VS_PREMIUM.map((r, i) => (
@@ -1212,7 +1212,7 @@ function PremiumFeaturesModal({
             <Sparkles className="w-5 h-5 text-[#0f0f16]" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <h2 className="text-lg font-extrabold text-white leading-tight">{tr("routemaxpro")}</h2>
+            <h2 className="text-lg font-extrabold text-white leading-tight">RouteMax Pro</h2>
             <p className="text-[11px] text-zinc-500 font-medium">
               Everything below, one subscription{price ? ` — ${price}` : ""}
             </p>
@@ -1864,7 +1864,7 @@ function CameraCoach({ mode, onClose, onLog }: {
       <div className="flex items-center justify-between p-4">
         <div className="text-sm font-bold text-white">{titles[mode]}</div>
         <div className="flex gap-2">
-          <button onClick={onClose} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-300 active:scale-95">{tr("close")}</button>
+          <button onClick={onClose} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-300 active:scale-95">Close</button>
         </div>
       </div>
       <div className="flex-1 relative overflow-hidden bg-zinc-900 flex items-center justify-center p-6">
@@ -1908,7 +1908,7 @@ function CameraCoach({ mode, onClose, onLog }: {
       )}
       {plan && (
         <div className="mx-4 mt-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 max-h-64 overflow-y-auto">
-          <div className="text-[11px] font-bold text-amber-200 uppercase tracking-wider mb-2">{tr("your7dayplan")}</div>
+          <div className="text-[11px] font-bold text-amber-200 uppercase tracking-wider mb-2">Your 7-day plan</div>
           <div className="text-[12px] text-zinc-200 leading-relaxed whitespace-pre-line">{plan}</div>
         </div>
       )}
@@ -8279,7 +8279,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                       <div>
                         <div className="text-sm font-bold text-white">{appName}</div>
-                        <div className="text-[11px] text-zinc-500">Version 2.316</div>
+                        <div className="text-[11px] text-zinc-500">Version 2.317</div>
                       </div>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">
@@ -8541,7 +8541,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.316</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.317</div>
             </div>
           </div>
         </div>
