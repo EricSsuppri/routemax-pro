@@ -664,7 +664,11 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 4px 20px rgba(124,58,237,0.15), inset 0 1px 0 rgba(167,139,250,0.2), 0 0 30px rgba(139,92,246,0.1);
 }
 
-/* Animated road background */
+/* Animated road background.
+   NOTE: `!important` on background-image/background-size is REQUIRED here —
+   an earlier rule sets `body { background: var(--synth-bg) !important; }`
+   (Theme-77 leftover, line ~563), whose important shorthand otherwise forces
+   background-image:none and suppresses the road. Do not remove the flags. */
 body {
   background-color: #0d0d0f !important;
   background-image:
@@ -678,8 +682,8 @@ body {
       rgba(247, 220, 143, 0.25) 100px,
       transparent 100px,
       transparent 160px
-    );
-  background-size: 100% 100%, 100% 100%, 100% 320px;
+    ) !important;
+  background-size: 100% 100%, 100% 100%, 100% 320px !important;
   animation: roadMove 2s linear infinite;
 }
 @keyframes roadMove {
