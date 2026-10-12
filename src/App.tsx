@@ -21,9 +21,7 @@ import {
   History,
   Trash2,
   Lock,
-  Bike,
   Camera,
-  Car,
   CloudSun,
   Footprints,
   ImagePlus,
@@ -50,7 +48,6 @@ import {
   Dumbbell,
   Coffee,
   Trophy,
-  Camera,
   ThumbsUp,
   ThumbsDown,
   ChevronDown,
@@ -75,8 +72,6 @@ import {
   Minimize2,
   Download,
   Undo2,
-  Trash2,
-  Plane,
   Info,
   BookOpen,
 } from "lucide-react";
@@ -8591,7 +8586,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.307</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.308</div>
             </div>
           </div>
         </div>
