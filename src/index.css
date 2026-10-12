@@ -424,9 +424,9 @@ input[type="number"] {
 /* Posh premium drawer */
 .posh-drawer {
   background:
-    radial-gradient(120% 50% at 50% 0%, rgba(167, 139, 250, 0.15), transparent 60%),
+    radial-gradient(120% 50% at 50% 0%, rgba(94, 234, 212, 0.15), transparent 60%),
     linear-gradient(165deg, #1a1a1f 0%, #0a0a0f 60%, #0a0a0f 100%);
-  border-right: 1px solid rgba(167, 139, 250, 0.18);
+  border-right: 1px solid rgba(94, 234, 212, 0.18);
   box-shadow: 16px 0 48px rgba(0, 0, 0, 0.35);
 }
 .posh-glow, .posh-glow-b {
@@ -450,22 +450,22 @@ input[type="number"] {
    dark enough that every word stays readable. */
 .basecamp-light {
   background:
-    radial-gradient(120% 55% at 50% 0%, rgba(139, 92, 246, 0.18), transparent 62%),
-    linear-gradient(165deg, rgba(72, 48, 125, 0.98), rgba(58, 38, 102, 0.97) 52%, rgba(45, 30, 82, 0.98));
+    radial-gradient(120% 55% at 50% 0%, rgba(20, 184, 166, 0.18), transparent 62%),
+    linear-gradient(165deg, rgba(13, 148, 136, 0.98), rgba(15, 118, 110, 0.97) 52%, rgba(19, 78, 74, 0.98));
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
-  border-color: rgba(139, 92, 246, 0.25);
+  border-color: rgba(20, 184, 166, 0.25);
   box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.35);
 }
 /* cards become light teal glass */
 .basecamp-light .glass {
-  background: linear-gradient(165deg, rgba(167, 139, 250, 0.14), rgba(167, 139, 250, 0.05));
-  border: 1px solid rgba(139, 92, 246, 0.20);
+  background: linear-gradient(165deg, rgba(94, 234, 212, 0.14), rgba(94, 234, 212, 0.05));
+  border: 1px solid rgba(20, 184, 166, 0.20);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .basecamp-light .glass-input {
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(139, 92, 246, 0.22);
+  border: 1px solid rgba(20, 184, 166, 0.22);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 /* Basecamp text readability */
@@ -550,9 +550,9 @@ body { color: #f5f0ff !important; }
 .text-teal-500 { color: #14b8a6 !important; }
 /* Rich teal for backgrounds/buttons */
 .bg-teal-400, .bg-teal-500 { background-color: #0d9488 !important; }
-.bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(139, 92, 246, 0.20) !important; }
+.bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(20, 184, 166, 0.20) !important; }
 .border-teal-400, .border-teal-500 { border-color: #0d9488 !important; }
-.border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(139, 92, 246, 0.35) !important; }
+.border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(20, 184, 166, 0.35) !important; }
 .from-teal-400, .from-teal-500 { --tw-gradient-from: #0d9488 !important; }
 .to-teal-400 { --tw-gradient-to: #2dd4bf !important; }
 .to-teal-500 { --tw-gradient-to: #14b8a6 !important; }
@@ -575,8 +575,8 @@ body { color: #f5f0ff !important; }
 }
 /* Gentle inviting pulse on key CTAs */
 @keyframes invite-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.25); }
-  50% { box-shadow: 0 0 12px 2px rgba(167, 139, 250, 0.35); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(94, 234, 212, 0.25); }
+  50% { box-shadow: 0 0 12px 2px rgba(94, 234, 212, 0.35); }
 }
 .animate-invite { animation: invite-pulse 3s ease-in-out infinite; }
 /* Satisfying success flash */
@@ -636,13 +636,13 @@ input[type="range"]::-moz-range-thumb {
   transform: translateX(-50%);
   width: 280px;
   height: 160px;
-  background: radial-gradient(ellipse at center, rgba(167, 139, 250, 0.18) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(94, 234, 212, 0.18) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
 /* Intensified dot glow */
 .animate-drive > div {
-  box-shadow: 0 0 16px 4px rgba(196, 181, 253, 0.9), 0 0 32px 8px rgba(167, 139, 250, 0.4) !important;
+  box-shadow: 0 0 16px 4px rgba(196, 181, 253, 0.9), 0 0 32px 8px rgba(94, 234, 212, 0.4) !important;
 }
 
 /* Bulb-under effect: elements look lit from underneath */
