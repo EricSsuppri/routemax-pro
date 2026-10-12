@@ -1394,7 +1394,7 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-const APP_VERSION = "2.324";
+const APP_VERSION = "2.325";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -5694,74 +5694,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 </div>
               )}
               {/* Export buttons */}
-              <div className="flex gap-2 mt-3 pt-3 border-t border-teal-500/10">
-                <button
-                  onClick={() => {
-                    const periodLabel = bookPeriod === "day" ? "Today" : bookPeriod === "week" ? "Last 7 Days" : bookPeriod === "month" ? "Last 30 Days" : bookPeriod === "year" ? "Last Year" : "All Time";
-                    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>RouteMax Bookkeeping - ${periodLabel}</title><style>
-                      body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1a1a1a; }
-                      h1 { font-size: 24px; margin-bottom: 5px; } h2 { font-size: 18px; margin-top: 30px; border-bottom: 2px solid #0d9488; padding-bottom: 5px; }
-                      .meta { color: #666; font-size: 12px; margin-bottom: 20px; }
-                      table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                      th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
-                      th { background: #f5f5f5; font-size: 12px; text-transform: uppercase; }
-                      .total { font-weight: bold; font-size: 16px; }
-                      .positive { color: #059669; } .negative { color: #dc2626; }
-                      @media print { body { margin: 20px; } }
-                    </style></head><body>
-                      <h1>RouteMax — Bookkeeping Report</h1>
-                      <div class="meta">${periodLabel} · ${countryInfo.name} · Generated ${new Date().toLocaleDateString()}</div>
-                      <h2>{tr("summary")}</h2>
-                      <table>
-                        <tr><th>{tr("metric")}</th><th>{tr("value")}</th></tr>
-                        <tr><td>{tr("trips")}</td><td>${book.trips}</td></tr>
-                        <tr><td>{useKm ? "Kilometers driven" : "Miles driven"}</td><td>${book.miles.toFixed(1)}</td></tr>
-                        <tr><td>Gas used</td><td>${book.gallons.toFixed(1)} gal (${bookMpg.toFixed(1)} MPG)</td></tr>
-                        <tr><td>Fuel cost</td><td>${countryInfo.symbol}${book.fuelCost.toFixed(2)}</td></tr>
-                        <tr><td>Other expenses</td><td>${countryInfo.symbol}${bookOtherCosts.toFixed(2)}</td></tr>
-                        <tr><td>{tr("totalexpenses")}</td><td>${countryInfo.symbol}${book.totalCost.toFixed(2)}</td></tr>
-                        <tr><td>Gross earnings</td><td>${countryInfo.symbol}${book.gross.toFixed(2)}</td></tr>
-                        <tr><td class="total">Net profit</td><td class="total ${book.net >= 0 ? "positive" : "negative"}">${countryInfo.symbol}${book.net.toFixed(2)}</td></tr>
-                        <tr><td>{tr("hoursdriven")}</td><td>${book.hours.toFixed(1)}</td></tr>
-                        <tr><td>{tr("earningsperhour")}</td><td>${countryInfo.symbol}${bookHourly.toFixed(2)}</td></tr>
-                        <tr><td>{tr("costpermile")}</td><td>${countryInfo.symbol}${bookCostPerMile.toFixed(2)}</td></tr>
-                      </table>
-                      ${bookAiSummary ? `<h2>{tr("aiinsights")}</h2><p style="white-space: pre-line; font-size: 14px; line-height: 1.6;">${bookAiSummary}</p>` : ""}
-                      <h2>{tr("tripdetails")}</h2>
-                      <table><tr><th>{tr("date")}</th><th>{tr("distance")}</th><th>Payout</th><th>Net</th></tr>
-                      ${bookRows.map((r) => `<tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${distVal(r.mileage || 0).toFixed(1)} {DIST}</td><td>${countryInfo.symbol}${(r.payout || 0).toFixed(2)}</td><td>${countryInfo.symbol}${(r.net_profit || 0).toFixed(2)}</td></tr>`).join("")}
-                      </table>
-                      <div class="meta" style="margin-top: 30px;">Mileage rate: ${countryInfo.symbol}${countryInfo.mileageRate}/${countryInfo.miles ? "mi" : "km"} — ${countryInfo.mileageLabel}</div>
-                    </body></html>`;
-                    shareFile(html, `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.html`, "text/html");
-                  }}
-                  className="flex-1 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 active:scale-[0.98] flex items-center justify-center gap-1.5"
-                >
-                  <FileText className="w-3.5 h-3.5" /> Export PDF/Doc
-                </button>
-                <button
-                  onClick={() => {
-                    const periodLabel = bookPeriod === "day" ? "Today" : bookPeriod === "week" ? "Last 7 Days" : bookPeriod === "month" ? "Last 30 Days" : bookPeriod === "year" ? "Last Year" : "All Time";
-                    const csv = ["Date,Miles,Gallons,Fuel Cost,Other Expenses,Total Cost,Gross,Net,Hours",
-                      ...bookRows.map((r) => [
-                        new Date(r.created_at).toLocaleDateString(),
-                        (r.mileage || 0).toFixed(1),
-                        (((r.mileage || 0) / (r.mpg || 25))).toFixed(2),
-                        (r.fuel_cost || 0).toFixed(2),
-                        ((r.total_cost || 0) - (r.fuel_cost || 0)).toFixed(2),
-                        (r.total_cost || 0).toFixed(2),
-                        (r.payout || 0).toFixed(2),
-                        (r.net_profit || 0).toFixed(2),
-                        (r.hours || 0).toFixed(2),
-                      ].join(","))
-                    ].join("\n");
-                    shareFile(csv, `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.csv`, "text/csv");
-                  }}
-                  className="flex-1 py-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 text-xs font-bold text-zinc-300 active:scale-[0.98] flex items-center justify-center gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" /> Export CSV
-                </button>
-              </div>
+              {/* Export buttons removed per user request */}
             </>
           )}
         </div>
