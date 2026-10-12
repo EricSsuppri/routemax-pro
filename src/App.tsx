@@ -1740,50 +1740,34 @@ function CameraCoach({ mode, onClose, onLog }: {
   onClose: () => void;
   onLog: (kind: "workouts" | "stretches" | "waterOz", amount: number) => void;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [camErr, setCamErr] = useState("");
-  const [facing, setFacing] = useState<"user" | "environment">(mode === "water" ? "environment" : "user");
   const [exercise, setExercise] = useState(mode === "workout" ? "push-ups" : mode === "stretch" ? "standing stretch" : "");
   const [reps, setReps] = useState(0);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [autoCount, setAutoCount] = useState(false);
-  const autoRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [plan, setPlan] = useState("");
   const [planBusy, setPlanBusy] = useState(false);
 
-  const startCam = async (f: "user" | "environment") => {
-    try {
-      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: f }, audio: false });
-      streamRef.current = s;
-      if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play().catch(() => {}); }
-      setCamErr("");
-    } catch { setCamErr("Camera blocked — allow camera access in your browser settings, or type it in manually."); }
-  };
-  useEffect(() => {
-    startCam(facing);
-    return () => { if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop()); if (autoRef.current) clearInterval(autoRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  // Native camera capture via the Capacitor plugin — the exact path Scan Offer
+  // uses (and the one that works on this device). getUserMedia was removed:
+  // it hangs the Android WebView into a black screen that needs force-close.
+  // Live rep-counting/video preview cannot run in this WebView, so each tap
+  // takes one native photo and the existing AI analysis scores it.
   const snap = async (): Promise<string | null> => {
-    const v = videoRef.current;
-    if (!v || v.videoWidth === 0) return null;
-    const c = document.createElement("canvas");
-    const maxSide = 768;
-    const sc = Math.min(1, maxSide / Math.max(v.videoWidth, v.videoHeight));
-    c.width = Math.round(v.videoWidth * sc);
-    c.height = Math.round(v.videoHeight * sc);
-    c.getContext("2d")!.drawImage(v, 0, 0, c.width, c.height);
-    return c.toDataURL("image/jpeg", 0.7);
+    try {
+      const photo = await CapCamera.getPhoto({
+        quality: 80,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Prompt,
+      });
+      if (!photo.base64String) return null;
+      return "data:image/jpeg;base64," + photo.base64String;
+    } catch { return null; }
   };
 
   const analyze = async () => {
     if (busy) return;
     const img = await snap();
-    if (!img) { setFeedback("Couldn't capture — try again."); return; }
+    if (!img) { setFeedback("No photo taken — try again."); return; }
     setBusy(true); setFeedback("");
     try {
       let prompt = "";
@@ -1824,12 +1808,6 @@ function CameraCoach({ mode, onClose, onLog }: {
     finally { setBusy(false); }
   };
 
-  const toggleAuto = () => {
-    if (autoRef.current) { clearInterval(autoRef.current); autoRef.current = null; setAutoCount(false); return; }
-    setAutoCount(true);
-    autoRef.current = setInterval(() => { analyze(); }, 5000);
-  };
-
   const finish = () => {
     if (mode === "workout" && reps > 0) onLog("workouts", 1);
     if (mode === "stretch") onLog("stretches", 1);
@@ -1865,16 +1843,17 @@ function CameraCoach({ mode, onClose, onLog }: {
       <div className="flex items-center justify-between p-4">
         <div className="text-sm font-bold text-white">{titles[mode]}</div>
         <div className="flex gap-2">
-          <button onClick={() => { const f = facing === "user" ? "environment" : "user"; setFacing(f); startCam(f); }} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-300 active:scale-95">{tr("flip")}</button>
           <button onClick={onClose} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-300 active:scale-95">{tr("close")}</button>
         </div>
       </div>
-      <div className="flex-1 relative overflow-hidden bg-zinc-900">
-        {camErr ? (
-          <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-zinc-400">{camErr}</div>
-        ) : (
-          <video ref={videoRef} playsInline muted autoPlay className="absolute inset-0 w-full h-full object-cover" />
-        )}
+      <div className="flex-1 relative overflow-hidden bg-zinc-900 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="text-4xl mb-3">📸</div>
+          <div className="text-sm text-zinc-200 font-bold mb-1">
+            {mode === "workout" ? "Get into position, then tap “Count this rep”" : mode === "water" ? "Hold up your bottle or cup, then tap “Scan my bottle”" : "Get into your stretch, then tap “Check my form”"}
+          </div>
+          <div className="text-[11px] text-zinc-500">Uses your phone's camera app — no live preview</div>
+        </div>
         {mode === "workout" && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-6 py-3 text-center">
             <div className="text-3xl font-extrabold text-teal-300 tabular-nums">{reps}</div>
@@ -1913,14 +1892,9 @@ function CameraCoach({ mode, onClose, onLog }: {
         </div>
       )}
       <div className="p-4 flex gap-2">
-        <button onClick={analyze} disabled={busy || !!camErr} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50">
+        <button onClick={analyze} disabled={busy} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50">
           {busy ? "Watching…" : mode === "workout" ? "Count this rep 📸" : mode === "water" ? "Scan my bottle 📸" : "Check my form 📸"}
         </button>
-        {mode === "workout" && (
-          <button onClick={toggleAuto} className={`px-4 py-3.5 rounded-2xl text-xs font-bold active:scale-95 ${autoCount ? "bg-amber-500/25 border border-amber-500/50 text-amber-200" : "bg-zinc-800 border border-zinc-700 text-zinc-300"}`}>
-            {autoCount ? "Auto ON" : "Auto"}
-          </button>
-        )}
         <button onClick={finish} className="px-5 py-3.5 rounded-2xl bg-zinc-800 border border-zinc-700 text-sm font-bold text-zinc-200 active:scale-95">
           {mode === "water" ? "Done" : `Finish${mode === "workout" && reps > 0 ? ` (${reps})` : ""}`}
         </button>
@@ -8660,7 +8634,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.296</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.298</div>
             </div>
           </div>
         </div>
