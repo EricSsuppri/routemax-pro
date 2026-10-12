@@ -1394,7 +1394,7 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-const APP_VERSION = "2.325";
+const APP_VERSION = "2.326";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
