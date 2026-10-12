@@ -70,7 +70,7 @@ export default function App() {
               <p className="text-zinc-400 text-sm mt-2 font-light">Fuel, wear & time — factored in automatically.</p>
             </div>
             
-            {/* Dashed Metric Segment Progress Bar */}
+            {/* Dashed Metric Progress Bar Restored */}
             <div className="relative flex items-center justify-between h-4 my-2 px-1">
               <div className="absolute left-0 right-0 h-[3px] bg-zinc-800 rounded" />
               <div className="absolute left-0 w-[60%] h-[3px] bg-gradient-to-r from-[#D4AF37]/50 to-[#D4AF37] rounded" />
