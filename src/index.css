@@ -137,7 +137,7 @@ input[type="number"] {
 
 /* Champagne gold primary button */
 .btn-champagne {
-  background: linear-gradient(135deg, #d4a94e 0%, #d4a94e 35%, #8b6914 70%, #d4a94e 100%);
+  background: linear-gradient(135deg, #c9a86a 0%, #c9a86a 35%, #8b6914 70%, #c9a86a 100%);
   color: #191408;
   box-shadow: 0 8px 28px rgba(230, 197, 124, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
@@ -227,7 +227,7 @@ input[type="number"] {
   width: 16px;
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(90deg, #d4a94e, transparent);
+  background: linear-gradient(90deg, #c9a86a, transparent);
 }
 @keyframes drawer-in {
   from { transform: translateX(-102%); }
@@ -329,7 +329,7 @@ input[type="number"] {
 .ai-says {
   background: linear-gradient(135deg, rgba(45,212,191,0.10), rgba(243,216,148,0.06));
   border: 1px solid rgba(45,212,191,0.22);
-  border-left: 3px solid #d4a94e;
+  border-left: 3px solid #c9a86a;
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 13px;
@@ -469,8 +469,8 @@ input[type="number"] {
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 /* Basecamp text readability */
-.basecamp-light .text-zinc-400 { color: #d4a94e !important; }
-.basecamp-light .text-zinc-500 { color: #d4a94e !important; }
+.basecamp-light .text-zinc-400 { color: #c9a86a !important; }
+.basecamp-light .text-zinc-500 { color: #c9a86a !important; }
 
 @keyframes sat-pulse { 0%, 100% { transform: scale(1); opacity: 0.75; } 50% { transform: scale(1.4); opacity: 0.3; } }
 .animate-sat-pulse { animation: sat-pulse 1.8s ease-in-out infinite; }
@@ -524,10 +524,10 @@ input[type="number"] {
 
 /* ===== TEAL/DARK THEME (icon-matched) ===== */
 :root {
-  --synth-pink: #d4a94e;
+  --synth-pink: #c9a86a;
   --synth-pink-dark: #8b6914;
-  --synth-purple: #d4a94e;
-  --synth-purple-light: #d4a94e;
+  --synth-purple: #c9a86a;
+  --synth-purple-light: #c9a86a;
   --synth-bg: #0d0d0f;
   --synth-surface: #14141a;
   --synth-card: #1c1c22;
@@ -546,8 +546,8 @@ body { color: #f5f0ff !important; }
 
 /* Blend: teal identity + original theme readability */
 /* Bright lavender for text accents (readable on dark) */
-.text-teal-300, .text-teal-400 { color: #d4a94e !important; }
-.text-teal-500 { color: #d4a94e !important; }
+.text-teal-300, .text-teal-400 { color: #c9a86a !important; }
+.text-teal-500 { color: #c9a86a !important; }
 /* Rich teal for backgrounds/buttons */
 .bg-teal-400, .bg-teal-500 { background-color: #8b6914 !important; }
 .bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 { background-color: rgba(20, 184, 166, 0.20) !important; }
@@ -555,7 +555,7 @@ body { color: #f5f0ff !important; }
 .border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(20, 184, 166, 0.35) !important; }
 .from-teal-400, .from-teal-500 { --tw-gradient-from: #8b6914 !important; }
 .to-teal-400 { --tw-gradient-to: #e8c87e !important; }
-.to-teal-500 { --tw-gradient-to: #d4a94e !important; }
+.to-teal-500 { --tw-gradient-to: #c9a86a !important; }
 /* Champagne gold highlights (from original theme) for key CTAs */
 .text-\[\#f7dc8f\], .text-amber-200, .text-amber-300 { color: #f7dc8f !important; }
 .bg-\[\#f7dc8f\]\/10, .bg-amber-400\/10 { background-color: rgba(243, 216, 148, 0.12) !important; }
@@ -594,7 +594,7 @@ input[type="range"]::-webkit-slider-thumb {
   height: 20px;
   border-radius: 50%;
   background: #f7dc8f;
-  border: 2px solid #d4a94e;
+  border: 2px solid #c9a86a;
   box-shadow: 0 0 10px rgba(247, 220, 143, 0.5);
   cursor: pointer;
 }
@@ -603,7 +603,7 @@ input[type="range"]::-moz-range-thumb {
   height: 20px;
   border-radius: 50%;
   background: #f7dc8f;
-  border: 2px solid #d4a94e;
+  border: 2px solid #c9a86a;
   box-shadow: 0 0 10px rgba(247, 220, 143, 0.5);
   cursor: pointer;
 }
@@ -611,7 +611,7 @@ input[type="range"]::-moz-range-thumb {
 /* ---- Bulb glow (v2.252) — luminous like light from within ---- */
 /* Glowing accent text */
 .text-glow-purple {
-  text-shadow: 0 0 8px #d4a94e, 0 0 20px #8b6914, 0 0 35px #8b6914;
+  text-shadow: 0 0 8px #c9a86a, 0 0 20px #8b6914, 0 0 35px #8b6914;
   filter: brightness(1.15);
 }
 .text-glow-gold {
@@ -620,12 +620,12 @@ input[type="range"]::-moz-range-thumb {
 }
 /* Glowing active tab */
 .tab-active-glow {
-  box-shadow: 0 0 15px #8b6914, 0 0 30px #d4a94e, inset 0 0 12px rgba(94,234,212,0.3);
+  box-shadow: 0 0 15px #8b6914, 0 0 30px #c9a86a, inset 0 0 12px rgba(94,234,212,0.3);
   filter: brightness(1.1);
 }
 /* Radial light behind hero */
 .hero-glow {
-  text-shadow: 0 0 10px #d4a94e, 0 0 25px #8b6914, 0 0 45px #8b6914;
+  text-shadow: 0 0 10px #c9a86a, 0 0 25px #8b6914, 0 0 45px #8b6914;
   filter: brightness(1.2);
 }
 .hero-glow::before {
@@ -656,7 +656,7 @@ input[type="range"]::-moz-range-thumb {
   left: 10%;
   right: 10%;
   height: 8px;
-  background: radial-gradient(ellipse at center, #d4a94e 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, #c9a86a 0%, transparent 70%);
   filter: blur(6px);
   opacity: 0.6;
   pointer-events: none;
