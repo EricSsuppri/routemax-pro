@@ -681,7 +681,7 @@ const CUSTOM_COLORS = [
   { name: "Cream", accent: "text-[#ffecd0]", bg: "bg-[#ffecd0]/15 border-[#ffecd0]/30" },
   { name: "Red", accent: "text-red-400", bg: "bg-red-500/15 border-red-500/30" },
   { name: "Sky", accent: "text-sky-400", bg: "bg-sky-500/15 border-sky-500/30" },
-  { name: "Violet", accent: "text-violet-400", bg: "bg-violet-500/15 border-violet-500/30" },
+  { name: "Violet", accent: "text-amber-400", bg: "bg-amber-500/15 border-amber-500/30" },
   { name: "Orange", accent: "text-orange-400", bg: "bg-orange-500/15 border-orange-500/30" },
 ];
 
@@ -3483,7 +3483,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   }, [theme77]);
   // First-launch onboarding: country + language picker
   const [showOnboarding, setShowOnboarding] = useState(() => {
-    try { return !localStorage.getItem("routemax_onboarded"); } catch { return true; }
+    // Onboarding disabled - user requested removal
+    return false;
   });
   const [onboardLang, setOnboardLang] = useState("en");
   const [onboardCountry, setOnboardCountry] = useState("US");
@@ -5755,9 +5756,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
         {/* v2 spec Phase 5: Eric's week in review */}
         {isAiConfigured && (
-          <div className="glass rounded-2xl p-4 border border-violet-500/15">
+          <div className="glass rounded-2xl p-4 border border-amber-500/15">
             <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-violet-400" strokeWidth={2.5} />
+              <Sparkles className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
               <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
                 Your week in review
               </span>
@@ -5770,7 +5771,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button
                   onClick={getBriefing}
                   disabled={briefingBusy}
-                  className="w-full glass-input border border-violet-500/30 rounded-xl flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-violet-300 active:scale-[0.98] transition-transform disabled:opacity-60 btn-sheen"
+                  className="w-full glass-input border border-amber-500/30 rounded-xl flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-amber-300 active:scale-[0.98] transition-transform disabled:opacity-60 btn-sheen"
                 >
                   <Sparkles className="w-4 h-4" strokeWidth={2.5} />
                   {briefingBusy ? "Writing your briefing…" : "Brief me on my week"}
@@ -5780,7 +5781,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div>
                 <p className="text-xs text-zinc-300 leading-relaxed">{briefing.summary}</p>
                 <div className="mt-3 rounded-xl bg-amber-500/10 border border-amber-500/25 p-3">
-                  <div className="text-[10px] font-bold text-violet-300 uppercase tracking-wider mb-1">
+                  <div className="text-[10px] font-bold text-amber-300 uppercase tracking-wider mb-1">
                     Coach's tip
                   </div>
                   <p className="text-xs text-zinc-200 leading-relaxed">{briefing.tip}</p>
@@ -5793,7 +5794,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 </button>
                 <AiChat
                   chatId="briefing"
-                  accent="bg-violet-500/20"
+                  accent="bg-amber-500/20"
                   context={`The user just got this weekly briefing from Eric: "${briefing.summary}" Coach's tip: "${briefing.tip}".`}
                   onNavigate={(t) => setActiveTab(t)}
                   onAction={handleEricAction}
@@ -7295,10 +7296,10 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <button
                     onClick={scanOffer}
                     disabled={scanBusy}
-                    className="relative w-full glass-input border border-violet-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 py-3 text-sm font-bold text-violet-300 active:scale-[0.98] transition-transform disabled:opacity-60"
+                    className="relative w-full glass-input border border-amber-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 py-3 text-sm font-bold text-amber-300 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
                     {!scanBusy && (
-                      <span className="absolute inset-0 rounded-xl sm:rounded-2xl bg-violet-400/25 animate-softring pointer-events-none" />
+                      <span className="absolute inset-0 rounded-xl sm:rounded-2xl bg-amber-400/25 animate-softring pointer-events-none" />
                     )}
                     <Camera className="w-4 h-4 relative" strokeWidth={2.5} />
                     {scanBusy ? (tripPurpose === "personal" ? "Scanning trip…" : "Scanning offer…") : (tripPurpose === "personal" ? "Scan trip (camera or screenshot)" : "Scan offer (camera or screenshot)")}
@@ -7321,24 +7322,24 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     onClick={toggleWatching}
                     className={`w-full flex items-center justify-between rounded-xl border transition-all px-4 py-3 ${
                       watching
-                        ? "bg-violet-500/10 border-violet-500/30"
+                        ? "bg-amber-500/10 border-amber-500/30"
                         : "glass-input border-zinc-800/60"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          watching ? "bg-violet-500/15" : "bg-zinc-800/40"
+                          watching ? "bg-amber-500/15" : "bg-zinc-800/40"
                         }`}
                       >
                         <Zap
-                          className={`w-4 h-4 ${watching ? "text-violet-400" : "text-zinc-500"}`}
+                          className={`w-4 h-4 ${watching ? "text-amber-400" : "text-zinc-500"}`}
                           strokeWidth={2.5}
                         />
                       </div>
                       <div className="text-left min-w-0">
                         <div
-                          className={`text-sm font-bold ${watching ? "text-violet-300" : "text-zinc-300"}`}
+                          className={`text-sm font-bold ${watching ? "text-amber-300" : "text-zinc-300"}`}
                         >
                           Auto-scan screenshots
                         </div>
@@ -7351,7 +7352,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     </div>
                     <div
                       className={`w-10 h-6 rounded-full flex items-center transition-colors flex-shrink-0 ${
-                        watching ? "bg-violet-500/40" : "bg-zinc-700"
+                        watching ? "bg-amber-500/40" : "bg-zinc-700"
                       }`}
                     >
                       <div
@@ -7815,7 +7816,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <button
                         onClick={getVerdict}
                         disabled={verdictBusy}
-                        className="w-full glass-input border border-violet-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 py-3 text-sm font-bold text-violet-300 active:scale-[0.98] transition-transform disabled:opacity-60"
+                        className="w-full glass-input border border-amber-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 py-3 text-sm font-bold text-amber-300 active:scale-[0.98] transition-transform disabled:opacity-60"
                       >
                         <Zap className="w-4 h-4" strokeWidth={2.5} />
                         {verdictBusy ? "Asking Eric…" : "Ask Eric: Take it or skip it?"}
@@ -7864,7 +7865,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         </button>
                         <AiChat
                           chatId="verdict"
-                          accent="bg-violet-500/20"
+                          accent="bg-amber-500/20"
                           context={`The user just got this verdict from Eric on their offer: ${verdict.verdict}. Reasons: ${verdict.reasons.join("; ")}. Offer: payout $${results.payout}, ${results.mileage} miles, true net ${formatCurrency(results.netProfit)}, ${formatCurrency(results.hourlyEarnings)}/hr after costs.`}
                           onNavigate={(t) => setActiveTab(t)}
                           onAction={handleEricAction}
@@ -8278,7 +8279,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                       <div>
                         <div className="text-sm font-bold text-white">{appName}</div>
-                        <div className="text-[11px] text-zinc-500">Version 2.315</div>
+                        <div className="text-[11px] text-zinc-500">Version 2.316</div>
                       </div>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">
@@ -8540,7 +8541,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.315</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.316</div>
             </div>
           </div>
         </div>
@@ -9055,7 +9056,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <button
                       onClick={() => askCardAi("sleep", `You are a wellness coach for gig drivers who work irregular hours. You average ${bcWeekStats.avgSleep.toFixed(1)} hours of sleep/night. Give 3 practical tips for better sleep with an unpredictable schedule — naps, wind-down, environment. Short and actionable.`)}
                       disabled={aiBusy["sleep"]}
-                      className="w-full py-2 rounded-xl bg-amber-500/10 border border-indigo-500/20 text-[11px] font-bold text-amber-300/80 active:scale-[0.98] disabled:opacity-50"
+                      className="w-full py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-300/80 active:scale-[0.98] disabled:opacity-50"
                     >
                       {aiBusy["sleep"] ? "…" : "😴 Tips"}
                     </button>
@@ -9661,7 +9662,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     {bcChart.map((d) => (
                       <div key={"s"+d.key} className="flex-1 flex flex-col items-center gap-1 min-w-0">
                         <div className="w-full flex items-end h-10 rounded-md bg-zinc-800/60 overflow-hidden">
-                          <div className="w-full bg-indigo-500/70 rounded-md" style={{ height: `${Math.min(100, (d.sleep / 10) * 100)}%` }} />
+                          <div className="w-full bg-amber-500/70 rounded-md" style={{ height: `${Math.min(100, (d.sleep / 10) * 100)}%` }} />
                         </div>
                       </div>
                     ))}
@@ -9673,7 +9674,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <button
                     onClick={askWeekSummary}
                     disabled={weekSummaryBusy}
-                    className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-indigo-500/20 border border-amber-500/30 text-[11px] font-bold text-amber-200 active:scale-[0.98] disabled:opacity-50"
+                    className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-amber-500/20 border border-amber-500/30 text-[11px] font-bold text-amber-200 active:scale-[0.98] disabled:opacity-50"
                   >
                     {weekSummaryBusy ? "Reading your week…" : "✨ AI weekly summary — how did I do?"}
                   </button>
