@@ -536,10 +536,10 @@ input[type="number"] {
 }
 
 /* Readability: brighten body text and muted text on the lighter bg */
-body { color: #f5f0ff !important; }
-.text-zinc-500 { color: #b8a8d8 !important; }
-.text-zinc-400 { color: #c9bce8 !important; }
-.text-zinc-300 { color: #ddd3f5 !important; }
+body { color: #faf6f0 !important; }
+.text-zinc-500 { color: #a89a80 !important; }
+.text-zinc-400 { color: #b8a898 !important; }
+.text-zinc-300 { color: #d4c4b0 !important; }
 .bg-zinc-900\/40, .bg-zinc-900\/30, .bg-zinc-900\/60 { background-color: rgba(24, 24, 27, 0.7) !important; }
 .bg-zinc-800\/40 { background-color: rgba(39, 39, 42, 0.5) !important; }
 .border-zinc-800\/40, .border-zinc-700\/40 { border-color: rgba(63, 63, 70, 0.25) !important; }
