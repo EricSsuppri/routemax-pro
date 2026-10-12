@@ -670,7 +670,7 @@ input[type="range"]::-moz-range-thumb {
 body {
   background-color: #0d0d0f !important;
   background-image:
-    linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.65) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.82) 40%, rgba(0,0,0,0.88) 100%),
     url('./road-bg.jpg') !important;
   background-size: cover, cover !important;
   background-position: center top, center top !important;
