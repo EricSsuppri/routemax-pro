@@ -8278,7 +8278,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                       <div>
                         <div className="text-sm font-bold text-white">{appName}</div>
-                        <div className="text-[11px] text-zinc-500">{tr("version2248")}</div>
+                        <div className="text-[11px] text-zinc-500">Version 2.314</div>
                       </div>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">
@@ -8540,7 +8540,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.313</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.314</div>
             </div>
           </div>
         </div>
