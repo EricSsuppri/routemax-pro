@@ -620,7 +620,7 @@ input[type="range"]::-moz-range-thumb {
 }
 /* Glowing active tab */
 .tab-active-glow {
-  box-shadow: 0 0 15px #0d9488, 0 0 30px #14b8a6, inset 0 0 12px rgba(167,139,250,0.3);
+  box-shadow: 0 0 15px #0d9488, 0 0 30px #14b8a6, inset 0 0 12px rgba(94,234,212,0.3);
   filter: brightness(1.1);
 }
 /* Radial light behind hero */
@@ -662,7 +662,7 @@ input[type="range"]::-moz-range-thumb {
   pointer-events: none;
 }
 .bulb-card {
-  box-shadow: 0 4px 20px rgba(124,58,237,0.15), inset 0 1px 0 rgba(167,139,250,0.2), 0 0 30px rgba(139,92,246,0.1);
+  box-shadow: 0 4px 20px rgba(20,184,166,0.15), inset 0 1px 0 rgba(94,234,212,0.2), 0 0 30px rgba(20,184,166,0.1);
 }
 
 
