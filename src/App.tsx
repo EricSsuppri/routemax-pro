@@ -8463,28 +8463,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         </div>
                       )}
                     </div>
-                    {/* Units collapsible */}
-                    <div className="mt-2">
-                      <button onClick={() => setUnitsSettingsOpen(!unitsSettingsOpen)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.98]">
-                        <span className="text-xs font-bold text-zinc-200">{tr("units")}</span>
-                        <span className="text-zinc-500 text-xs">{unitsSettingsOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {unitsSettingsOpen && (
-                        <div className="mt-1 rounded-xl bg-zinc-900/40 border border-zinc-800/40 overflow-hidden">
-                          <button
-                            onClick={() => {
-                              const v = !useKm;
-                              setUseKm(v);
-                              try { localStorage.setItem("routemax_use_km", v ? "1" : "0"); } catch {}
-                            }}
-                            className="w-full flex items-center justify-between px-3 py-2.5 text-left active:opacity-70"
-                          >
-                            <span className="text-xs font-semibold text-zinc-200">{tr("distanceunits")}</span>
-                            <span className="text-xs font-bold text-teal-400">{useKm ? "Kilometers" : "Miles"}</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    {/* Units removed - using miles only */}
                     {/* Data & Storage collapsible */}
                     <div className="mt-2">
                       <button onClick={() => setDataSettingsOpen(!dataSettingsOpen)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.98]">
@@ -8562,28 +8541,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         </div>
                       )}
                     </div>
-                    {/* Theme 77 intensity slider */}
-                    <div className="mt-2 rounded-xl bg-zinc-800/40 border border-zinc-700/40 px-3 py-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-zinc-200">Theme 77</span>
-                        <span className="text-[10px] font-bold text-[var(--synth-purple-light)]">{theme77}%</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={theme77}
-                        onChange={(e) => setTheme77(parseInt(e.target.value))}
-                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                        style={{
-                          background: "linear-gradient(90deg, var(--synth-purple) 0%, var(--synth-purple-light) 50%, var(--synth-purple) 100%)",
-                        }}
-                      />
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[9px] text-zinc-500">Soft</span>
-                        <span className="text-[9px] text-zinc-500">Vivid</span>
-                      </div>
-                    </div>
+
                     {/* Country picker */}
                     <div className="mt-2">
                       <button onClick={() => setCountrySettingsOpen(!countrySettingsOpen)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.98]">
@@ -8633,7 +8591,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.303</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.304</div>
             </div>
           </div>
         </div>
