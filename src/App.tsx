@@ -220,11 +220,11 @@ type Preset = {
 const PRESETS: Preset[] = [
   { key: "doordash", label: "DoorDash", icon: Bike, payout: "8", mileage: "10", gasPrice: "3.50", mpg: "22", wear: "0.30", accent: "text-red-400", bg: "bg-red-500/15 border-red-500/30" },
   { key: "amazonflex", label: "Amazon Flex", icon: Package, payout: "108", mileage: "80", gasPrice: "3.50", mpg: "22", wear: "0.30", accent: "text-sky-400", bg: "bg-sky-500/15 border-sky-500/30" },
-  { key: "ubereats", label: "UberEats", icon: Car, payout: "12", mileage: "12", gasPrice: "3.50", mpg: "22", wear: "0.30", accent: "text-teal-400", bg: "bg-teal-500/15 border-teal-500/30" },
+  { key: "ubereats", label: "UberEats", icon: Car, payout: "12", mileage: "12", gasPrice: "3.50", mpg: "22", wear: "0.30", accent: "text-amber-400", bg: "bg-amber-500/15 border-amber-500/30" },
   { key: "instacart", label: "Instacart", icon: ShoppingBag, payout: "18", mileage: "15", gasPrice: "3.50", mpg: "22", wear: "0.30", accent: "text-green-400", bg: "bg-green-500/15 border-green-500/30" },
   { key: "charter", label: "Charter", icon: Plane, payout: "450", mileage: "180", gasPrice: "6.50", mpg: "12", wear: "1.00", accent: "text-[#ffecd0]", bg: "bg-[#ffecd0]/15 border-[#ffecd0]/30" },
   { key: "ferry", label: "Ferry", icon: Ship, payout: "120", mileage: "40", gasPrice: "4.50", mpg: "3", wear: "0.80", accent: "text-cyan-400", bg: "bg-cyan-500/15 border-cyan-500/30" },
-  { key: "rideshare", label: "Rideshare", icon: Users, payout: "14", mileage: "12", gasPrice: "3.50", mpg: "25", wear: "0.30", accent: "text-teal-400", bg: "bg-teal-500/15 border-teal-500/30" },
+  { key: "rideshare", label: "Rideshare", icon: Users, payout: "14", mileage: "12", gasPrice: "3.50", mpg: "25", wear: "0.30", accent: "text-amber-400", bg: "bg-amber-500/15 border-amber-500/30" },
   { key: "trucking", label: "Trucking", icon: Truck, payout: "800", mileage: "500", gasPrice: "4.00", mpg: "6.5", wear: "0.45", accent: "text-orange-400", bg: "bg-orange-500/15 border-orange-500/30" },
   { key: "ebike", label: "E-Bike", icon: Bike, payout: "9", mileage: "8", gasPrice: "0", mpg: "100", wear: "0.10", accent: "text-lime-400", bg: "bg-lime-500/15 border-lime-500/30" },
 ];
@@ -348,7 +348,7 @@ const AnimatedNumber = ({ value, format }: { value: number; format: (n: number) 
 // Sleek animated tab header — ambient orbs + staggered entrance, shared by all tabs
 const TabHero = ({ title, subtitle }: { title: string; subtitle: string }): ReactElement => (
   <div className="relative overflow-hidden rounded-2xl glass px-4 py-4 animate-fade-in-up">
-    <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-teal-500/15 blur-2xl animate-orb pointer-events-none" />
+    <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-amber-500/15 blur-2xl animate-orb pointer-events-none" />
     <div className="absolute -bottom-14 -left-10 w-36 h-36 rounded-full bg-[#f5d78a]/10 blur-2xl animate-orb pointer-events-none" style={{ animationDelay: "-3.5s" }} />
     <div className="relative">
       <h2 className="text-xl font-extrabold tracking-tight">{title}</h2>
@@ -677,7 +677,7 @@ const guessIconFor = (label: string): string => {
 };
 
 const CUSTOM_COLORS = [
-  { name: "Teal", accent: "text-teal-400", bg: "bg-teal-500/15 border-teal-500/30" },
+  { name: "Teal", accent: "text-amber-400", bg: "bg-amber-500/15 border-amber-500/30" },
   { name: "Cream", accent: "text-[#ffecd0]", bg: "bg-[#ffecd0]/15 border-[#ffecd0]/30" },
   { name: "Red", accent: "text-red-400", bg: "bg-red-500/15 border-red-500/30" },
   { name: "Sky", accent: "text-sky-400", bg: "bg-sky-500/15 border-sky-500/30" },
@@ -1110,7 +1110,7 @@ function ActivityHistory({ card, label, history, open, trash, onRecover, onDelet
           <div className="flex items-center gap-2">
             <button
               onClick={() => onRecover(card)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/15 border border-teal-500/30 text-[11px] font-bold text-teal-300 active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 active:scale-95"
             >
               <Undo2 className="w-3.5 h-3.5" /> Recover
             </button>
@@ -1638,7 +1638,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           aria-label="Take a photo"
           className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform disabled:opacity-40"
         >
-          <Camera className="w-4 h-4 text-teal-400" />
+          <Camera className="w-4 h-4 text-amber-400" />
         </button>
         <button
           onClick={() => openPicker(false)}
@@ -1647,7 +1647,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           aria-label="Upload a photo"
           className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform disabled:opacity-40"
         >
-          <ImagePlus className="w-4 h-4 text-teal-400" />
+          <ImagePlus className="w-4 h-4 text-amber-400" />
         </button>
         <input
           value={input}
@@ -1877,7 +1877,7 @@ function CameraCoach({ mode, onClose, onLog }: {
         </div>
         {mode === "workout" && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-6 py-3 text-center">
-            <div className="text-3xl font-extrabold text-teal-300 tabular-nums">{reps}</div>
+            <div className="text-3xl font-extrabold text-amber-300 tabular-nums">{reps}</div>
             <div className="text-[10px] text-zinc-400 uppercase tracking-wider">reps</div>
           </div>
         )}
@@ -1886,10 +1886,10 @@ function CameraCoach({ mode, onClose, onLog }: {
         <div className="px-4 pt-3">
           <div className="flex gap-2">
             {["push-ups", "squats", "jumping jacks", "plank"].map((ex) => (
-              <button key={ex} onClick={() => { setExercise(ex); setReps(0); setFeedback(""); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-teal-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
+              <button key={ex} onClick={() => { setExercise(ex); setReps(0); setFeedback(""); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
             ))}
           </div>
-          <button onClick={getPlan} disabled={planBusy} className="w-full mt-2 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-200 active:scale-[0.98] disabled:opacity-50">
+          <button onClick={getPlan} disabled={planBusy} className="w-full mt-2 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98] disabled:opacity-50">
             {planBusy ? "Building your plan…" : "📋 Get my 7-day workout plan (AI sees you + your history)"}
           </button>
         </div>
@@ -1898,17 +1898,17 @@ function CameraCoach({ mode, onClose, onLog }: {
         <div className="px-4 pt-3">
           <div className="flex gap-2">
             {["standing stretch", "neck rolls", "shoulder stretch", "touch toes"].map((ex) => (
-              <button key={ex} onClick={() => { setExercise(ex); setFeedback(""); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-teal-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
+              <button key={ex} onClick={() => { setExercise(ex); setFeedback(""); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
             ))}
           </div>
         </div>
       )}
       {feedback && (
-        <div className="mx-4 mt-3 p-3 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[12px] text-zinc-200 leading-relaxed">{feedback}</div>
+        <div className="mx-4 mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[12px] text-zinc-200 leading-relaxed">{feedback}</div>
       )}
       {plan && (
-        <div className="mx-4 mt-3 p-4 rounded-xl bg-teal-500/10 border border-teal-500/25 max-h-64 overflow-y-auto">
-          <div className="text-[11px] font-bold text-teal-200 uppercase tracking-wider mb-2">{tr("your7dayplan")}</div>
+        <div className="mx-4 mt-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 max-h-64 overflow-y-auto">
+          <div className="text-[11px] font-bold text-amber-200 uppercase tracking-wider mb-2">{tr("your7dayplan")}</div>
           <div className="text-[12px] text-zinc-200 leading-relaxed whitespace-pre-line">{plan}</div>
         </div>
       )}
@@ -4636,7 +4636,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               <ChevronDown
                 className={`w-3.5 h-3.5 text-zinc-600 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
               />
-              <div className={`text-sm font-extrabold ${row.net_profit >= 0 ? "text-teal-400" : "text-red-400"}`}>
+              <div className={`text-sm font-extrabold ${row.net_profit >= 0 ? "text-amber-400" : "text-red-400"}`}>
                 {formatCurrency(row.net_profit)}
                 <span className="text-[10px] font-medium text-zinc-500 ml-1.5">net</span>
               </div>
@@ -4652,11 +4652,11 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               aria-label={row.accepted ? "Mark as not accepted" : "Mark as accepted"}
               title={row.accepted ? "Accepted — counts toward tax" : "Mark as accepted"}
               className={`w-8 h-8 rounded-lg flex items-center justify-center active:scale-95 transition-transform ${
-                row.accepted ? "bg-teal-500/20" : "bg-zinc-800/40"
+                row.accepted ? "bg-amber-500/20" : "bg-zinc-800/40"
               }`}
             >
               <CheckCircle2
-                className={`w-4 h-4 ${row.accepted ? "text-teal-400" : "text-zinc-600"}`}
+                className={`w-4 h-4 ${row.accepted ? "text-amber-400" : "text-zinc-600"}`}
                 strokeWidth={2.5}
               />
             </button>
@@ -5103,7 +5103,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           <div className="flex gap-2 mt-4">
             <button
               onClick={() => openAuth("signin")}
-              className="flex-1 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-400 active:scale-[0.98] transition-transform"
+              className="flex-1 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-sm font-bold text-amber-400 active:scale-[0.98] transition-transform"
             >
               Sign In
             </button>
@@ -5183,7 +5183,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             Offer {key}
           </span>
           {isWinner && (
-            <span className="flex items-center gap-1 text-[10px] font-extrabold text-teal-400 uppercase tracking-wider animate-pop">
+            <span className="flex items-center gap-1 text-[10px] font-extrabold text-amber-400 uppercase tracking-wider animate-pop">
               <CheckCircle2 className="w-3.5 h-3.5" /> Winner
             </span>
           )}
@@ -5256,7 +5256,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           <div className="pt-2 border-t border-zinc-800/60 space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-zinc-500">{tr("truenet")}</span>
-              <span className={`font-extrabold ${result.net >= 0 ? "text-teal-400" : "text-red-400"}`}>
+              <span className={`font-extrabold ${result.net >= 0 ? "text-amber-400" : "text-red-400"}`}>
                 {formatCurrency(result.net)}
               </span>
             </div>
@@ -5321,13 +5321,13 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         {cmpReady && cmpA && cmpB && (
           <>
             <div className={`rounded-2xl px-4 py-4 flex items-center gap-3 animate-fade-in ${
-              cmpWinner ? "bg-teal-500/10 border border-teal-500/20" : ""
+              cmpWinner ? "bg-amber-500/10 border border-amber-500/20" : ""
             }`}>
-              <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center flex-shrink-0">
-                <Scale className="w-5 h-5 text-teal-400" strokeWidth={2.5} />
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <Scale className="w-5 h-5 text-amber-400" strokeWidth={2.5} />
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-bold text-teal-400">
+                <div className="text-sm font-bold text-amber-400">
                   Take Offer {cmpWinner}
                 </div>
                 <div className="text-xs text-zinc-500 mt-0.5">
@@ -5339,7 +5339,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               <div className="glass rounded-2xl p-4">
                 <AiChat
                   chatId="compare"
-                  accent="bg-teal-500/20"
+                  accent="bg-amber-500/20"
                   context={`Comparing two gig offers. Offer A: payout $${aPay}, ${aMi} miles${aRet ? ` plus ${aRet} unpaid return miles` : ""} — true net ${formatCurrency(cmpA.net)}, ${formatCurrency(cmpA.hourly)}/hr. Offer B: payout $${bPay}, ${bMi} miles${bRet ? ` plus ${bRet} unpaid return miles` : ""} — true net ${formatCurrency(cmpB.net)}, ${formatCurrency(cmpB.hourly)}/hr. Winner: Offer ${cmpWinner}.`}
                   onNavigate={(t) => setActiveTab(t)}
                   onAction={handleEricAction}
@@ -5581,10 +5581,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         />
 
         {/* Bookkeeping Dashboard */}
-        <div className="glass rounded-2xl p-4 border border-teal-500/15">
+        <div className="glass rounded-2xl p-4 border border-amber-500/15">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-teal-400" strokeWidth={2.5} />
+              <BookOpen className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
               <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">{tr("bookkeep")}</span>
             </div>
             <div className="flex gap-1">
@@ -5592,7 +5592,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                 <button
                   key={p}
                   onClick={() => setBookPeriod(p)}
-                  className={"px-2 py-1 rounded-lg text-[10px] font-bold " + (bookPeriod === p ? "bg-teal-500/20 text-teal-300 border border-teal-500/30" : "text-zinc-500 border border-transparent")}
+                  className={"px-2 py-1 rounded-lg text-[10px] font-bold " + (bookPeriod === p ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "text-zinc-500 border border-transparent")}
                 >
                   {p === "day" ? "Today" : p === "week" ? "7D" : p === "month" ? "30D" : p === "year" ? "1Y" : "All"}
                 </button>
@@ -5627,7 +5627,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wide">{tr("grossearnings")}</div>
-                  <div className="text-lg font-extrabold text-teal-300">{countryInfo.symbol}{book.gross.toFixed(2)}</div>
+                  <div className="text-lg font-extrabold text-amber-300">{countryInfo.symbol}{book.gross.toFixed(2)}</div>
                   <div className="text-[10px] text-zinc-600">{countryInfo.symbol}{bookEarnPerMile.toFixed(2)}/{DIST}</div>
                 </div>
                 <div className="bg-zinc-900/50 rounded-xl p-3">
@@ -5662,7 +5662,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         setBookAiBusy(false);
                       }}
                       disabled={bookAiBusy}
-                      className="w-full glass-input border border-teal-500/30 rounded-xl flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-teal-300 active:scale-[0.98] disabled:opacity-60"
+                      className="w-full glass-input border border-amber-500/30 rounded-xl flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-amber-300 active:scale-[0.98] disabled:opacity-60"
                     >
                       <Sparkles className="w-4 h-4" strokeWidth={2.5} />
                       {bookAiBusy ? "Analyzing your books…" : "AI: Analyze my books"}
@@ -5672,7 +5672,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <div className="text-xs text-zinc-300 leading-relaxed whitespace-pre-line">{bookAiSummary}</div>
                       <button
                         onClick={() => setBookAiSummary(null)}
-                        className="mt-2 text-[11px] font-bold text-teal-400 active:opacity-70"
+                        className="mt-2 text-[11px] font-bold text-amber-400 active:opacity-70"
                       >
                         Clear analysis
                       </button>
@@ -5722,7 +5722,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     </body></html>`;
                     shareFile(html, `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.html`, "text/html");
                   }}
-                  className="flex-1 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 active:scale-[0.98] flex items-center justify-center gap-1.5"
                 >
                   <FileText className="w-3.5 h-3.5" /> Export PDF/Doc
                 </button>
@@ -5779,7 +5779,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             ) : (
               <div>
                 <p className="text-xs text-zinc-300 leading-relaxed">{briefing.summary}</p>
-                <div className="mt-3 rounded-xl bg-teal-500/10 border border-teal-500/25 p-3">
+                <div className="mt-3 rounded-xl bg-amber-500/10 border border-amber-500/25 p-3">
                   <div className="text-[10px] font-bold text-violet-300 uppercase tracking-wider mb-1">
                     Coach's tip
                   </div>
@@ -5845,7 +5845,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </>
             ) : (
               <div>
-                <div className="text-[10px] font-bold text-teal-400 uppercase tracking-wider mb-1.5">
+                <div className="text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-1.5">
                   Your best blocks
                 </div>
                 <ul className="space-y-1.5 mb-3">
@@ -5955,7 +5955,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div
                     className={`rounded-xl px-3 py-2.5 text-xs font-bold ${
                       whatIfDiff >= 0
-                        ? "bg-teal-500/10 text-teal-400"
+                        ? "bg-amber-500/10 text-amber-400"
                         : "bg-red-500/10 text-red-400"
                     }`}
                   >
@@ -5974,7 +5974,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          {statCard("net", "Total net", formatCurrency(totals.net), totals.net >= 0 ? "text-teal-400" : "text-red-400",
+          {statCard("net", "Total net", formatCurrency(totals.net), totals.net >= 0 ? "text-amber-400" : "text-red-400",
             (m) => m.net, (v) => formatCurrency(v),
             `Best month: ${bmNet.label} at ${formatCurrency(bmNet.net)}.`,
             "0.08s")}
@@ -6011,7 +6011,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               return (
                 <div key={w.key} className="flex-1 flex flex-col items-center justify-end gap-1 min-w-0">
                   <div
-                    className={`w-full rounded-t-md ${w.net >= 0 ? "bg-teal-500/70" : "bg-red-500/70"}`}
+                    className={`w-full rounded-t-md ${w.net >= 0 ? "bg-amber-500/70" : "bg-red-500/70"}`}
                     style={{ height: `${h}%` }}
                     title={`${w.label}: ${formatCurrency(w.net)}`}
                   />
@@ -6043,7 +6043,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   </span>
                   <span className="flex items-center gap-2">
                     <span className="text-[11px] text-zinc-600">{m.routes} routes</span>
-                    <span className={`text-sm font-extrabold ${m.net >= 0 ? "text-teal-400" : "text-red-400"}`}>
+                    <span className={`text-sm font-extrabold ${m.net >= 0 ? "text-amber-400" : "text-red-400"}`}>
                       {formatCurrency(m.net)}
                     </span>
                   </span>
@@ -6089,7 +6089,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   </span>
                   <span className="flex items-center gap-2">
                     <span className="text-[11px] text-zinc-600">{q.routes} routes</span>
-                    <span className={`text-sm font-extrabold ${q.net >= 0 ? "text-teal-400" : "text-red-400"}`}>
+                    <span className={`text-sm font-extrabold ${q.net >= 0 ? "text-amber-400" : "text-red-400"}`}>
                       {formatCurrency(q.net)}
                     </span>
                   </span>
@@ -6118,13 +6118,13 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
         <div className="glass rounded-2xl p-4 mt-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-teal-300" />
+              <FileText className="w-4 h-4 text-amber-300" />
               <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{countryInfo.taxSystem} Mileage Log</div>
             </div>
             <button
               onClick={exportIrsCsv}
               disabled={history.length === 0}
-              className="px-3 py-1.5 rounded-lg bg-teal-500/15 border border-teal-500/30 text-[11px] font-bold text-teal-300 active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" /> Export CSV
             </button>
@@ -6135,15 +6135,15 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           <button
             onClick={() => askCardAi("irs-guide", `You are a tax advisor for gig drivers in ${countryInfo.name}. Explain in 3-4 short sentences: (1) what ${countryInfo.taxSystem} requires for mileage deductions (date, destination, business purpose, distance), (2) the standard rate is ${countryInfo.symbol}${countryInfo.mileageRate}/${countryInfo.miles ? "mile" : "km"} — ${countryInfo.mileageLabel}, (3) one common mistake that gets deductions rejected, (4) encourage them to fill in destination and purpose for each trip above. Practical, clear, no fluff.`)}
             disabled={aiBusy["irs-guide"]}
-            className="w-full mb-3 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+            className="w-full mb-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
           >
             {aiBusy["irs-guide"] ? "Asking…" : "✨ AI Guide — what does the IRS need?"}
           </button>
           {aiTips["irs-guide"] && <div className="ai-says mb-3 text-[12px] leading-relaxed whitespace-pre-line">{aiTips["irs-guide"]}</div>}
-          <div className="px-3 py-2 rounded-xl bg-teal-500/8 border border-teal-500/15 mb-3">
+          <div className="px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15 mb-3">
             <p className="text-[11px] text-zinc-400">
-              📊 <span className="font-bold text-teal-300">{history.reduce((s, h) => s + h.mileage, 0).toFixed(1)} miles</span>
-              {" · "}<span className="font-bold text-teal-300">${history.reduce((s, h) => s + h.mileage * irsRateFor(h.created_at), 0).toFixed(2)}</span> deduction (2026 rates)
+              📊 <span className="font-bold text-amber-300">{history.reduce((s, h) => s + h.mileage, 0).toFixed(1)} miles</span>
+              {" · "}<span className="font-bold text-amber-300">${history.reduce((s, h) => s + h.mileage * irsRateFor(h.created_at), 0).toFixed(2)}</span> deduction (2026 rates)
             </p>
           </div>
           <div className="space-y-2 max-h-80 overflow-y-auto">
@@ -6153,7 +6153,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div key={h.id} className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-bold text-zinc-300">{new Date(h.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                    <span className="text-[11px] font-bold text-teal-300">{distVal(h.mileage).toFixed(1)} {DIST}</span>
+                    <span className="text-[11px] font-bold text-amber-300">{distVal(h.mileage).toFixed(1)} {DIST}</span>
                   </div>
                   <input
                     value={d.dest}
@@ -6211,7 +6211,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                           ) : null}
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={recoverHistory} className="flex-1 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-300 active:scale-[0.98]">
+                          <button onClick={recoverHistory} className="flex-1 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 active:scale-[0.98]">
                             Recover all ({clearedBackup.length})
                           </button>
                           <button onClick={purgeBackup} className={`px-4 py-2.5 rounded-xl border text-xs font-bold active:scale-95 ${purgeStep === "confirm" ? "bg-red-500/15 border-red-500/40 text-red-300" : "bg-zinc-800/70 border-zinc-700/60 text-zinc-500"}`}>
@@ -6238,7 +6238,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           <div className="flex gap-2 mt-4">
             <button
               onClick={() => openAuth("signin")}
-              className="flex-1 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-400 active:scale-[0.98] transition-transform"
+              className="flex-1 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-sm font-bold text-amber-400 active:scale-[0.98] transition-transform"
             >
               Sign In
             </button>
@@ -6281,7 +6281,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           {acceptedBackup && acceptedBackup.length > 0 && (
             <button
               onClick={recoverAccepted}
-              className="text-[10px] font-bold uppercase tracking-wider rounded-lg px-2.5 py-1.5 border active:scale-95 transition-transform bg-teal-500/15 text-teal-400 border-teal-500/30"
+              className="text-[10px] font-bold uppercase tracking-wider rounded-lg px-2.5 py-1.5 border active:scale-95 transition-transform bg-amber-500/15 text-amber-400 border-amber-500/30"
             >
               Recover ({acceptedBackup.length})
             </button>
@@ -6360,7 +6360,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
         {acceptedHeader}
         <div className="flex flex-col gap-2 mb-2">
           {acceptedBox("trips", "Trips", accepted.length, "text-white", { v: accepted.length, f: (n) => String(Math.round(n)) }, "0.06s")}
-          {acceptedBox("net", "Net", formatCurrency(totalNet), totalNet >= 0 ? "text-teal-400" : "text-red-400", { v: totalNet, f: formatCurrency }, "0.12s")}
+          {acceptedBox("net", "Net", formatCurrency(totalNet), totalNet >= 0 ? "text-amber-400" : "text-red-400", { v: totalNet, f: formatCurrency }, "0.12s")}
           {acceptedBox("miles", "Miles", formatNumber(totalMiles, 0), "text-white", { v: totalMiles, f: (n) => formatNumber(n, 0) }, "0.18s")}
         </div>
         {expandedAcceptedBox && (
@@ -6384,7 +6384,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 {providerEntries.map(([label, v]) => (
                   <div key={label} className="flex items-center justify-between py-1.5 border-b border-zinc-800/40 last:border-0">
                     <span className="text-xs text-zinc-400">{label}</span>
-                    <span className={`text-xs font-bold ${v.net >= 0 ? "text-teal-400" : "text-red-400"}`}>{formatCurrency(v.net)}</span>
+                    <span className={`text-xs font-bold ${v.net >= 0 ? "text-amber-400" : "text-red-400"}`}>{formatCurrency(v.net)}</span>
                   </div>
                 ))}
                 <p className="text-[11px] text-zinc-500 leading-relaxed mt-2">
@@ -6414,7 +6414,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           <div className="glass rounded-2xl p-4 mt-4">
             <AiChat
               chatId="accepted"
-              accent="bg-teal-500/20"
+              accent="bg-amber-500/20"
               context={`The user has ${accepted.length} accepted trips totaling ${formatCurrency(totalNet)} net profit and ${formatNumber(totalMiles, 0)} miles. Breakdown by provider: ${providerSummary}. Accepted payouts: ${acceptedPayouts}.`}
               onNavigate={(t) => setActiveTab(t)}
               onAction={handleEricAction}
@@ -6500,7 +6500,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
         />
 
         {/* Import receipt for AI analysis */}
-        <div className="glass rounded-2xl p-4 border border-teal-500/15">
+        <div className="glass rounded-2xl p-4 border border-amber-500/15">
           <div className="flex items-center gap-3">
             <input
               ref={taxFileRef}
@@ -6516,7 +6516,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <button
               onClick={() => taxFileRef.current?.click()}
               disabled={taxImportBusy}
-              className="flex-1 py-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-sm font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {taxImportBusy ? (
                 <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" />
@@ -6532,11 +6532,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           <div className="text-[10px] text-zinc-600 mt-1.5 text-center">Snap a fuel, maintenance, or supply receipt — AI extracts the amount, vendor, and category, then saves it to your expenses.</div>
         </div>
 
-        <div className="glass rounded-2xl p-5 text-center border border-teal-500/15 animate-glowpulse">
+        <div className="glass rounded-2xl p-5 text-center border border-amber-500/15 animate-glowpulse">
           <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
             Estimated deduction · {year}
           </div>
-          <div className="text-4xl font-extrabold text-teal-400 mt-1">
+          <div className="text-4xl font-extrabold text-amber-400 mt-1">
             <AnimatedNumber value={deduction} format={formatCurrency} />
           </div>
           <div className="text-xs text-zinc-500 mt-1">
@@ -6634,7 +6634,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
               Receipted expenses · {year}
             </div>
-            <div className="text-sm font-extrabold text-teal-300">{formatCurrency(expTotal)}</div>
+            <div className="text-sm font-extrabold text-amber-300">{formatCurrency(expTotal)}</div>
           </div>
           <p className="text-[11px] text-zinc-500 leading-relaxed mb-2.5">
             Logged from Basecamp — {expenses.length} saved. Receipts stay on this device, ready for filing.
@@ -6706,8 +6706,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
     <div className="min-h-screen bg-transparent text-zinc-100">
       {/* Ambient gradient backdrop */}
       <div ref={orbParRef} className="fixed inset-0 pointer-events-none overflow-hidden" style={{ willChange: "transform" }}>
-        <div className="orb-a absolute -top-64 -right-56 w-80 h-80 bg-teal-500/[0.07] rounded-full blur-[130px]" />
-        <div className="orb-b absolute top-2/3 -left-56 w-72 h-72 bg-teal-500/[0.06] rounded-full blur-[110px]" />
+        <div className="orb-a absolute -top-64 -right-56 w-80 h-80 bg-amber-500/[0.07] rounded-full blur-[130px]" />
+        <div className="orb-b absolute top-2/3 -left-56 w-72 h-72 bg-amber-500/[0.06] rounded-full blur-[110px]" />
         <div className="orb-a absolute -bottom-48 right-1/4 w-64 h-64 bg-[#e8c87e]/[.05] rounded-full blur-[110px]" />
         <div className="orb-b absolute top-1/2 -right-64 w-64 h-64 bg-cyan-500/[0.04] rounded-full blur-[120px]" />
       </div>
@@ -6753,7 +6753,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             {isSupabaseConfigured && !signedInEmail && (
               <button
                 onClick={() => openAuth("signin")}
-                className="px-2.5 sm:px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-[10px] sm:text-[11px] font-semibold text-teal-400 active:scale-95 transition-transform"
+                className="px-2.5 sm:px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] sm:text-[11px] font-semibold text-amber-400 active:scale-95 transition-transform"
               >
                 Sign In
               </button>
@@ -6791,17 +6791,17 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 onClick={() => setActiveTab(tab.key)}
                 className={`relative flex flex-col items-center gap-1 py-2.5 rounded-xl transition-all active:scale-95 ${
                   isActive
-                    ? "bg-teal-500/15 border border-teal-500/30 tab-active-glow"
+                    ? "bg-amber-500/15 border border-amber-500/30 tab-active-glow"
                     : "border border-transparent"
                 }`}
               >
                 <Icon
-                  className={`w-4.5 h-4.5 ${isActive ? "text-teal-400 animate-tabpop text-glow-purple" : "text-zinc-500"}`}
+                  className={`w-4.5 h-4.5 ${isActive ? "text-amber-400 animate-tabpop text-glow-purple" : "text-zinc-500"}`}
                   strokeWidth={2.5}
                 />
                 <span
                   className={`text-[9px] sm:text-[10px] font-bold leading-none ${
-                    isActive ? "text-teal-400 text-glow-purple" : "text-zinc-500"
+                    isActive ? "text-amber-400 text-glow-purple" : "text-zinc-500"
                   }`}
                 >
                   {tr(tab.key)}
@@ -6818,7 +6818,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           <>
             {/* Hero tagline — Apple-style with living road */}
             <div className="relative mb-5 sm:mb-6 animate-fade-in-up overflow-hidden rounded-3xl" style={{ animationDelay: "0.05s" }}>
-              <div className="absolute -top-16 -right-16 w-48 h-48 bg-teal-500/20 rounded-full blur-3xl animate-orb pointer-events-none" />
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl animate-orb pointer-events-none" />
               <div className="absolute -bottom-20 -left-10 w-40 h-40 bg-[#ffecd0]/10 rounded-full blur-3xl animate-orb pointer-events-none" style={{ animationDelay: "2.5s" }} />
               <div className="relative px-1 py-2">
                 <h2 className="text-[32px] sm:text-4xl font-extrabold leading-[1.08] tracking-tight">
@@ -7057,7 +7057,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 </span>
               </span>
               {vehicle && (
-                <span className="text-[10px] font-semibold text-teal-400 flex-shrink-0">
+                <span className="text-[10px] font-semibold text-amber-400 flex-shrink-0">
                   {(vehicle.fuel === "electric" ? "Electric" : vehicle.fuel === "none" ? "E-bike" : VEHICLE_TYPE_SPECS[vehicle.type]?.fuelLabel || "")} · {vehicle.speed} {useKm ? "km/h" : "mph"}
                 </span>
               )}
@@ -7075,7 +7075,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <button
                     key={p}
                     onClick={() => setTripPurpose(p)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold capitalize active:scale-[0.98] transition-all ${tripPurpose === p ? "bg-teal-500/20 text-teal-200 border border-teal-500/40" : "text-zinc-500 border border-transparent"}`}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold capitalize active:scale-[0.98] transition-all ${tripPurpose === p ? "bg-amber-500/20 text-amber-200 border border-teal-500/40" : "text-zinc-500 border border-transparent"}`}
                   >
                     {p === "work" ? tr("worktrip") : tr("personaltrip")}
                   </button>
@@ -7108,13 +7108,13 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               {/* Mileage */}
               <div>
                 <label className="flex items-center gap-2 text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
-                  <Route className="w-3.5 h-3.5 flex-shrink-0 text-teal-400/80" />
+                  <Route className="w-3.5 h-3.5 flex-shrink-0 text-amber-400/80" />
                   <span className="flex-1">{tr("estimatetotaldistanc")}</span>
                   <button
                     onClick={() => { setRouteError(""); setRouteInfo(null); setFromSugg([]); setToSugg([]); setFromCoord(null); setToCoord(null); setRouteOpen(true); }}
                     title="Calculate from locations"
                     aria-label="Calculate distance from locations"
-                    className="flex items-center gap-1 text-[10px] font-bold text-teal-400 uppercase tracking-wider active:scale-95 transition-transform"
+                    className="flex items-center gap-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider active:scale-95 transition-transform"
                   >
                     <MapPin className="w-3.5 h-3.5" /> Route
                   </button>
@@ -7134,11 +7134,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       onClick={() => { setTripSpeed(null); setTripCityMi(null); setTripHwyMi(null); setTripSecs(null); setTripModes(null); setTripWeather(null); setTripWmo(null); setNavFrom(null); setNavTo(null); }}
                       title="Clear route data"
                       aria-label="Clear route data"
-                      className="flex items-center gap-1 pl-1.5 pr-1 py-1 rounded-full bg-teal-500/15 border border-teal-500/30 flex-shrink-0 active:scale-95 transition-transform"
+                      className="flex items-center gap-1 pl-1.5 pr-1 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 flex-shrink-0 active:scale-95 transition-transform"
                     >
-                      <MapPin className="w-3 h-3 text-teal-300" />
-                      <span className="text-[10px] font-bold text-teal-300">{tripSpeed} {useKm ? "km/h" : "mph"}</span>
-                      <X className="w-3 h-3 text-teal-300/70" />
+                      <MapPin className="w-3 h-3 text-amber-300" />
+                      <span className="text-[10px] font-bold text-amber-300">{tripSpeed} {useKm ? "km/h" : "mph"}</span>
+                      <X className="w-3 h-3 text-amber-300/70" />
                     </button>
                   ) : null}
                   <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">{DIST}</span>
@@ -7171,7 +7171,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     aria-label={vehicle?.fuel === "electric" ? "Find chargers" : "Find cheap gas"}
                     className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center active:scale-95 transition-transform ml-1"
                   >
-                    <Fuel className="w-4 h-4 text-teal-400/80" />
+                    <Fuel className="w-4 h-4 text-amber-400/80" />
                   </button>
                   <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-1">{vehicle?.fuel === "electric" ? "/kWh" : "/" + FUEL_VOL}</span>
                 </div>
@@ -7307,7 +7307,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <div className="text-xs text-red-400 font-medium mt-2">{scanError}</div>
                   )}
                   {scanOk && (
-                    <div className="text-xs text-teal-400 font-medium mt-2">
+                    <div className="text-xs text-amber-400 font-medium mt-2">
                       ✓ Offer filled in — review it, then hit Calculate.
                     </div>
                   )}
@@ -7382,11 +7382,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div ref={resultsRef} className="mt-5 sm:mt-6 space-y-4 animate-fade-in-up scroll-mt-4">
                 {/* Hero result — Trip Cost (personal) or Net Profit (work) */}
                 <div className="relative glass rounded-2xl sm:rounded-3xl p-5 sm:p-6 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-28 h-28 sm:w-32 sm:h-32 bg-teal-500/10 rounded-full blur-3xl animate-glowpulse" />
+                  <div className="absolute top-0 right-0 w-28 h-28 sm:w-32 sm:h-32 bg-amber-500/10 rounded-full blur-3xl animate-glowpulse" />
                   <div className="relative">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-xl bg-teal-500/15 flex items-center justify-center flex-shrink-0">
-                        {tripPurpose === "personal" ? <Fuel className="w-4 h-4 text-teal-400" strokeWidth={2.5} /> : <TrendingUp className="w-4 h-4 text-teal-400" strokeWidth={2.5} />}
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                        {tripPurpose === "personal" ? <Fuel className="w-4 h-4 text-amber-400" strokeWidth={2.5} /> : <TrendingUp className="w-4 h-4 text-amber-400" strokeWidth={2.5} />}
                       </div>
                       <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                         {tripPurpose === "personal" ? "Total Trip Cost" : "True Net Profit"}
@@ -7394,7 +7394,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     </div>
                     <div
                       className={`text-4xl sm:text-5xl font-extrabold tracking-tight ${
-                        tripPurpose === "personal" ? "text-white" : results.netProfit >= 0 ? "text-teal-400" : "text-red-400"
+                        tripPurpose === "personal" ? "text-white" : results.netProfit >= 0 ? "text-amber-400" : "text-red-400"
                       }`}
                     >
                       <AnimatedNumber value={tripPurpose === "personal" ? results.totalCost : results.netProfit} format={formatCurrency} />
@@ -7415,13 +7415,13 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                               <button
                                 key={n}
                                 onClick={() => setSplitPeople(String(n))}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold border active:scale-95 ${splitPeople === String(n) ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
+                                className={`w-8 h-8 rounded-lg text-xs font-bold border active:scale-95 ${splitPeople === String(n) ? "bg-amber-500/20 border-teal-500/50 text-amber-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
                               >
                                 {n}
                               </button>
                             ))}
                           </div>
-                          <span className="text-xs font-bold text-teal-300 ml-auto">
+                          <span className="text-xs font-bold text-amber-300 ml-auto">
                             {formatCurrency(results.totalCost / Math.max(1, parseInt(splitPeople, 10) || 1))} each
                           </span>
                         </div>
@@ -7462,13 +7462,13 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         }}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 text-xs font-bold text-zinc-300 active:scale-[0.98] transition-transform"
                       >
-                        <Navigation className="w-3.5 h-3.5 text-teal-400" /> Navigate
+                        <Navigation className="w-3.5 h-3.5 text-amber-400" /> Navigate
                       </button>
                       <button
                         onClick={() => window.open(vehicle?.fuel === "electric" ? "https://www.plugshare.com/" : "https://upside.app.link/0rj3FSeI86b", "_blank", "noopener")}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 text-xs font-bold text-zinc-300 active:scale-[0.98] transition-transform"
                       >
-                        <Fuel className="w-3.5 h-3.5 text-teal-400" /> {vehicle?.fuel === "electric" ? "Find chargers" : "Cheap gas"}
+                        <Fuel className="w-3.5 h-3.5 text-amber-400" /> {vehicle?.fuel === "electric" ? "Find chargers" : "Cheap gas"}
                       </button>
                     </div>
                   </div>
@@ -7598,15 +7598,15 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   </div>
 
                   {(tripModes || tripWeather || tripSpeed) && (
-                    <div className="rounded-2xl bg-teal-500/5 border border-teal-500/15 p-3.5">
+                    <div className="rounded-2xl bg-amber-500/5 border border-amber-500/15 p-3.5">
                       <button onClick={() => setRouteDetailsOpen(!routeDetailsOpen)} className="w-full flex items-center justify-between mb-2.5 active:opacity-70">
-                        <span className="text-[10px] font-bold text-teal-300 uppercase tracking-wider">{tr("routedetails")}</span>
-                        <ChevronDown className={`w-4 h-4 text-teal-300 transition-transform duration-200 ${routeDetailsOpen ? "rotate-180" : ""}`} />
+                        <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">{tr("routedetails")}</span>
+                        <ChevronDown className={`w-4 h-4 text-amber-300 transition-transform duration-200 ${routeDetailsOpen ? "rotate-180" : ""}`} />
                       </button>
                       {routeDetailsOpen && (<>
                       {tripSpeed && (tripCityMi != null || tripSecs != null) ? (
                         <div className="flex items-center gap-2 text-xs mb-2.5 pb-2.5 border-b border-teal-500/10">
-                          <MapPin className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
+                          <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                           <span className="text-zinc-300 font-semibold">
                             Using your route{tripCityMi != null && tripHwyMi != null ? ` · ${tripCityMi.toFixed(1)} city / ${tripHwyMi.toFixed(1)} hwy mi` : ""} · {tripSpeed} {useKm ? "km/h" : "mph"} avg
                           </span>
@@ -7622,7 +7622,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                             { key: "boat", label: "By water", Icon: Ship, mins: tripModes.boat, mode: "boating" },
                           ].map((m) => (
                             <div key={m.key} className="flex items-center justify-between text-xs">
-                              <span className="flex items-center gap-2 text-zinc-300 font-semibold"><m.Icon className="w-3.5 h-3.5 text-teal-400" /> {m.label}</span>
+                              <span className="flex items-center gap-2 text-zinc-300 font-semibold"><m.Icon className="w-3.5 h-3.5 text-amber-400" /> {m.label}</span>
                               <span className="flex items-center gap-2">
                                 <span className="font-bold text-white">{fmtTripTime(m.mins)}</span>
                                 <button
@@ -7637,9 +7637,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                                   }}
                                   aria-label={`Navigate by ${m.label}`}
                                   title={`Navigate by ${m.label}`}
-                                  className="w-7 h-7 rounded-lg bg-teal-500/10 border border-teal-500/25 flex items-center justify-center active:scale-95 transition-transform"
+                                  className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center active:scale-95 transition-transform"
                                 >
-                                  <Navigation className="w-3.5 h-3.5 text-teal-300" />
+                                  <Navigation className="w-3.5 h-3.5 text-amber-300" />
                                 </button>
                               </span>
                             </div>
@@ -7655,7 +7655,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <div className="flex items-center gap-3 text-xs pt-2.5 border-t border-teal-500/10">
                           <WeatherArt code={tripWmo} />
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 text-zinc-300 font-semibold"><CloudSun className="w-3.5 h-3.5 text-teal-400" /> Weather at dropoff</div>
+                            <div className="flex items-center gap-2 text-zinc-300 font-semibold"><CloudSun className="w-3.5 h-3.5 text-amber-400" /> Weather at dropoff</div>
                             <div className="font-bold text-white mt-1 leading-relaxed">{tripWeather}</div>
                           </div>
                         </div>
@@ -7717,8 +7717,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   {/* Cost per mile */}
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-teal-500/15 flex items-center justify-center flex-shrink-0">
-                        <Milestone className="w-4.5 h-4.5 text-teal-400" strokeWidth={2.5} />
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                        <Milestone className="w-4.5 h-4.5 text-amber-400" strokeWidth={2.5} />
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-zinc-200">Cost per mile</div>
@@ -7727,7 +7727,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         </div>
                       </div>
                     </div>
-                    <div className="text-base sm:text-lg font-bold text-teal-400 flex-shrink-0">
+                    <div className="text-base sm:text-lg font-bold text-amber-400 flex-shrink-0">
                       {formatCurrency(results.effectiveMileage > 0 ? results.totalCost / results.effectiveMileage : 0)}
                     </div>
                   </div>
@@ -7748,7 +7748,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         </div>
                       </div>
                     </div>
-                    <div className={`text-base sm:text-lg font-bold flex-shrink-0 ${results.netProfit >= 0 ? "text-teal-400" : "text-red-400"}`}>
+                    <div className={`text-base sm:text-lg font-bold flex-shrink-0 ${results.netProfit >= 0 ? "text-amber-400" : "text-red-400"}`}>
                       {results.payout > 0 ? `${((results.netProfit / results.payout) * 100).toFixed(1)}%` : "—"}
                     </div>
                   </div>
@@ -7776,17 +7776,17 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div
                   className={`rounded-2xl px-4 sm:px-5 py-4 flex items-center gap-3 ${
                     results.netProfit >= 0
-                      ? "bg-teal-500/10 border border-teal-500/20"
+                      ? "bg-amber-500/10 border border-amber-500/20"
                       : "bg-red-500/10 border border-red-500/20"
                   }`}
                 >
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      results.netProfit >= 0 ? "bg-teal-500/20" : "bg-red-500/20"
+                      results.netProfit >= 0 ? "bg-amber-500/20" : "bg-red-500/20"
                     }`}
                   >
                     {results.netProfit >= 0 ? (
-                      <TrendingUp className="w-5 h-5 text-teal-400" strokeWidth={2.5} />
+                      <TrendingUp className="w-5 h-5 text-amber-400" strokeWidth={2.5} />
                     ) : (
                       <TrendingUp className="w-5 h-5 text-red-400 rotate-180" strokeWidth={2.5} />
                     )}
@@ -7794,7 +7794,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="min-w-0">
                     <div
                       className={`text-sm font-bold ${
-                        results.netProfit >= 0 ? "text-teal-400" : "text-red-400"
+                        results.netProfit >= 0 ? "text-amber-400" : "text-red-400"
                       }`}
                     >
                       {results.netProfit >= 0 ? "Profitable Route" : "This Route Loses Money"}
@@ -7824,25 +7824,25 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <div
                         className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 border ${
                           verdict.verdict === "TAKE"
-                            ? "bg-teal-500/10 border-teal-500/30"
+                            ? "bg-amber-500/10 border-amber-500/30"
                             : "bg-red-500/10 border-red-500/30"
                         }`}
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                              verdict.verdict === "TAKE" ? "bg-teal-500/20" : "bg-red-500/20"
+                              verdict.verdict === "TAKE" ? "bg-amber-500/20" : "bg-red-500/20"
                             }`}
                           >
                             {verdict.verdict === "TAKE" ? (
-                              <ThumbsUp className="w-5 h-5 text-teal-400 animate-pop" strokeWidth={2.5} />
+                              <ThumbsUp className="w-5 h-5 text-amber-400 animate-pop" strokeWidth={2.5} />
                             ) : (
                               <ThumbsDown className="w-5 h-5 text-red-400 animate-pop" strokeWidth={2.5} />
                             )}
                           </div>
                           <div
                             className={`text-xl font-extrabold ${
-                              verdict.verdict === "TAKE" ? "text-teal-400" : "text-red-400"
+                              verdict.verdict === "TAKE" ? "text-amber-400" : "text-red-400"
                             }`}
                           >
                             {verdict.verdict === "TAKE" ? "TAKE IT" : "SKIP IT"}
@@ -7915,7 +7915,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   </p>
                 )}
                 {clearHint && (
-                  <div className="text-[11px] font-semibold text-teal-300 bg-teal-500/10 border border-teal-500/25 rounded-xl px-3 py-2 mb-2 animate-fade-in-up">
+                  <div className="text-[11px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2 mb-2 animate-fade-in-up">
                     Cleared - find them in Recently Deleted on the Accepted tab.
                   </div>
                 )}
@@ -7933,7 +7933,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => openAuth("signin")}
-                        className="flex-1 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-400 active:scale-[0.98] transition-transform"
+                        className="flex-1 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-sm font-bold text-amber-400 active:scale-[0.98] transition-transform"
                       >
                         Sign In
                       </button>
@@ -8022,9 +8022,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
         {/* Free Tool badge — moved off the header, sits with the bottom tools */}
         <div className="flex justify-center mt-4">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20">
-            <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-            <span className="text-[10px] font-semibold text-teal-400">{tr("freetool")}</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-[10px] font-semibold text-amber-400">{tr("freetool")}</span>
           </div>
         </div>
 
@@ -8190,7 +8190,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </div>
             )}
             {authInfo && (
-              <div className="text-sm text-teal-400 font-medium bg-teal-500/10 border border-teal-500/20 rounded-xl px-4 py-2.5 mb-3 animate-fade-in">
+              <div className="text-sm text-amber-400 font-medium bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 mb-3 animate-fade-in">
                 {authInfo}
               </div>
             )}
@@ -8249,7 +8249,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               {settingsView === "terms" && (
                 <div>
-                  <button onClick={() => setSettingsView("main")} className="flex items-center gap-1.5 text-xs font-bold text-teal-400 mb-3 active:opacity-70">
+                  <button onClick={() => setSettingsView("main")} className="flex items-center gap-1.5 text-xs font-bold text-amber-400 mb-3 active:opacity-70">
                     <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Back
                   </button>
                   <div className="text-base font-extrabold text-white mb-2">{tr("termsofservice")}</div>
@@ -8258,7 +8258,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               )}
               {settingsView === "privacy" && (
                 <div>
-                  <button onClick={() => setSettingsView("main")} className="flex items-center gap-1.5 text-xs font-bold text-teal-400 mb-3 active:opacity-70">
+                  <button onClick={() => setSettingsView("main")} className="flex items-center gap-1.5 text-xs font-bold text-amber-400 mb-3 active:opacity-70">
                     <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Back
                   </button>
                   <div className="text-base font-extrabold text-white mb-2">{tr("privacypolicy")}</div>
@@ -8267,18 +8267,18 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               )}
               {settingsView === "about" && (
                 <div>
-                  <button onClick={() => setSettingsView("main")} className="flex items-center gap-1.5 text-xs font-bold text-teal-400 mb-3 active:opacity-70">
+                  <button onClick={() => setSettingsView("main")} className="flex items-center gap-1.5 text-xs font-bold text-amber-400 mb-3 active:opacity-70">
                     <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Back
                   </button>
                   <div className="text-base font-extrabold text-white mb-2">About {appName}</div>
                   <div className="bg-zinc-900/50 rounded-xl p-4 space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center">
-                        <span className="text-xl font-extrabold text-teal-400">R</span>
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+                        <span className="text-xl font-extrabold text-amber-400">R</span>
                       </div>
                       <div>
                         <div className="text-sm font-bold text-white">{appName}</div>
-                        <div className="text-[11px] text-zinc-500">Version 2.314</div>
+                        <div className="text-[11px] text-zinc-500">Version 2.315</div>
                       </div>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">
@@ -8309,9 +8309,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <button
                           key={t.key}
                           onClick={() => { setActiveTab(t.key); setSettingsOpen(false); }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left active:opacity-70 rounded-xl ${activeTab === t.key ? "bg-teal-500/10" : ""}`}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left active:opacity-70 rounded-xl ${activeTab === t.key ? "bg-amber-500/10" : ""}`}
                         >
-                          <t.icon className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                          <t.icon className="w-4 h-4 text-amber-400 flex-shrink-0" />
                           <span className={`text-sm ${activeTab === t.key ? "font-bold text-white" : "font-medium text-zinc-400"}`}>{tr(t.key)}</span>
                           {activeTab === t.key && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-400" />}
                         </button>
@@ -8364,7 +8364,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     ) : (
                       <button onClick={() => { setSettingsOpen(false); openAuth("signin"); }} className="w-full mt-3 py-3 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98]">{tr("signin2")}</button>
                     )}
-                    {settingsMsg ? <div className="text-[10px] text-teal-400 font-semibold mt-2">{settingsMsg}</div> : null}
+                    {settingsMsg ? <div className="text-[10px] text-amber-400 font-semibold mt-2">{settingsMsg}</div> : null}
                     {settingsErr ? <div className="text-[10px] text-red-400 font-semibold mt-2">{settingsErr}</div> : null}
                     {signedInEmail && (
                       <div className="mt-3">
@@ -8389,7 +8389,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                               <span className="text-[11px] font-semibold text-zinc-300">{tr("signout")}</span>
                             </button>
                             {deleteStep === "done" ? (
-                              <div className="px-3 py-2.5 text-[10px] font-semibold text-teal-400">{tr("yourroutesand")}</div>
+                              <div className="px-3 py-2.5 text-[10px] font-semibold text-amber-400">{tr("yourroutesand")}</div>
                             ) : (
                               <button onClick={handleDeleteAccount} disabled={deleteStep === "busy"} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left active:opacity-70 disabled:opacity-50">
                                 <Trash2 className="w-3.5 h-3.5 text-[#a33b2e] flex-shrink-0" />
@@ -8422,7 +8422,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                               onClick={() => { setSettingsOpen(false); setBuddyPaywall(true); }}
                               className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left active:opacity-70 border-b border-zinc-800/40"
                             >
-                              <span className="text-[11px] font-semibold text-teal-400">Upgrade to Premium</span>
+                              <span className="text-[11px] font-semibold text-amber-400">Upgrade to Premium</span>
                             </button>
                           )}
                           <button
@@ -8441,19 +8441,19 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <div className="steel-chapter">Chapter III · The App</div>
                     <div className="mt-1">
                       <button onClick={shareApp} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
-                        <Share2 className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <Share2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">Share {appName}</span>
                       </button>
                       <a href="mailto:routemaxprosupport@gmail.com?subject=RouteMax%20Pro%20feedback" className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
-                        <MessageSquare className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <MessageSquare className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">{tr("feedback")}</span>
                       </a>
                       <button onClick={() => window.open("https://play.google.com/store/apps/details?id=com.routemax.pro", "_blank", "noopener")} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
-                        <Star className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">{tr("rateuson")}</span>
                       </button>
                       <button onClick={() => { setSettingsOpen(false); window.open(vehicle?.fuel === "electric" ? "https://www.plugshare.com/" : "https://upside.app.link/0rj3FSeI86b", "_blank", "noopener"); }} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
-                        <Fuel className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <Fuel className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">{vehicle?.fuel === "electric" ? "Find chargers near me" : "Earn cashback on gas"}</span>
                       </button>
                     </div>
@@ -8466,7 +8466,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       {notifSettingsOpen && (
                         <div className="mt-1 rounded-xl bg-zinc-900/40 border border-zinc-800/40 overflow-hidden px-3 py-2.5">
                           <div className="text-[10px] text-zinc-500">Break alarm and notification preferences live in the Rest Break card in Basecamp.</div>
-                          <button onClick={() => { setSettingsOpen(false); if (isPremium) { setBuddyOpen(true); } else { setBuddyPaywall(true); } }} className="mt-2 text-xs font-semibold text-teal-400 active:opacity-70">Go to Basecamp →</button>
+                          <button onClick={() => { setSettingsOpen(false); if (isPremium) { setBuddyOpen(true); } else { setBuddyPaywall(true); } }} className="mt-2 text-xs font-semibold text-amber-400 active:opacity-70">Go to Basecamp →</button>
                         </div>
                       )}
                     </div>
@@ -8504,17 +8504,17 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <div className="steel-chapter">Chapter IV · Legal</div>
                     <div className="mt-1">
                       <button onClick={() => setSettingsView("terms")} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
-                        <FileText className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <FileText className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">Terms of Service</span>
                         <ChevronRight className="w-4 h-4 text-zinc-600 ml-auto" />
                       </button>
                       <button onClick={() => setSettingsView("privacy")} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
-                        <ShieldCheck className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <ShieldCheck className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">Privacy Policy</span>
                         <ChevronRight className="w-4 h-4 text-zinc-600 ml-auto" />
                       </button>
                       <button onClick={() => setSettingsView("about")} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
-                        <Info className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                        <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">About {appName}</span>
                         <ChevronRight className="w-4 h-4 text-zinc-600 ml-auto" />
                       </button>
@@ -8540,7 +8540,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
 
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/60 to-transparent my-4" />
               
-              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.314</div>
+              <div className="text-center text-[10px] text-[#a89a80] mt-1">{appName} · v2.315</div>
             </div>
           </div>
         </div>
@@ -8572,7 +8572,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </button>
             </div>
 
-            <div className="mb-3 rounded-2xl bg-gradient-to-r from-teal-500/10 to-transparent border border-teal-500/20 p-3 flex items-center gap-3">
+            <div className="mb-3 rounded-2xl bg-gradient-to-r from-teal-500/10 to-transparent border border-amber-500/20 p-3 flex items-center gap-3">
               <WeatherArt code={bcWmo ?? tripWmo} />
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
@@ -8586,7 +8586,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 aria-label="Refresh weather"
                 className="w-9 h-9 rounded-full bg-zinc-800/70 border border-zinc-700/60 flex items-center justify-center active:scale-95 flex-shrink-0"
               >
-                <RefreshCw className={`w-4 h-4 text-teal-300 ${bcWxBusy ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-4 h-4 text-amber-300 ${bcWxBusy ? "animate-spin" : ""}`} />
               </button>
             </div>
 
@@ -8594,7 +8594,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 px-0.5">Crew in action — tap to join in</div>
               <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-5 px-5 crew-strip">
                 <button onClick={() => { bumpWater(1); setExpandedCard("water"); }} className="flex-shrink-0 w-28 text-left active:scale-[0.97]">
-                  <div className="rounded-2xl overflow-hidden border border-teal-500/25 relative">
+                  <div className="rounded-2xl overflow-hidden border border-amber-500/25 relative">
                     <video src={VID_HYDRATE} poster={ACT_HYDRATE} autoPlay muted loop playsInline preload="auto" className="w-28 h-28 object-cover" aria-label="Hydrate" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
                   </div>
@@ -8602,7 +8602,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-[10px] text-zinc-500">{tr("logaglass")}</div>
                 </button>
                 <button onClick={() => { touchBcDay((d) => ({ ...d, workouts: d.workouts + 1 })); setExpandedCard("mover"); }} className="flex-shrink-0 w-28 text-left active:scale-[0.97]">
-                  <div className="rounded-2xl overflow-hidden border border-teal-500/25 relative">
+                  <div className="rounded-2xl overflow-hidden border border-amber-500/25 relative">
                     <video src={VID_WEIGHTS} poster={ACT_WEIGHTS} autoPlay muted loop playsInline preload="auto" className="w-28 h-28 object-cover" aria-label="Lift" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
                   </div>
@@ -8610,7 +8610,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-[10px] text-zinc-500">5-min power break</div>
                 </button>
                 <button onClick={() => { touchBcDay((d) => ({ ...d, stretches: d.stretches + 1 })); setExpandedCard("mover"); }} className="flex-shrink-0 w-28 text-left active:scale-[0.97]">
-                  <div className="rounded-2xl overflow-hidden border border-teal-500/25 relative">
+                  <div className="rounded-2xl overflow-hidden border border-amber-500/25 relative">
                     <video src={VID_STRETCH} poster={ACT_STRETCH} autoPlay muted loop playsInline preload="auto" className="w-28 h-28 object-cover" aria-label="Stretch" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
                   </div>
@@ -8618,7 +8618,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-[10px] text-zinc-500">{tr("getmybest")}</div>
                 </button>
                 <button onClick={() => setExpandedCard("scanner")} className="flex-shrink-0 w-28 text-left active:scale-[0.97]">
-                  <div className="rounded-2xl overflow-hidden border border-teal-500/25 relative">
+                  <div className="rounded-2xl overflow-hidden border border-amber-500/25 relative">
                     <video src={VID_EAT} poster={ACT_EAT} autoPlay muted loop playsInline preload="auto" className="w-28 h-28 object-cover" aria-label="Eat well" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
                   </div>
@@ -8626,7 +8626,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-[10px] text-zinc-500">{tr("scanmymeal")}</div>
                 </button>
                 <button onClick={() => setExpandedCard("break")} className="flex-shrink-0 w-28 text-left active:scale-[0.97]">
-                  <div className="rounded-2xl overflow-hidden border border-teal-500/25 relative">
+                  <div className="rounded-2xl overflow-hidden border border-amber-500/25 relative">
                     <video src={VID_REST} poster={ACT_REST} autoPlay muted loop playsInline preload="auto" className="w-28 h-28 object-cover" aria-label="Rest" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
                   </div>
@@ -8636,13 +8636,13 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </div>
             </div>
 
-            <div className="rounded-2xl p-4 mt-3 bg-gradient-to-br from-teal-500/15 to-transparent border border-teal-500/25">
+            <div className="rounded-2xl p-4 mt-3 bg-gradient-to-br from-teal-500/15 to-transparent border border-amber-500/25">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-teal-300 flex-shrink-0" />
-                  <div className="text-xs font-bold text-teal-200 uppercase tracking-wider">{tr("yourbestmove")}</div>
+                  <Compass className="w-4 h-4 text-amber-300 flex-shrink-0" />
+                  <div className="text-xs font-bold text-amber-200 uppercase tracking-wider">{tr("yourbestmove")}</div>
                 </div>
-                <video src={VID_STRETCH} poster={ACT_STRETCH} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-teal-500/25 flex-shrink-0" aria-label="Stretch" />
+                <video src={VID_STRETCH} poster={ACT_STRETCH} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-amber-500/25 flex-shrink-0" aria-label="Stretch" />
               </div>
               <p className="text-[11px] text-zinc-400 mb-2.5 leading-relaxed">AI reads your water, breaks{buddyScanResult ? " and scan" : ""} — then tells you the one thing to do next.</p>
               <button onClick={suggestNextMove} disabled={moveBusy} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-xs font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50">
@@ -8654,7 +8654,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 px-0.5">Follow up — ask anything</div>
                   <AiChat
                     chatId="best-move"
-                    accent="bg-teal-500/20"
+                    accent="bg-amber-500/20"
                     context={`You are the Basecamp coach. Your suggested best move was: ${moveAdvice}. The user has had ${waterGlasses}/8 glasses of water today. Help with follow-up questions about the suggestion and their next steps — be warm and specific.`}
                     onNavigate={(t) => setActiveTab(t)}
                     onAction={handleEricAction}
@@ -8671,30 +8671,30 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <ChevronDown className={`w-3.5 h-3.5 text-zinc-500 transition-transform flex-shrink-0 ${waterExp ? "rotate-180" : ""}`} />
                 </button>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xs font-bold text-teal-300">{waterGlasses} / {waterGoal}</span>
+                  <span className="text-xs font-bold text-amber-300">{waterGlasses} / {waterGoal}</span>
                   {expandedCard !== "water" && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setExpandedCard("water"); }}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 active:scale-95"
                       aria-label="Expand to full screen"
                     >
-                      <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
-                      <span className="text-[10px] font-bold text-teal-300">{tr("expand")}</span>
+                      <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                      <span className="text-[10px] font-bold text-amber-300">{tr("expand")}</span>
                     </button>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setGoalEdit(!goalEdit)} className="text-xs font-bold text-teal-300 active:scale-95">
+                  <button onClick={() => setGoalEdit(!goalEdit)} className="text-xs font-bold text-amber-300 active:scale-95">
                     {waterGlasses} / {waterGoal} glasses
                   </button>
-                  <video src={VID_HYDRATE} poster={ACT_HYDRATE} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-teal-500/25" aria-label="Hydrate" />
+                  <video src={VID_HYDRATE} poster={ACT_HYDRATE} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-amber-500/25" aria-label="Hydrate" />
                 </div>
               </div>
               {goalEdit && (
                 <div className="flex items-center gap-2 mb-3 p-2 rounded-xl bg-zinc-900/60 border border-zinc-800">
                   <span className="text-[11px] text-zinc-400">{tr("dailygoal")}</span>
                   {[4, 6, 8, 10, 12, 16].map((g) => (
-                    <button key={g} onClick={() => setGoal(g)} className={`px-2.5 py-1 rounded-lg text-[11px] font-bold active:scale-95 ${waterGoal === g ? "bg-teal-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{g}</button>
+                    <button key={g} onClick={() => setGoal(g)} className={`px-2.5 py-1 rounded-lg text-[11px] font-bold active:scale-95 ${waterGoal === g ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{g}</button>
                   ))}
                 </div>
               )}
@@ -8706,8 +8706,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div className="text-[10px] text-zinc-500 mb-3">{waterOz} oz today · {Math.round((waterGlasses / waterGoal) * 100)}% of goal</div>
               <div className="grid grid-cols-4 gap-2">
                 <button onClick={() => bumpWaterOz(8)} className="py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-xs font-bold text-[#0a0a0f] active:scale-[0.98]">+8oz</button>
-                <button onClick={() => bumpWaterOz(16)} className="py-2.5 rounded-xl bg-teal-500/20 border border-teal-500/30 text-xs font-bold text-teal-200 active:scale-[0.98]">+16oz</button>
-                <button onClick={() => bumpWaterOz(32)} className="py-2.5 rounded-xl bg-teal-500/20 border border-teal-500/30 text-xs font-bold text-teal-200 active:scale-[0.98]">+32oz</button>
+                <button onClick={() => bumpWaterOz(16)} className="py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98]">+16oz</button>
+                <button onClick={() => bumpWaterOz(32)} className="py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98]">+32oz</button>
                 <button onClick={() => bumpWaterOz(-8)} disabled={waterOz === 0} className="py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95 disabled:opacity-40">−8oz</button>
               </div>
               <button onClick={() => setCamMode("water")} className="w-full mt-2 py-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-xs font-bold text-sky-200 active:scale-[0.98]">
@@ -8721,9 +8721,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 </div>
               )}
               {/* Auto progress brief — always visible, updates with your data */}
-              <div className="mt-2 px-3 py-2 rounded-xl bg-teal-500/8 border border-teal-500/15">
+              <div className="mt-2 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15">
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  📊 <span className="font-bold text-teal-300">{waterGlasses}/{waterGoal} glasses today</span>
+                  📊 <span className="font-bold text-amber-300">{waterGlasses}/{waterGoal} glasses today</span>
                   {" · "}{bcWeekStats.avgWater.toFixed(1)}/day avg this week
                   {bcStreak > 0 && ` · 🔥 ${bcStreak}-day streak`}
                 </p>
@@ -8732,7 +8732,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button
                 onClick={() => askCardAi("water-sum", `Summarize your hydration: ${bcWeekStats.avgWater.toFixed(1)} glasses/day avg (goal ${waterGoal}), ${waterOz}oz today, ${bcStreak}-day streak. In 2-3 sentences: how you're doing, trend up or down, one key observation.`)}
                 disabled={aiBusy["water-sum"]}
-                className="w-full mt-2 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+                className="w-full mt-2 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
               >
                 {aiBusy["water-sum"] ? "Analyzing…" : "✨ AI summary — how am I doing?"}
               </button>
@@ -8741,22 +8741,22 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div className="mt-3 pt-3 border-t border-zinc-800/60">
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.avgWater.toFixed(1)}</div>
+                      <div className="text-lg font-bold text-amber-300">{bcWeekStats.avgWater.toFixed(1)}</div>
                       <div className="text-[10px] text-zinc-500">avg/day this week</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.water}</div>
+                      <div className="text-lg font-bold text-amber-300">{bcWeekStats.water}</div>
                       <div className="text-[10px] text-zinc-500">total glasses</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{Math.round((bcWeekStats.avgWater / waterGoal) * 100)}%</div>
+                      <div className="text-lg font-bold text-amber-300">{Math.round((bcWeekStats.avgWater / waterGoal) * 100)}%</div>
                       <div className="text-[10px] text-zinc-500">of goal avg</div>
                     </div>
                   </div>
                   <button
                     onClick={() => askCardAi("water", `You are a wellness coach for gig drivers. You drink ${bcWeekStats.avgWater.toFixed(1)} glasses/day on average (goal: ${waterGoal}). Give 2 practical hydration tips for someone who drives all day — when to drink, what to carry, how to remember. Short and actionable.`)}
                     disabled={aiBusy["water"]}
-                    className="w-full py-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-[11px] font-bold text-teal-300/80 active:scale-[0.98] disabled:opacity-50"
+                    className="w-full py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-300/80 active:scale-[0.98] disabled:opacity-50"
                   >
                     {aiBusy["water"] ? "…" : "💧 Tips"}
                   </button>
@@ -8805,21 +8805,21 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <div ref={scanCardRef} className={`relative glass rounded-2xl p-4 mt-3${expandedCard === "scanner" ? " bc-fullscreen" : ""}`}>
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2 min-w-0">
-                  <ScanLine className="w-4 h-4 text-teal-300 flex-shrink-0" />
+                  <ScanLine className="w-4 h-4 text-amber-300 flex-shrink-0" />
                   <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{tr("wellnessscanner")}</div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {expandedCard !== "scanner" && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setExpandedCard("scanner"); }}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 active:scale-95"
                       aria-label="Expand to full screen"
                     >
-                      <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
-                      <span className="text-[10px] font-bold text-teal-300">Expand</span>
+                      <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                      <span className="text-[10px] font-bold text-amber-300">Expand</span>
                     </button>
                   )}
-                  <video src={VID_EAT} poster={ACT_EAT} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-teal-500/25 flex-shrink-0" aria-label="Eat well" />
+                  <video src={VID_EAT} poster={ACT_EAT} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-amber-500/25 flex-shrink-0" aria-label="Eat well" />
                 </div>
               </div>
               <p className="text-[11px] text-zinc-500 mb-2.5 leading-relaxed">Snap your meal, drink or snack — AI reads the nutrients.</p>
@@ -8834,10 +8834,10 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               ) : (
                 <div className="flex gap-2 mb-2.5">
                   <button onClick={() => openBuddyPicker(true)} disabled={buddyScanBusy} className="flex-1 py-2.5 rounded-xl bg-zinc-800/70 border border-zinc-700/60 text-xs font-bold text-zinc-200 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2">
-                    <Camera className="w-4 h-4 text-teal-400" /> Take pic
+                    <Camera className="w-4 h-4 text-amber-400" /> Take pic
                   </button>
                   <button onClick={() => openBuddyPicker(false)} disabled={buddyScanBusy} className="flex-1 py-2.5 rounded-xl bg-zinc-800/70 border border-zinc-700/60 text-xs font-bold text-zinc-200 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2">
-                    <ImagePlus className="w-4 h-4 text-teal-400" /> Upload
+                    <ImagePlus className="w-4 h-4 text-amber-400" /> Upload
                   </button>
                 </div>
               )}
@@ -8854,7 +8854,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 px-0.5">Follow up — ask anything about this photo</div>
                   <AiChat
                     chatId="wellness-scan"
-                    accent="bg-teal-500/20"
+                    accent="bg-amber-500/20"
                     context={`The user just scanned a meal/drink. Scan result: ${buddyScanResult}. They have had ${waterGlasses}/8 glasses of water today. Help with follow-up questions, meal ideas, and practical wellness suggestions — be warm and specific.`}
                     onNavigate={(t) => setActiveTab(t)}
                     onAction={handleEricAction}
@@ -8905,7 +8905,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 px-0.5">Follow up — ask anything</div>
                       <AiChat
                         chatId="manual-food"
-                        accent="bg-teal-500/20"
+                        accent="bg-amber-500/20"
                         context={`The user manually entered what they ate: "${manualFood}". AI feedback was: ${aiTips["manual-food"]}. Help with follow-up questions about nutrition, alternatives, and practical suggestions — be warm and specific.`}
                         onNavigate={(t) => setActiveTab(t)}
                         onAction={handleEricAction}
@@ -8918,7 +8918,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button
                 onClick={() => askCardAi("scan-sum", buddyScanResult ? `Summarize your nutrition from their scan: ${buddyScanResult}. In 2-3 sentences: overall assessment, one strength, one thing to watch.` : `The user hasn't scanned anything yet. In 1-2 sentences, explain what the Wellness Scanner does and encourage you to try it.`)}
                 disabled={aiBusy["scan-sum"]}
-                className="w-full mt-2.5 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+                className="w-full mt-2.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
               >
                 {aiBusy["scan-sum"] ? "Analyzing…" : "✨ AI summary"}
               </button>
@@ -8994,14 +8994,14 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 {expandedCard !== "sleep" && (
 <button
                   onClick={(e) => { e.stopPropagation(); setExpandedCard("sleep"); }}
-                  className="ml-2 flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
+                  className="ml-2 flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 active:scale-95"
                   aria-label="Expand to full screen"
                 >
-                  <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
-                  <span className="text-[10px] font-bold text-teal-300">Expand</span>
+                  <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-[10px] font-bold text-amber-300">Expand</span>
                 </button>
                   )}
-                <div className="text-xs font-bold text-teal-300 ml-2">{sleepHrs > 0 ? `${sleepHrs} hrs` : "Not logged"}</div>
+                <div className="text-xs font-bold text-amber-300 ml-2">{sleepHrs > 0 ? `${sleepHrs} hrs` : "Not logged"}</div>
               </div>
               <div className="flex gap-1.5 mb-3">
                 {Array.from({ length: 10 }).map((_, i) => (
@@ -9010,7 +9010,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {[6, 7, 8, 9].map((h) => (
-                  <button key={h} onClick={() => logSleep(h)} className={`py-2 rounded-xl text-xs font-bold active:scale-95 ${sleepHrs === h ? "bg-teal-500 text-white" : "bg-zinc-800 border border-zinc-700 text-zinc-300"}`}>{h}h</button>
+                  <button key={h} onClick={() => logSleep(h)} className={`py-2 rounded-xl text-xs font-bold active:scale-95 ${sleepHrs === h ? "bg-amber-500 text-white" : "bg-zinc-800 border border-zinc-700 text-zinc-300"}`}>{h}h</button>
                 ))}
               </div>
               <div className="grid grid-cols-4 gap-2 mt-2">
@@ -9019,9 +9019,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => logSleep(0)} className="py-2 rounded-xl bg-zinc-800/60 border border-zinc-700/60 text-[11px] font-bold text-zinc-500 active:scale-95 col-span-2">{tr("clear")}</button>
               </div>
               {/* Auto progress brief — always visible, updates with your data */}
-              <div className="mt-2 px-3 py-2 rounded-xl bg-teal-500/8 border border-teal-500/15">
+              <div className="mt-2 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15">
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  📊 <span className="font-bold text-teal-300">{sleepHrs}h last night</span>
+                  📊 <span className="font-bold text-amber-300">{sleepHrs}h last night</span>
                   {" · "}{bcWeekStats.avgSleep.toFixed(1)}h/night avg
                   {(8 - bcWeekStats.avgSleep) * 7 > 0.5 && ` · ⚠️ ${((8 - bcWeekStats.avgSleep) * 7).toFixed(1)}h debt`}
                   {(8 - bcWeekStats.avgSleep) * 7 <= 0.5 && ` · ✅ on track`}
@@ -9031,7 +9031,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button
                 onClick={() => askCardAi("sleep-sum", `Summarize your sleep: ${bcWeekStats.avgSleep.toFixed(1)}h/night avg, ${sleepHrs}h last night. In 2-3 sentences: sleep quality assessment, biggest concern, one observation.`)}
                 disabled={aiBusy["sleep-sum"]}
-                className="w-full mt-2 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+                className="w-full mt-2 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
               >
                 {aiBusy["sleep-sum"] ? "Analyzing…" : "✨ AI summary — how am I doing?"}
               </button>
@@ -9040,33 +9040,33 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div className="mt-3 pt-3 border-t border-zinc-800/60">
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.avgSleep.toFixed(1)}h</div>
+                      <div className="text-lg font-bold text-amber-300">{bcWeekStats.avgSleep.toFixed(1)}h</div>
                       <div className="text-[10px] text-zinc-500">avg/night</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{Math.max(0, (8 - bcWeekStats.avgSleep) * 7).toFixed(1)}h</div>
+                      <div className="text-lg font-bold text-amber-300">{Math.max(0, (8 - bcWeekStats.avgSleep) * 7).toFixed(1)}h</div>
                       <div className="text-[10px] text-zinc-500">sleep debt/wk</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.avgSleep >= 7 ? "✅" : "⚠️"}</div>
+                      <div className="text-lg font-bold text-amber-300">{bcWeekStats.avgSleep >= 7 ? "✅" : "⚠️"}</div>
                       <div className="text-[10px] text-zinc-500">7h+ goal</div>
                     </div>
                   </div>
                   <button
                       onClick={() => askCardAi("sleep", `You are a wellness coach for gig drivers who work irregular hours. You average ${bcWeekStats.avgSleep.toFixed(1)} hours of sleep/night. Give 3 practical tips for better sleep with an unpredictable schedule — naps, wind-down, environment. Short and actionable.`)}
                       disabled={aiBusy["sleep"]}
-                      className="w-full py-2 rounded-xl bg-teal-500/10 border border-indigo-500/20 text-[11px] font-bold text-teal-300/80 active:scale-[0.98] disabled:opacity-50"
+                      className="w-full py-2 rounded-xl bg-amber-500/10 border border-indigo-500/20 text-[11px] font-bold text-amber-300/80 active:scale-[0.98] disabled:opacity-50"
                     >
                       {aiBusy["sleep"] ? "…" : "😴 Tips"}
                     </button>
                   {aiTips["sleep"] && <div className="ai-says mt-2 text-[12px] leading-relaxed whitespace-pre-line">{aiTips["sleep"]}</div>}
                   {expandedCard === "sleep" && (
                     <div className="mt-4 space-y-3 animate-fade-in-up">
-                      <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-teal-500/10 border border-teal-500/25 p-4">
-                        <div className="text-[13px] font-bold text-teal-300 mb-2">{tr("yoursleepstory")}</div>
+                      <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-teal-500/10 border border-amber-500/25 p-4">
+                        <div className="text-[13px] font-bold text-amber-300 mb-2">{tr("yoursleepstory")}</div>
                         <div className="text-[12px] text-zinc-300 leading-relaxed">
                           {sleepHrs > 0 ? (
-                            <>Last night: <span className="font-bold text-teal-300">{sleepHrs} hours</span>. {sleepHrs >= 7 ? "Solid rest — your body got what it needs." : sleepHrs >= 5 ? "A bit short. Try winding down 30 min earlier tonight." : "That's rough. Prioritize rest today — your safety depends on it."}</>
+                            <>Last night: <span className="font-bold text-amber-300">{sleepHrs} hours</span>. {sleepHrs >= 7 ? "Solid rest — your body got what it needs." : sleepHrs >= 5 ? "A bit short. Try winding down 30 min earlier tonight." : "That's rough. Prioritize rest today — your safety depends on it."}</>
                           ) : (
                             <>{tr("loglastnights")}</>
                           )}
@@ -9093,15 +9093,15 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 {expandedCard !== "mood" && (
 <button
                   onClick={(e) => { e.stopPropagation(); setExpandedCard("mood"); }}
-                  className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
+                  className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 active:scale-95"
                   aria-label="Expand to full screen"
                 >
-                  <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
-                  <span className="text-[10px] font-bold text-teal-300">Expand</span>
+                  <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-[10px] font-bold text-amber-300">Expand</span>
                 </button>
                   )}
                 {mood > 0 && (
-                  <button onClick={askMoodAi} disabled={moodAiBusy} className="w-7 h-7 rounded-full bg-teal-500/20 border border-teal-500/40 text-teal-200 text-sm font-bold active:scale-95 disabled:opacity-50" aria-label="Get AI suggestions for your mood">
+                  <button onClick={askMoodAi} disabled={moodAiBusy} className="w-7 h-7 rounded-full bg-amber-500/20 border border-teal-500/40 text-amber-200 text-sm font-bold active:scale-95 disabled:opacity-50" aria-label="Get AI suggestions for your mood">
                     {moodAiBusy ? "…" : "ⓘ"}
                   </button>
                 )}
@@ -9109,7 +9109,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div className="text-[11px] text-zinc-500 mb-1.5">{tr("mood")}</div>
               <div className="flex gap-2 mb-3">
                 {["😞", "😐", "🙂", "😊", "🤩"].map((e, i) => (
-                  <button key={i} onClick={() => logMood(i + 1, energy || 3)} className={`flex-1 py-2 rounded-xl text-xl active:scale-95 ${mood === i + 1 ? "bg-teal-500/25 border border-teal-500/50" : "bg-zinc-800/60 border border-zinc-800"}`}>{e}</button>
+                  <button key={i} onClick={() => logMood(i + 1, energy || 3)} className={`flex-1 py-2 rounded-xl text-xl active:scale-95 ${mood === i + 1 ? "bg-amber-500/25 border border-teal-500/50" : "bg-zinc-800/60 border border-zinc-800"}`}>{e}</button>
                 ))}
               </div>
               <div className="text-[11px] text-zinc-500 mb-1.5">{tr("energy")}</div>
@@ -9123,9 +9123,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               )}
               {/* Auto progress brief */}
               {(mood > 0 || energy > 0) && (
-                <div className="mt-2 px-3 py-2 rounded-xl bg-teal-500/8 border border-teal-500/15">
+                <div className="mt-2 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15">
                   <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    📊 {mood > 0 && <span>Mood: <span className="font-bold text-teal-300">{["😞", "😐", "🙂", "😊", "🤩"][mood - 1]} ({mood}/5)</span></span>}
+                    📊 {mood > 0 && <span>Mood: <span className="font-bold text-amber-300">{["😞", "😐", "🙂", "😊", "🤩"][mood - 1]} ({mood}/5)</span></span>}
                     {mood > 0 && energy > 0 && " · "}
                     {energy > 0 && <span>Energy: <span className="font-bold text-amber-300">{energy}/5</span></span>}
                   </p>
@@ -9136,7 +9136,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button
                   onClick={() => askCardAi("mood-sum", `Summarize your check-in: mood ${mood}/5 (${["very low", "low", "okay", "good", "great"][mood - 1]}), energy ${energy}/5. In 2-3 sentences: what does this tell you about your day, any pattern to note, one supportive observation.`)}
                   disabled={aiBusy["mood-sum"]}
-                  className="w-full mt-2 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+                  className="w-full mt-2 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
                 >
                   {aiBusy["mood-sum"] ? "Analyzing…" : "✨ AI summary — how am I doing?"}
                 </button>
@@ -9144,18 +9144,18 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               {aiTips["mood-sum"] && <div className="ai-says mt-2 text-[12px] leading-relaxed whitespace-pre-line">{aiTips["mood-sum"]}</div>}
               {moodAi && (
                 <div className="ai-says mt-3">
-                  <div className="text-[10px] font-bold text-teal-300 uppercase tracking-wider mb-1.5">{tr("coachsuggestifor")}</div>
+                  <div className="text-[10px] font-bold text-amber-300 uppercase tracking-wider mb-1.5">{tr("coachsuggestifor")}</div>
                   <div className="text-[12px] text-zinc-300 leading-relaxed whitespace-pre-line">{moodAi}</div>
                 </div>
               )}
               {/* Mood treasure — only in fullscreen */}
               {expandedCard === "mood" && (
                 <div className="mt-4 space-y-3 animate-fade-in-up">
-                  <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-teal-400/10 border border-teal-500/25 p-4">
-                    <div className="text-[13px] font-bold text-teal-300 mb-2">{tr("yourvibecheck")}</div>
+                  <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-teal-400/10 border border-amber-500/25 p-4">
+                    <div className="text-[13px] font-bold text-amber-300 mb-2">{tr("yourvibecheck")}</div>
                     <div className="text-[12px] text-zinc-300 leading-relaxed">
                       {mood > 0 ? (
-                        <>Mood: <span className="font-bold text-teal-300">{mood}/5</span>, Energy: <span className="font-bold text-teal-300">{energy}/5</span>. {mood >= 4 ? "You're glowing! Ride this wave." : mood >= 3 ? "Solid middle ground. A good break could push you higher." : "Tough day. Be kind to yourself — tomorrow is fresh."}</>
+                        <>Mood: <span className="font-bold text-amber-300">{mood}/5</span>, Energy: <span className="font-bold text-amber-300">{energy}/5</span>. {mood >= 4 ? "You're glowing! Ride this wave." : mood >= 3 ? "Solid middle ground. A good break could push you higher." : "Tough day. Be kind to yourself — tomorrow is fresh."}</>
                       ) : (
                         <>{tr("checkinabove")}</>
                       )}
@@ -9181,7 +9181,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <div className={`relative glass rounded-2xl p-4 mb-3${expandedCard === "break" ? " bc-fullscreen" : ""}`}>
               <div className="flex items-center justify-between mb-2 gap-2">
                 <button onClick={() => setBreakExp(!breakExp)} className="flex items-center gap-1.5 active:opacity-70 min-w-0 flex-1">
-                  <div className="text-left min-w-0"><div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{tr("restbreak")}</div><div className="text-[10px] text-zinc-500 truncate">{tr("timedbreakswith")}</div><div className="text-[11px] font-bold text-teal-300 mt-0.5">🕐 {liveTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })}</div></div>
+                  <div className="text-left min-w-0"><div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{tr("restbreak")}</div><div className="text-[10px] text-zinc-500 truncate">{tr("timedbreakswith")}</div><div className="text-[11px] font-bold text-amber-300 mt-0.5">🕐 {liveTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })}</div></div>
                   <ChevronDown className={`w-3.5 h-3.5 text-zinc-500 transition-transform flex-shrink-0 ${breakExp ? "rotate-180" : ""}`} />
                 </button>
                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -9195,7 +9195,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <span className="text-[10px] font-bold text-amber-300">Expand</span>
                     </button>
                   )}
-                  <video src={VID_REST} poster={ACT_REST} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-teal-500/25 flex-shrink-0" aria-label="Rest" />
+                  <video src={VID_REST} poster={ACT_REST} autoPlay muted loop playsInline className="w-9 h-9 rounded-xl object-cover border border-amber-500/25 flex-shrink-0" aria-label="Rest" />
                 </div>
               </div>
               {breakSecs != null ? (
@@ -9227,7 +9227,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button
                   onClick={() => { const m = parseInt(customBreakMin, 10); if (m >= 1 && m <= 180) { startBreak(m); setCustomBreakMin(""); } }}
                   disabled={!customBreakMin || parseInt(customBreakMin, 10) < 1}
-                  className="px-4 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-300 active:scale-95 disabled:opacity-40 flex-shrink-0"
+                  className="px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 active:scale-95 disabled:opacity-40 flex-shrink-0"
                 >
                   Start
                 </button>
@@ -9239,7 +9239,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     {alarmRinging ? (
                       <button onClick={stopAlarm} className="text-[10px] font-bold text-red-300 bg-red-500/15 border border-red-500/30 rounded-lg px-2.5 py-1 active:scale-95">{tr("stopalarm")}</button>
                     ) : null}
-                    <button onClick={playToneOnce} className="text-[10px] font-bold text-teal-300 active:scale-95">{tr("testit")}</button>
+                    <button onClick={playToneOnce} className="text-[10px] font-bold text-amber-300 active:scale-95">{tr("testit")}</button>
                   </div>
                 </div>
                 <div className="flex gap-1.5 mb-2">
@@ -9247,7 +9247,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <button
                       key={k}
                       onClick={() => { setAlarmSound(k); setAlarmMsg(""); }}
-                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmSound === k ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
+                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmSound === k ? "bg-amber-500/20 border-teal-500/50 text-amber-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
                     >
                       {label}
                     </button>
@@ -9255,7 +9255,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   {customAlarm ? (
                     <button
                       onClick={() => { setAlarmSound("custom"); setAlarmMsg(""); }}
-                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmSound === "custom" ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
+                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmSound === "custom" ? "bg-amber-500/20 border-teal-500/50 text-amber-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
                     >
                       Custom
                     </button>
@@ -9273,7 +9273,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <button
                       key={k}
                       onClick={() => setAlarmVibrate(k)}
-                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmVibrate === k ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
+                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmVibrate === k ? "bg-amber-500/20 border-teal-500/50 text-amber-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
                     >
                       {label}
                     </button>
@@ -9285,7 +9285,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <button
                       key={k}
                       onClick={() => setAlarmDuration(k)}
-                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmDuration === k ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
+                      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border active:scale-[0.98] ${alarmDuration === k ? "bg-amber-500/20 border-teal-500/50 text-amber-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"}`}
                     >
                       {label}
                     </button>
@@ -9354,14 +9354,14 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <button
                         onClick={setAlarmClock}
                         disabled={!alarmClockTime}
-                        className="px-4 py-2 rounded-lg bg-teal-500/15 border border-teal-500/30 text-[11px] font-bold text-teal-300 active:scale-95 disabled:opacity-40"
+                        className="px-4 py-2 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 active:scale-95 disabled:opacity-40"
                       >
                         Set alarm
                       </button>
                     )}
                   </div>
                   {alarmClockActive && (
-                    <div className="text-[10px] text-teal-300/80 mt-1">Alarm set for {alarmClockTime} — will ring then</div>
+                    <div className="text-[10px] text-amber-300/80 mt-1">Alarm set for {alarmClockTime} — will ring then</div>
                   )}
                 </div>
                 <div className="flex gap-1.5 items-center">
@@ -9383,9 +9383,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               )}
 
               {/* Auto progress brief — always visible, updates with your data */}
-              <div className="mt-2 px-3 py-2 rounded-xl bg-teal-500/8 border border-teal-500/15">
+              <div className="mt-2 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15">
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  📊 <span className="font-bold text-teal-300">{bcToday.breaks} breaks today</span>
+                  📊 <span className="font-bold text-amber-300">{bcToday.breaks} breaks today</span>
                   {" · "}{bcWeekStats.breaks} this week
                   {bcToday.breaks >= 2 ? ` · ✅ goal met` : ` · ⏳ ${2 - bcToday.breaks} more to hit goal`}
                 </p>
@@ -9394,7 +9394,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button
                 onClick={() => askCardAi("break-sum", `Summarize your rest: ${bcWeekStats.breaks} breaks this week, ${bcToday.breaks} today (goal 2/day). In 2-3 sentences: are you resting enough, pattern you notice, one key insight.`)}
                 disabled={aiBusy["break-sum"]}
-                className="w-full mt-2 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+                className="w-full mt-2 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
               >
                 {aiBusy["break-sum"] ? "Analyzing…" : "✨ AI summary — how am I doing?"}
               </button>
@@ -9403,18 +9403,18 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div className="mt-3 pt-3 border-t border-zinc-800/60">
                   <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.breaks}</div>
+                      <div className="text-lg font-bold text-amber-300">{bcWeekStats.breaks}</div>
                       <div className="text-[10px] text-zinc-500">breaks this week</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcToday.breaks}/2</div>
+                      <div className="text-lg font-bold text-amber-300">{bcToday.breaks}/2</div>
                       <div className="text-[10px] text-zinc-500">today's goal</div>
                     </div>
                   </div>
                   <button
                       onClick={() => askCardAi("break", `You are a wellness coach for gig drivers. You take ${bcWeekStats.breaks} breaks/week. Explain why breaks every 2 hours matter for safety and earnings, and give 2 ideas for productive 15-min breaks. Short and motivating.`)}
                       disabled={aiBusy["break"]}
-                      className="w-full py-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-[11px] font-bold text-teal-300/80 active:scale-[0.98] disabled:opacity-50"
+                      className="w-full py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-300/80 active:scale-[0.98] disabled:opacity-50"
                     >
                       {aiBusy["break"] ? "…" : "☕ Tips"}
                     </button>
@@ -9439,8 +9439,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                           I take breaks so my car thinks I'm considerate. Really I'm just avoiding traffic.
                         </div>
                       </div>
-                      <div className="rounded-2xl bg-gradient-to-br from-teal-500/12 to-cyan-500/8 border border-teal-500/20 p-4">
-                        <div className="text-[12px] font-bold text-teal-300 mb-1.5">{tr("thescienceof")}</div>
+                      <div className="rounded-2xl bg-gradient-to-br from-teal-500/12 to-cyan-500/8 border border-amber-500/20 p-4">
+                        <div className="text-[12px] font-bold text-amber-300 mb-1.5">{tr("thescienceof")}</div>
                         <div className="text-[12px] text-zinc-400 leading-relaxed">
                           After 90 minutes of driving, reaction time drops 30%. A 5-minute break restores it almost fully. Your brain isn't lazy — it's refueling.
                         </div>
@@ -9448,10 +9448,10 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <div className="rounded-2xl bg-zinc-900/40 border border-zinc-800/50 p-4">
                         <div className="text-[12px] font-bold text-zinc-300 mb-2">60-Second Reset</div>
                         <div className="space-y-1.5 text-[12px] text-zinc-400 leading-relaxed">
-                          <div className="flex gap-2"><span className="text-teal-300 font-bold">1.</span> Roll your shoulders 5x forward, 5x back</div>
-                          <div className="flex gap-2"><span className="text-teal-300 font-bold">2.</span> Look far away for 20 seconds (rests your eyes)</div>
-                          <div className="flex gap-2"><span className="text-teal-300 font-bold">3.</span> 3 slow deep breaths — in 4 counts, out 6</div>
-                          <div className="flex gap-2"><span className="text-teal-300 font-bold">4.</span> Shake out your hands like you're air-drying them</div>
+                          <div className="flex gap-2"><span className="text-amber-300 font-bold">1.</span> Roll your shoulders 5x forward, 5x back</div>
+                          <div className="flex gap-2"><span className="text-amber-300 font-bold">2.</span> Look far away for 20 seconds (rests your eyes)</div>
+                          <div className="flex gap-2"><span className="text-amber-300 font-bold">3.</span> 3 slow deep breaths — in 4 counts, out 6</div>
+                          <div className="flex gap-2"><span className="text-amber-300 font-bold">4.</span> Shake out your hands like you're air-drying them</div>
                         </div>
                       </div>
                       <div className="rounded-2xl bg-zinc-900/40 border border-zinc-800/50 p-4">
@@ -9476,15 +9476,15 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <ChevronDown className={`w-3.5 h-3.5 text-zinc-500 transition-transform flex-shrink-0 ${moverExp ? "rotate-180" : ""}`} />
                 </button>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="text-xs font-bold text-teal-300">{bcToday.workouts + bcToday.stretches} sessions</div>
+                  <div className="text-xs font-bold text-amber-300">{bcToday.workouts + bcToday.stretches} sessions</div>
                   {expandedCard !== "mover" && (
 <button
                     onClick={(e) => { e.stopPropagation(); setExpandedCard("mover"); }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 active:scale-95"
                     aria-label="Expand to full screen"
                   >
-                    <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
-                    <span className="text-[10px] font-bold text-teal-300">Expand</span>
+                    <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                    <span className="text-[10px] font-bold text-amber-300">Expand</span>
                   </button>
                   )}
                 </div>
@@ -9503,7 +9503,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => setCamMode("workout")} className="py-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-xs font-bold text-sky-200 active:scale-[0.98]">
                   📷 Rep counter
                 </button>
-                <button onClick={() => setCamMode("stretch")} className="py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-200 active:scale-[0.98]">
+                <button onClick={() => setCamMode("stretch")} className="py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98]">
                   📷 Form coach
                 </button>
               </div>
@@ -9511,7 +9511,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button
                 onClick={() => askCardAi("mover-sum", `Summarize your movement: ${bcWeekStats.workouts} sessions this week, ${bcToday.workouts} workouts + ${bcToday.stretches} stretches today. In 2-3 sentences: activity level assessment, consistency pattern, one key observation.`)}
                 disabled={aiBusy["mover-sum"]}
-                className="w-full mt-2 py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+                className="w-full mt-2 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
               >
                 {aiBusy["mover-sum"] ? "Analyzing…" : "✨ AI summary — how am I doing?"}
               </button>
@@ -9520,44 +9520,44 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div className="mt-3 pt-3 border-t border-zinc-800/60">
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcWeekStats.workouts}</div>
+                      <div className="text-lg font-bold text-amber-300">{bcWeekStats.workouts}</div>
                       <div className="text-[10px] text-zinc-500">sessions/wk</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcToday.workouts}</div>
+                      <div className="text-lg font-bold text-amber-300">{bcToday.workouts}</div>
                       <div className="text-[10px] text-zinc-500">workouts today</div>
                     </div>
                     <div className="rounded-xl bg-zinc-900/60 p-2.5 text-center">
-                      <div className="text-lg font-bold text-teal-300">{bcToday.stretches}</div>
+                      <div className="text-lg font-bold text-amber-300">{bcToday.stretches}</div>
                       <div className="text-[10px] text-zinc-500">stretches today</div>
                     </div>
                   </div>
                   <button
                       onClick={() => askCardAi("mover", `You are a fitness coach for gig drivers with limited time. You did ${bcWeekStats.workouts} sessions this week. Suggest 3 quick 5-minute exercises they can do between deliveries — no equipment. Short and motivating.`)}
                       disabled={aiBusy["mover"]}
-                      className="w-full py-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-[11px] font-bold text-teal-300/80 active:scale-[0.98] disabled:opacity-50"
+                      className="w-full py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-300/80 active:scale-[0.98] disabled:opacity-50"
                     >
                       {aiBusy["mover"] ? "…" : "💪 Tips"}
                     </button>
                   {aiTips["mover"] && <div className="ai-says mt-2 text-[12px] leading-relaxed whitespace-pre-line">{aiTips["mover"]}</div>}
                   {expandedCard === "mover" && (
                     <div className="mt-4 space-y-3 animate-fade-in-up">
-                      <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-emerald-500/10 border border-teal-500/25 p-4">
-                        <div className="text-[13px] font-bold text-teal-300 mb-2">{tr("yourmovementstory")}</div>
+                      <div className="rounded-2xl bg-gradient-to-br from-teal-500/15 to-emerald-500/10 border border-amber-500/25 p-4">
+                        <div className="text-[13px] font-bold text-amber-300 mb-2">{tr("yourmovementstory")}</div>
                         <div className="text-[12px] text-zinc-300 leading-relaxed">
                           {(bcToday.workouts + bcToday.stretches) > 0 ? (
-                            <><span className="font-bold text-teal-300">{bcToday.workouts + bcToday.stretches} sessions</span> logged! {(bcToday.workouts + bcToday.stretches) >= 20 ? "You're a movement machine." : (bcToday.workouts + bcToday.stretches) >= 10 ? "Strong consistency. Your body is adapting." : "Building the habit — every session counts."}</>
+                            <><span className="font-bold text-amber-300">{bcToday.workouts + bcToday.stretches} sessions</span> logged! {(bcToday.workouts + bcToday.stretches) >= 20 ? "You're a movement machine." : (bcToday.workouts + bcToday.stretches) >= 10 ? "Strong consistency. Your body is adapting." : "Building the habit — every session counts."}</>
                           ) : (
                             <>No movement logged yet. Even a 2-minute stretch between deliveries makes a difference.</>
                           )}
                         </div>
                         <div className="mt-3 grid grid-cols-2 gap-2 text-center">
                           <div className="rounded-xl bg-zinc-900/50 p-2">
-                            <div className="text-lg font-extrabold text-teal-300">{bcToday.workouts}</div>
+                            <div className="text-lg font-extrabold text-amber-300">{bcToday.workouts}</div>
                             <div className="text-[10px] text-zinc-500">workouts today</div>
                           </div>
                           <div className="rounded-xl bg-zinc-900/50 p-2">
-                            <div className="text-lg font-extrabold text-teal-300">{bcToday.stretches}</div>
+                            <div className="text-lg font-extrabold text-amber-300">{bcToday.stretches}</div>
                             <div className="text-[10px] text-zinc-500">stretches today</div>
                           </div>
                         </div>
@@ -9581,7 +9581,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div className="flex items-center justify-between gap-2">
                 <button onClick={() => setBcHistOpen(!bcHistOpen)} className="flex-1 flex items-center justify-between active:opacity-70 min-w-0">
                   <span className="flex items-center gap-2 text-xs font-bold text-zinc-300 uppercase tracking-wider">
-                    <History className="w-4 h-4 text-teal-300" /> History & challenges
+                    <History className="w-4 h-4 text-amber-300" /> History & challenges
                   </span>
                   <span className="flex items-center gap-2">
                     {bcStreak > 0 ? (
@@ -9595,11 +9595,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 {expandedCard !== "history" && (
                   <button
                     onClick={(e) => { e.stopPropagation(); setExpandedCard("history"); }}
-                    className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
+                    className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 active:scale-95"
                     aria-label="Expand to full screen"
                   >
-                    <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
-                    <span className="text-[10px] font-bold text-teal-300">Expand</span>
+                    <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                    <span className="text-[10px] font-bold text-amber-300">Expand</span>
                   </button>
                 )}
               </div>
@@ -9623,16 +9623,16 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         <div key={c.label} className="rounded-xl bg-zinc-900/60 border border-zinc-800/60 p-3">
                           <div className="flex items-center justify-between mb-1.5">
                             <span className="flex items-center gap-2 text-xs font-bold text-zinc-200">
-                              <c.Icon className="w-3.5 h-3.5 text-teal-300" /> {c.label}
+                              <c.Icon className="w-3.5 h-3.5 text-amber-300" /> {c.label}
                             </span>
                             {won ? (
-                              <span className="flex items-center gap-1 text-[11px] font-bold text-teal-300"><span>{c.badge}</span> Done!</span>
+                              <span className="flex items-center gap-1 text-[11px] font-bold text-amber-300"><span>{c.badge}</span> Done!</span>
                             ) : (
                               <span className="text-[11px] font-bold text-zinc-400">{c.done}/{c.target} {c.unit}</span>
                             )}
                           </div>
                           <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                            <div className={`h-full rounded-full transition-all ${won ? "bg-teal-300" : "bg-teal-500"}`} style={{ width: `${pct}%` }} />
+                            <div className={`h-full rounded-full transition-all ${won ? "bg-teal-300" : "bg-amber-500"}`} style={{ width: `${pct}%` }} />
                           </div>
                         </div>
                       );
@@ -9642,7 +9642,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{tr("waterhistory")}</div>
                     <div className="flex gap-1">
                       {(["7d", "30d"] as const).map((r) => (
-                        <button key={r} onClick={() => setChartRange(r)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold active:scale-95 ${chartRange === r ? "bg-teal-500/25 text-teal-200" : "bg-zinc-800 text-zinc-500"}`}>{r}</button>
+                        <button key={r} onClick={() => setChartRange(r)} className={`px-2.5 py-1 rounded-lg text-[10px] font-bold active:scale-95 ${chartRange === r ? "bg-amber-500/25 text-amber-200" : "bg-zinc-800 text-zinc-500"}`}>{r}</button>
                       ))}
                     </div>
                   </div>
@@ -9650,9 +9650,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     {bcChart.map((d) => (
                       <div key={d.key} className="flex-1 flex flex-col items-center gap-1 min-w-0">
                         <div className="w-full flex items-end h-14 rounded-md bg-zinc-800/60 overflow-hidden">
-                          <div className="w-full bg-teal-500/70 rounded-md" style={{ height: `${Math.min(100, (d.water / waterGoal) * 100)}%` }} />
+                          <div className="w-full bg-amber-500/70 rounded-md" style={{ height: `${Math.min(100, (d.water / waterGoal) * 100)}%` }} />
                         </div>
-                        {chartRange === "7d" && <span className={`text-[9px] font-bold ${d.key === todayKey ? "text-teal-300" : "text-zinc-500"}`}>{d.label}</span>}
+                        {chartRange === "7d" && <span className={`text-[9px] font-bold ${d.key === todayKey ? "text-amber-300" : "text-zinc-500"}`}>{d.label}</span>}
                       </div>
                     ))}
                   </div>
@@ -9673,7 +9673,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <button
                     onClick={askWeekSummary}
                     disabled={weekSummaryBusy}
-                    className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-indigo-500/20 border border-teal-500/30 text-[11px] font-bold text-teal-200 active:scale-[0.98] disabled:opacity-50"
+                    className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-indigo-500/20 border border-amber-500/30 text-[11px] font-bold text-amber-200 active:scale-[0.98] disabled:opacity-50"
                   >
                     {weekSummaryBusy ? "Reading your week…" : "✨ AI weekly summary — how did I do?"}
                   </button>
@@ -9721,7 +9721,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <div className="mt-2 rounded-xl bg-zinc-900/60 border border-zinc-800/60 p-3">
                         <div className="text-[11px] font-bold text-zinc-300">Cleared {bcTrash.clearedAt} · {Object.keys(bcTrash.days).length} day{Object.keys(bcTrash.days).length === 1 ? "" : "s"}</div>
                         <div className="flex gap-2 mt-2">
-                          <button onClick={recoverBcHistory} className="flex-1 py-2 rounded-lg bg-teal-500/15 border border-teal-500/30 text-[11px] font-bold text-teal-300 active:scale-95">{tr("recover")}</button>
+                          <button onClick={recoverBcHistory} className="flex-1 py-2 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 active:scale-95">{tr("recover")}</button>
                           <button onClick={purgeBcTrash} className="flex-1 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-[11px] font-bold text-zinc-400 active:scale-95">{tr("deleteforever")}</button>
                         </div>
                       </div>
@@ -9734,19 +9734,19 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <div className={`relative glass rounded-2xl p-4 mb-3${expandedCard === "expenses" ? " bc-fullscreen" : ""}`}>
               <div className="flex items-center justify-between mb-2 gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <Receipt className="w-4 h-4 text-teal-300 flex-shrink-0" />
+                  <Receipt className="w-4 h-4 text-amber-300 flex-shrink-0" />
                   <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{tr("expenses")}</div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="text-xs font-bold text-teal-300">{formatCurrency(expTotal)} · {expenses.length}</div>
+                  <div className="text-xs font-bold text-amber-300">{formatCurrency(expTotal)} · {expenses.length}</div>
                   {expandedCard !== "expenses" && (
 <button
                     onClick={(e) => { e.stopPropagation(); setExpandedCard("expenses"); }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 active:scale-95"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 active:scale-95"
                     aria-label="Expand to full screen"
                   >
-                    <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
-                    <span className="text-[10px] font-bold text-teal-300">Expand</span>
+                    <Maximize2 className="w-3.5 h-3.5 text-amber-300" />
+                    <span className="text-[10px] font-bold text-amber-300">Expand</span>
                   </button>
                   )}
                 </div>
@@ -9784,15 +9784,15 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   ) : (
                     <div className="flex gap-2">
                       <button onClick={() => openExpPicker(true)} className="flex-1 py-2 rounded-xl bg-zinc-800/70 border border-zinc-700/60 text-[11px] font-bold text-zinc-200 active:scale-[0.98] flex items-center justify-center gap-1.5">
-                        <Camera className="w-3.5 h-3.5 text-teal-400" /> Snap receipt
+                        <Camera className="w-3.5 h-3.5 text-amber-400" /> Snap receipt
                       </button>
                       <button onClick={() => openExpPicker(false)} className="flex-1 py-2 rounded-xl bg-zinc-800/70 border border-zinc-700/60 text-[11px] font-bold text-zinc-200 active:scale-[0.98] flex items-center justify-center gap-1.5">
-                        <ImagePlus className="w-3.5 h-3.5 text-teal-400" /> Upload
+                        <ImagePlus className="w-3.5 h-3.5 text-amber-400" /> Upload
                       </button>
                     </div>
                   )}
                   {expReceipt ? (
-                    <button onClick={scanReceipt} disabled={expScanBusy} className="w-full py-2 rounded-xl bg-teal-500/15 border border-teal-500/30 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50">
+                    <button onClick={scanReceipt} disabled={expScanBusy} className="w-full py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50">
                       {expScanBusy ? "Reading receipt…" : "Scan with AI — fill the form"}
                     </button>
                   ) : null}
@@ -9833,7 +9833,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 px-0.5">Follow up — ask anything</div>
                       <AiChat
                         chatId="expense-advice"
-                        accent="bg-teal-500/20"
+                        accent="bg-amber-500/20"
                         context={`The user just got AI tax-filing advice for an expense: ${expAdvice}. They log ${expenses.length} expenses. Help with follow-up questions about categories, deductions, and receipt filing — be warm and specific.`}
                         onNavigate={(t) => setActiveTab(t)}
                         onAction={handleEricAction}
@@ -9845,16 +9845,16 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               {/* AI summary for expenses */}
               {expenses.length > 0 && (
                 <div className="mt-3">
-                  <div className="px-3 py-2 rounded-xl bg-teal-500/8 border border-teal-500/15 mb-2">
+                  <div className="px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15 mb-2">
                     <p className="text-[11px] text-zinc-400 leading-relaxed">
-                      📊 <span className="font-bold text-teal-300">${expenses.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0).toFixed(2)} total</span>
+                      📊 <span className="font-bold text-amber-300">${expenses.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0).toFixed(2)} total</span>
                       {" · "}{expenses.length} expense{expenses.length === 1 ? "" : "s"}
                     </p>
                   </div>
                   <button
                     onClick={() => askCardAi("exp-sum", `Summarize your expenses: $${expenses.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0).toFixed(2)} total across ${expenses.length} expenses. Categories: ${[...new Set(expenses.map(x => x.category))].join(", ")}. In 2-3 sentences: spending pattern, biggest category, one money-saving tip for a gig driver.`)}
                     disabled={aiBusy["exp-sum"]}
-                    className="w-full py-2 rounded-xl bg-teal-500/10 border border-teal-500/25 text-[11px] font-bold text-teal-300 active:scale-[0.98] disabled:opacity-50"
+                    className="w-full py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 active:scale-[0.98] disabled:opacity-50"
                   >
                     {aiBusy["exp-sum"] ? "Analyzing…" : "✨ AI summary — how am I doing?"}
                   </button>
@@ -9895,20 +9895,20 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 onClick={() => { setBuddyOpen(false); window.open(vehicle?.fuel === "electric" ? "https://www.plugshare.com/" : "https://upside.app.link/0rj3FSeI86b", "_blank", "noopener"); }}
                 className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/60 active:scale-[0.98] text-left"
               >
-                <Fuel className="w-5 h-5 text-teal-400 flex-shrink-0" />
+                <Fuel className="w-5 h-5 text-amber-400 flex-shrink-0" />
                 <span className="text-xs font-bold text-zinc-200">{vehicle?.fuel === "electric" ? "Find chargers" : "Cheap gas"}</span>
               </button>
               <button
                 onClick={() => { setBuddyOpen(false); setActiveTab("calc"); setRouteError(""); setRouteInfo(null); setFromSugg([]); setToSugg([]); setFromCoord(null); setToCoord(null); setRouteOpen(true); }}
                 className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/60 active:scale-[0.98] text-left"
               >
-                <MapPin className="w-5 h-5 text-teal-400 flex-shrink-0" />
+                <MapPin className="w-5 h-5 text-amber-400 flex-shrink-0" />
                 <span className="text-xs font-bold text-zinc-200">{tr("planaroute")}</span>
               </button>
             </div>
             <div className="glass rounded-2xl p-4 mt-3">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-teal-300 flex-shrink-0" />
+                <Sparkles className="w-4 h-4 text-amber-300 flex-shrink-0" />
                 <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{tr("askthecoach")}</div>
               </div>
               <div className="flex gap-2">
@@ -9933,7 +9933,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 px-0.5">Follow up — ask anything</div>
                   <AiChat
                     chatId="basecamp-coach"
-                    accent="bg-teal-500/20"
+                    accent="bg-amber-500/20"
                     context={`You are the Basecamp coach. The user asked: "${buddyAiQ}". Your answer: ${buddyAiA}. Continue the conversation — answer follow-ups about hydration, rest, nutrition, and travel wellness.`}
                     onNavigate={(t) => setActiveTab(t)}
                     onAction={handleEricAction}
@@ -9980,7 +9980,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <span className="text-[11px] text-zinc-600 font-bold">{tourStep + 1} of {TOUR_STEPS.length}</span>
               <button
                 onClick={nextTourStep}
-                className="px-6 py-2.5 rounded-xl bg-teal-500 text-[13px] font-bold text-[#0a0a0f] active:scale-95"
+                className="px-6 py-2.5 rounded-xl bg-amber-500 text-[13px] font-bold text-[#0a0a0f] active:scale-95"
               >
                 {tourStep === TOUR_STEPS.length - 1 ? "Done" : "Next"}
               </button>
@@ -10015,7 +10015,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <div className="mt-4">
               {!signedInEmail ? (
                 <div className="flex gap-2">
-                  <button onClick={() => { setBuddyPaywall(false); openAuth("signin"); }} className="flex-1 py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-400 active:scale-[0.98] transition-transform">{tr("signin")}</button>
+                  <button onClick={() => { setBuddyPaywall(false); openAuth("signin"); }} className="flex-1 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-sm font-bold text-amber-400 active:scale-[0.98] transition-transform">{tr("signin")}</button>
                   <button onClick={() => { setBuddyPaywall(false); openAuth("signup"); }} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform btn-sheen">{tr("createaccount")}</button>
                 </div>
               ) : (
@@ -10050,7 +10050,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             </div>
             <button
               onClick={() => { setProfileSheet(false); if (isPremium) setBuddyOpen(true); else setBuddyPaywall(true); }}
-              className="w-full text-left rounded-2xl border border-teal-500/25 bg-gradient-to-br from-teal-500/10 to-transparent p-4 active:scale-[0.98] transition-transform"
+              className="w-full text-left rounded-2xl border border-amber-500/25 bg-gradient-to-br from-teal-500/10 to-transparent p-4 active:scale-[0.98] transition-transform"
             >
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2.5 flex-shrink-0">
@@ -10062,11 +10062,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <div className="text-sm font-extrabold text-white">{tr("yourbasecampcrew")}</div>
                   <div className="text-[11px] text-zinc-500 leading-snug">Hydration, breaks, meals & coaching — tap to jump in</div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-teal-300 flex-shrink-0" />
+                <ChevronRight className="w-5 h-5 text-amber-300 flex-shrink-0" />
               </div>
             </button>
             {!signedInEmail && (
-              <button onClick={() => { setProfileSheet(false); openAuth("signin"); }} className="mt-3 w-full py-2.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-400 active:scale-[0.98] transition-transform">
+              <button onClick={() => { setProfileSheet(false); openAuth("signin"); }} className="mt-3 w-full py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-sm font-bold text-amber-400 active:scale-[0.98] transition-transform">
                 Sign in
               </button>
             )}
@@ -10091,7 +10091,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800/60 rounded-xl px-3.5 py-3">
                   <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Amount</span>
-                  <span className="text-lg font-extrabold text-teal-300">{formatCurrency(x.amount)}</span>
+                  <span className="text-lg font-extrabold text-amber-300">{formatCurrency(x.amount)}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="bg-zinc-900/60 border border-zinc-800/60 rounded-xl px-3.5 py-3">
@@ -10115,7 +10115,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 ) : null}
               </div>
               <div className="flex gap-2 mt-4">
-                <button onClick={() => { setExpViewId(null); setBuddyOpen(false); setActiveTab("tax"); }} className="flex-1 py-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs font-bold text-teal-300 active:scale-[0.98]">{tr("openintax")}</button>
+                <button onClick={() => { setExpViewId(null); setBuddyOpen(false); setActiveTab("tax"); }} className="flex-1 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 active:scale-[0.98]">{tr("openintax")}</button>
                 <button onClick={() => { deleteExpense(x.id); setExpViewId(null); }} className="px-5 py-3 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-400 active:scale-95">{tr("delete")}</button>
               </div>
               <p className="text-[10px] text-zinc-600 mt-3 text-center leading-relaxed">Saved on this device · {new Date(x.createdAt).toLocaleDateString()} — bookkeeping you can trust.</p>
@@ -10138,8 +10138,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <div className="relative">
                 <div className="flex gap-2">
                 <input value={routeFrom} onChange={(e) => { setRouteFrom(e.target.value); setFromCoord(null); }} placeholder="From — pickup area or address" autoComplete="off" className="flex-1 min-w-0 w-0 bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3.5 py-3 text-sm font-semibold text-white placeholder-zinc-600 outline-none" />
-                <button onClick={() => useCurrentLocation("from")} disabled={locLoading != null} title="Use my current location" aria-label="Use my current location" className="flex-shrink-0 w-[52px] rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center active:scale-95 disabled:opacity-50">
-                  {locLoading === "from" ? <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" /> : <LocateFixed className="w-5 h-5 text-teal-300" />}
+                <button onClick={() => useCurrentLocation("from")} disabled={locLoading != null} title="Use my current location" aria-label="Use my current location" className="flex-shrink-0 w-[52px] rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center active:scale-95 disabled:opacity-50">
+                  {locLoading === "from" ? <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" /> : <LocateFixed className="w-5 h-5 text-amber-300" />}
                 </button>
               </div>
                 {fromSugg.length > 0 && (
@@ -10149,9 +10149,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       const mi = ref ? havMi(ref.lat, ref.lon, parseFloat(g.lat), parseFloat(g.lon)) : null;
                       return (
                         <button key={i} onClick={() => pickSugg("from", g)} className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-zinc-300 active:bg-zinc-800 border-b border-zinc-800/50 last:border-0 flex items-center gap-1.5">
-                          <MapPin className="w-3 h-3 flex-shrink-0 text-teal-400" />
+                          <MapPin className="w-3 h-3 flex-shrink-0 text-amber-400" />
                           <span className="flex-1 min-w-0 leading-snug">{g.name}</span>
-                          {mi != null && <span className="flex-shrink-0 text-[10px] font-bold text-teal-300 bg-teal-500/10 rounded-md px-1.5 py-0.5">{mi.toFixed(1)} mi</span>}
+                          {mi != null && <span className="flex-shrink-0 text-[10px] font-bold text-amber-300 bg-amber-500/10 rounded-md px-1.5 py-0.5">{mi.toFixed(1)} mi</span>}
                         </button>
                       );
                     })}
@@ -10160,14 +10160,14 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </div>
               <div className="flex justify-center -my-1 relative z-10">
                 <button onClick={() => { setRouteFrom(routeTo); setRouteTo(routeFrom); setFromCoord(toCoord); setToCoord(fromCoord); setFromSugg([]); setToSugg([]); }} aria-label="Swap origin and destination" title="Swap origin and destination" className="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center active:scale-95 active:rotate-180 transition-transform">
-                  <ArrowUpDown className="w-4 h-4 text-teal-300" />
+                  <ArrowUpDown className="w-4 h-4 text-amber-300" />
                 </button>
               </div>
               <div className="relative">
                 <div className="flex gap-2">
                 <input value={routeTo} onChange={(e) => { setRouteTo(e.target.value); setToCoord(null); }} placeholder="To — dropoff area or address" autoComplete="off" className="flex-1 min-w-0 w-0 bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3.5 py-3 text-sm font-semibold text-white placeholder-zinc-600 outline-none" />
-                <button onClick={() => useCurrentLocation("to")} disabled={locLoading != null} title="Use my current location" aria-label="Use my current location" className="flex-shrink-0 w-[52px] rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center active:scale-95 disabled:opacity-50">
-                  {locLoading === "to" ? <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" /> : <LocateFixed className="w-5 h-5 text-teal-300" />}
+                <button onClick={() => useCurrentLocation("to")} disabled={locLoading != null} title="Use my current location" aria-label="Use my current location" className="flex-shrink-0 w-[52px] rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center active:scale-95 disabled:opacity-50">
+                  {locLoading === "to" ? <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" /> : <LocateFixed className="w-5 h-5 text-amber-300" />}
                 </button>
               </div>
                 {toSugg.length > 0 && (
@@ -10177,9 +10177,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       const mi = ref ? havMi(ref.lat, ref.lon, parseFloat(g.lat), parseFloat(g.lon)) : null;
                       return (
                         <button key={i} onClick={() => pickSugg("to", g)} className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-zinc-300 active:bg-zinc-800 border-b border-zinc-800/50 last:border-0 flex items-center gap-1.5">
-                          <MapPin className="w-3 h-3 flex-shrink-0 text-teal-400" />
+                          <MapPin className="w-3 h-3 flex-shrink-0 text-amber-400" />
                           <span className="flex-1 min-w-0 leading-snug">{g.name}</span>
-                          {mi != null && <span className="flex-shrink-0 text-[10px] font-bold text-teal-300 bg-teal-500/10 rounded-md px-1.5 py-0.5">{mi.toFixed(1)} mi away</span>}
+                          {mi != null && <span className="flex-shrink-0 text-[10px] font-bold text-amber-300 bg-amber-500/10 rounded-md px-1.5 py-0.5">{mi.toFixed(1)} mi away</span>}
                         </button>
                       );
                     })}
@@ -10189,7 +10189,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button onClick={fetchRoute} disabled={routeLoading} className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform disabled:opacity-50">
                 {routeLoading ? "Calculating…" : "Calculate miles & speed"}
               </button>
-              {routeInfo ? <div className="text-xs text-teal-400 font-bold px-1">{routeInfo} — filled in above.</div> : null}
+              {routeInfo ? <div className="text-xs text-amber-400 font-bold px-1">{routeInfo} — filled in above.</div> : null}
               {routeError ? <div className="text-xs text-red-400 px-1">{routeError}</div> : null}
               <p className="text-[10px] text-zinc-600 px-1">{tr("freeroutingby")}</p>
             </div>
@@ -10249,9 +10249,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 onClick={() => { setAiHelperOpen((o) => !o); setVehicleAiError(""); }}
                 title="AI vehicle helper"
                 aria-label="AI vehicle helper"
-                className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform ${aiHelperOpen ? "bg-teal-500/25" : "bg-teal-500/10"}`}
+                className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform ${aiHelperOpen ? "bg-amber-500/25" : "bg-amber-500/10"}`}
               >
-                <Sparkles className="w-4.5 h-4.5 text-teal-300" />
+                <Sparkles className="w-4.5 h-4.5 text-amber-300" />
               </button>
               </div>
             </div>
@@ -10276,10 +10276,10 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             </div>
             {aiHelperOpen && (
               <div className="px-5 pb-3 flex-shrink-0">
-                <div className="rounded-2xl bg-teal-500/8 border border-teal-500/25 p-3.5">
+                <div className="rounded-2xl bg-amber-500/8 border border-amber-500/25 p-3.5">
                   <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-teal-300 flex-shrink-0" />
-                    <span className="text-xs font-bold text-teal-200">{tr("aivehiclehelper")}</span>
+                    <Sparkles className="w-4 h-4 text-amber-300 flex-shrink-0" />
+                    <span className="text-xs font-bold text-amber-200">{tr("aivehiclehelper")}</span>
                   </div>
                   <p className="text-[11px] text-zinc-400 mb-2.5 leading-relaxed">Describe your car in your own words — I&apos;ll find it, even if it&apos;s not in the list.</p>
                   <div className="flex gap-2">
@@ -10307,7 +10307,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <div className="p-2">
                   <button
                     onClick={() => setPickedModel(null)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-teal-400 mb-3 px-1 active:opacity-70"
+                    className="flex items-center gap-1.5 text-xs font-bold text-amber-400 mb-3 px-1 active:opacity-70"
                   >
                     <ChevronRight className="w-4 h-4 rotate-180" /> Back to results
                   </button>
@@ -10322,7 +10322,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                         className="px-4 py-3.5 rounded-2xl bg-zinc-800/70 border border-zinc-700/50 active:scale-[0.98] transition-transform text-left"
                       >
                         <span className="block text-sm font-bold text-white">{g.y}</span>
-                        <span className="block text-xs text-teal-400 font-semibold mt-0.5">
+                        <span className="block text-xs text-amber-400 font-semibold mt-0.5">
                           {pickedModel.fuel === "electric" ? g.mpg + " MPGe" : pickedModel.fuel === "none" ? "no fuel" : g.mpg + " mpg"}
                         </span>
                       </button>
@@ -10342,7 +10342,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <button
                         onClick={lookupVehicleAI}
                         disabled={vehicleAiLoading}
-                        className="w-full py-3.5 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-sm font-bold text-teal-300 active:scale-[0.98] transition-transform disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full py-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-sm font-bold text-amber-300 active:scale-[0.98] transition-transform disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         {vehicleAiLoading ? (
                           <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" />
@@ -10360,11 +10360,11 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                             applyVehiclePick(vehicleAiResult.brand, vehicleAiResult.model, vehicleAiResult.type, vehicleAiResult.mpg, vehicleAiResult.fuel, vehicleAiResult.year);
                             setVehicleAiResult(null); setVehicleAiList([]);
                           }}
-                          className="w-full mt-3 p-3 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-left active:scale-[0.98]"
+                          className="w-full mt-3 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-left active:scale-[0.98]"
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                            <span className="text-[10px] font-bold text-teal-400 uppercase">{tr("aifound")}</span>
+                            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                            <span className="text-[10px] font-bold text-amber-400 uppercase">{tr("aifound")}</span>
                           </div>
                           <div className="text-sm font-bold text-white">{vehicleAiResult.brand} {vehicleAiResult.model} {vehicleAiResult.year}</div>
                           <div className="text-[11px] text-zinc-400 mt-0.5">{vehicleAiResult.mpg} MPG · {vehicleAiResult.fuel} · Tap to select</div>
@@ -10373,8 +10373,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       {vehicleAiList.length > 0 && (
                         <div className="mt-3">
                           <div className="flex items-center gap-2 mb-2 px-1">
-                            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                            <span className="text-[10px] font-bold text-teal-400 uppercase">AI found {vehicleAiList.length} from {vehicleAiList[0]?.year}</span>
+                            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                            <span className="text-[10px] font-bold text-amber-400 uppercase">AI found {vehicleAiList.length} from {vehicleAiList[0]?.year}</span>
                           </div>
                           <div className="space-y-1.5">
                             {vehicleAiList.map((v, i) => (
@@ -10390,7 +10390,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                                   <div className="text-xs font-bold text-white">{v.brand} {v.model}</div>
                                   <div className="text-[10px] text-zinc-500">{fuelEffVal(v.mpg).toFixed(1)} {FUEL_EFF} · {v.fuel}</div>
                                 </div>
-                                <span className="text-teal-400 text-xs">→</span>
+                                <span className="text-amber-400 text-xs">→</span>
                               </button>
                             ))}
                           </div>
