@@ -554,7 +554,8 @@ body { color: #f5f0ff !important; }
 .border-teal-400, .border-teal-500 { border-color: #0d9488 !important; }
 .border-teal-500\/15, .border-teal-500\/25, .border-teal-500\/30 { border-color: rgba(139, 92, 246, 0.35) !important; }
 .from-teal-400, .from-teal-500 { --tw-gradient-from: #0d9488 !important; }
-.to-teal-400, .to-teal-500 { --tw-gradient-to: #6d28d9 !important; }
+.to-teal-400 { --tw-gradient-to: #2dd4bf !important; }
+.to-teal-500 { --tw-gradient-to: #14b8a6 !important; }
 /* Champagne gold highlights (from original theme) for key CTAs */
 .text-\[\#f7dc8f\], .text-amber-200, .text-amber-300 { color: #f7dc8f !important; }
 .bg-\[\#f7dc8f\]\/10, .bg-amber-400\/10 { background-color: rgba(243, 216, 148, 0.12) !important; }
