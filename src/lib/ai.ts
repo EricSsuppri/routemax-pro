@@ -10,10 +10,10 @@
 const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY as string | undefined;
 // openai/gpt-oss-120b: Groq production model (llama-3.3-70b was deprecated by Groq).
 const TEXT_MODEL = "openai/gpt-oss-120b";
-// Vision model verified 2026-10-13 against Groq's official vision docs:
-// qwen/qwen3.8-27b is Groq's current multimodal model (text+image, JSON mode).
+// Vision models: qwen3.8-27b primary, qwen3.6-27b fallback (both per Groq vision docs).
+// Fallback chain restored v2.371: if primary 404s (model retired), auto-retry on fallback.
 // (Llama 4 Scout/Maverick vision were retired — confirmed by live 404.)
-const VISION_MODEL = "qwen/qwen3.8-27b";
+const VISION_MODELS = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b"];
 
 export const isAiConfigured = Boolean(GROQ_KEY);
 
@@ -46,8 +46,10 @@ export async function askGemini(prompt: string, imageBase64?: string, jsonMode =
   let rateLimitRetries = 0;
   let netRetries = 0;
 
+  // Vision model fallback: if the primary vision model 404s, try the next in chain
+  let visionIdx = 0;
   for (;;) {
-    const model = imageBase64 ? VISION_MODEL : TEXT_MODEL;
+    const model = imageBase64 ? VISION_MODELS[visionIdx] : TEXT_MODEL;
     const body: Record<string, unknown> = {
       model,
       messages: [{ role: "user", content }],
@@ -105,6 +107,11 @@ export async function askGemini(prompt: string, imageBase64?: string, jsonMode =
       );
     }
     if (!res.ok) {
+      // Vision model retired/gone (404): try next model in the fallback chain
+      if (imageBase64 && res.status === 404 && visionIdx < VISION_MODELS.length - 1) {
+        visionIdx++;
+        continue;
+      }
       const detail = await res.text().catch(() => "");
       throw new Error(`AI request failed (${res.status}). ${detail.slice(0, 120)}`);
     }
