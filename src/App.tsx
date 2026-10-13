@@ -2573,7 +2573,7 @@ function AppInner() {
           directory: Directory.Documents,
           encoding: Encoding.UTF8,
         });
-        setDlToast(`Saved to Documents/${filename}`);
+        setDlToast("Saved to Documents \u2713");
         setTimeout(() => setDlToast(""), 3500);
         return true;
       }
