@@ -1393,37 +1393,29 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-// Share helper - shares a formatted document via native share sheet (works on mobile)
-// Falls back to clipboard copy if share API unavailable
+// Share helper - opens a printable HTML document in a new tab
+// User taps browser menu > Share/Print > Save as PDF for a real PDF file
 const shareDocument = async (title: string, filename: string, content: string): Promise<boolean> => {
   try {
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const file = new File([blob], filename, { type: "text/plain" });
-    // Try native share with file (Android share sheet - can save to Drive, email, etc.)
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title });
-      return true;
-    }
-    // Fallback: try sharing text
-    if (navigator.share) {
-      await navigator.share({ title, text: content });
-      return true;
-    }
-    // Last resort: copy to clipboard
-    await navigator.clipboard.writeText(content);
-    alert("Document copied to clipboard - paste it into any app to save/share.");
+    // Convert plain text to formatted HTML
+    const htmlLines = content.split("\n").map((line) => {
+      if (line.startsWith("=")) return '<hr style="border:2px solid #000;margin:8px 0;">';
+      if (line.startsWith("-") && line.length > 10) return '<hr style="border:1px solid #999;margin:6px 0;">';
+      if (!line.trim()) return '<br>';
+      // Escape HTML
+      const esc = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return `<div style="font-family:monospace;white-space:pre-wrap;">${esc}</div>`;
+    }).join("");
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="padding:20px;max-width:800px;margin:0 auto;">${htmlLines}<div style="margin-top:30px;text-align:center;"><button onclick="window.print()" style="padding:12px 32px;font-size:16px;background:#d4a94e;color:#000;border:none;border-radius:8px;font-weight:bold;">Print / Save as PDF</button></div></body></html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
     return true;
-  } catch (e: any) {
-    if (e?.name === "AbortError") return false; // user cancelled share
+  } catch (e) {
     console.error("Share failed:", e);
-    try {
-      await navigator.clipboard.writeText(content);
-      alert("Document copied to clipboard.");
-      return true;
-    } catch {
-      alert("Could not share. Please try again.");
-      return false;
-    }
+    alert("Could not open document. Please try again.");
+    return false;
   }
 };
 
@@ -1444,7 +1436,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.332";
+const APP_VERSION = "2.333";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -5756,13 +5748,14 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
 
         {/* Bookkeeping Dashboard */}
         <div className="glass rounded-2xl p-4 border border-amber-500/15">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
               <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">{tr("bookkeep")}</span>
+              {downloadIconBtn(downloadBookkeeping, "Share bookkeeping summary")}
             </div>
-            <div className="flex items-center gap-1">
-              {downloadIconBtn(downloadBookkeeping, "Download bookkeeping summary")}
+          </div>
+          <div className="flex items-center gap-1 mb-3">
               {(["day", "week", "month", "year", "all"] as const).map((p) => (
                 <button
                   key={p}
@@ -5772,7 +5765,6 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                   {p === "day" ? "Today" : p === "week" ? "7D" : p === "month" ? "30D" : p === "year" ? "1Y" : "All"}
                 </button>
               ))}
-            </div>
           </div>
 
           {bookRows.length === 0 ? (
@@ -6377,6 +6369,25 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
       );
     }
     const accepted = (history || []).filter((r) => r && r.accepted);
+    // v2.331: download accepted trips as a text file
+    const downloadAccepted = () => {
+      const lines = [
+        "ROUTEMAX ACCEPTED TRIPS",
+        `Generated: ${new Date().toLocaleString()}`,
+        "",
+        "SUMMARY",
+        `Trips: ${accepted.length}`,
+        `Total net: ${formatCurrency(totalNet)}`,
+        `Total miles: ${formatNumber(totalMiles, 0)}`,
+        "",
+        "BY APP / PLATFORM",
+        ...providerEntries.map(([label, v]) => `${label}: ${v.n} trips, ${formatCurrency(v.net)} net, ${formatNumber(v.miles, 0)} mi`),
+        "",
+        "TRIP DETAILS",
+        ...accepted.map((r) => `${formatShortDate(r.created_at)} | ${platformLabel(r.platform)} | ${formatCurrency(r.payout ?? 0)} payout | ${formatNumber(r.mileage ?? 0, 1)} mi | ${formatCurrency(r.net_profit ?? 0)} net`),
+      ];
+      shareDocument("Accepted Trips", `routemax-accepted-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+    };
     const acceptedHeader = (
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
@@ -6461,25 +6472,6 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
       .map(([label, v]) => `${label}: ${v.n} trips, ${formatCurrency(v.net)} net`)
       .join("; ");
     const acceptedPayouts = accepted.map((r) => formatCurrency(r.payout ?? 0)).join(", ");
-    // v2.331: download accepted trips as a text file
-    const downloadAccepted = () => {
-      const lines = [
-        "ROUTEMAX ACCEPTED TRIPS",
-        `Generated: ${new Date().toLocaleString()}`,
-        "",
-        "SUMMARY",
-        `Trips: ${accepted.length}`,
-        `Total net: ${formatCurrency(totalNet)}`,
-        `Total miles: ${formatNumber(totalMiles, 0)}`,
-        "",
-        "BY APP / PLATFORM",
-        ...providerEntries.map(([label, v]) => `${label}: ${v.n} trips, ${formatCurrency(v.net)} net, ${formatNumber(v.miles, 0)} mi`),
-        "",
-        "TRIP DETAILS",
-        ...accepted.map((r) => `${formatShortDate(r.created_at)} | ${platformLabel(r.platform)} | ${formatCurrency(r.payout ?? 0)} payout | ${formatNumber(r.mileage ?? 0, 1)} mi | ${formatCurrency(r.net_profit ?? 0)} net`),
-      ];
-      shareDocument("Accepted Trips", `routemax-accepted-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
-    };
 
     return (
       <div>
