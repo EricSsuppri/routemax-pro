@@ -1393,7 +1393,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.378";
+const APP_VERSION = "2.379";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -2005,7 +2005,7 @@ function AppInner() {
   const [historyPlatformFilter, setHistoryPlatformFilter] = useState<string>("all");
 
   const OFFER_SCAN_PROMPT =
-    'You are reading a gig-work offer screenshot (DoorDash, Uber Eats, trucking or charter offers, etc.). Extract the payout (dollar amount offered) and the trip distance in miles. Reply ONLY valid JSON like {"payout": 8.5, "miles": 10}. Numbers only, no $ signs or text. If a value is unclear, use 0.';
+    'You are reading a gig-work offer screenshot, receipt, invoice, or trip document (DoorDash, Uber Eats, trucking or charter offers, fuel receipts, toll receipts, etc.). Extract the payout or total dollar amount and the trip distance in miles. For receipts: use the total as payout and 0 for miles if no distance is shown. Reply ONLY valid JSON like {"payout": 8.5, "miles": 10}. Numbers only, no $ signs or text. If a value is unclear, use 0.';
   const [history, setHistory] = useState<RouteHistoryRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [bookPeriod, setBookPeriod] = useState<"day" | "week" | "month" | "year" | "all">("month");
@@ -7685,7 +7685,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       <span className="absolute inset-0 rounded-xl sm:rounded-2xl bg-amber-400/25 animate-softring pointer-events-none" />
                     )}
                     <Camera className="w-4 h-4 relative" strokeWidth={2.5} />
-                    {scanBusy ? (tripPurpose === "personal" ? "Scanning trip…" : "Scanning offer…") : (tripPurpose === "personal" ? "Scan trip (camera or screenshot)" : "Scan offer (camera or screenshot)")}
+                    {scanBusy ? (tripPurpose === "personal" ? "Scanning…" : "Scanning…") : (tripPurpose === "personal" ? "Scan trip, receipt or document" : "Scan offer, receipt or document")}
                   </button>
                   {scanError && (
                     <div className="text-xs text-red-400 font-medium mt-2">{scanError}</div>
