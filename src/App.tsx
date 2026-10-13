@@ -1393,23 +1393,44 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-// Download helper - creates and downloads a text file (works on mobile)
-const downloadTextFile = (filename: string, content: string): boolean => {
+// Share helper - shares a formatted document via native share sheet (works on mobile)
+// Falls back to clipboard copy if share API unavailable
+const shareDocument = async (title: string, filename: string, content: string): Promise<boolean> => {
   try {
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const file = new File([blob], filename, { type: "text/plain" });
+    // Try native share with file (Android share sheet - can save to Drive, email, etc.)
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title });
+      return true;
+    }
+    // Fallback: try sharing text
+    if (navigator.share) {
+      await navigator.share({ title, text: content });
+      return true;
+    }
+    // Last resort: copy to clipboard
+    await navigator.clipboard.writeText(content);
+    alert("Document copied to clipboard - paste it into any app to save/share.");
     return true;
-  } catch (e) {
-    console.error("Download failed:", e);
-    return false;
+  } catch (e: any) {
+    if (e?.name === "AbortError") return false; // user cancelled share
+    console.error("Share failed:", e);
+    try {
+      await navigator.clipboard.writeText(content);
+      alert("Document copied to clipboard.");
+      return true;
+    } catch {
+      alert("Could not share. Please try again.");
+      return false;
+    }
   }
+};
+
+// Legacy alias - redirects to shareDocument
+const downloadTextFile = (filename: string, content: string): boolean => {
+  shareDocument(filename.replace(/\.txt$/, ""), filename, content);
+  return true;
 };
 
 // Group trips by platform/preset for collapsible organization
@@ -1423,7 +1444,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.331";
+const APP_VERSION = "2.332";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -5408,7 +5429,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       aria-label={title}
       className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center active:scale-95 transition-transform shrink-0"
     >
-      <Download className="w-4 h-4 text-amber-300" strokeWidth={2.5} />
+      <Share2 className="w-4 h-4 text-amber-300" strokeWidth={2.5} />
     </button>
   );
 
@@ -5537,7 +5558,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         `Cost/mile: ${formatCurrency(bookCostPerMile)}`,
         `Hourly rate: ${formatCurrency(bookHourly)}`,
       ];
-      downloadTextFile(`routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+      shareDocument("Bookkeeping Summary", `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
     };
 
 
@@ -5717,7 +5738,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           return `${platformLabel(k)}: ${rows.length} trips, ${formatCurrency(net)} net`;
         }),
       ];
-      downloadTextFile(`routemax-report-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+      shareDocument("Earnings Report", `routemax-report-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
     };
 
 
@@ -6457,7 +6478,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
         "TRIP DETAILS",
         ...accepted.map((r) => `${formatShortDate(r.created_at)} | ${platformLabel(r.platform)} | ${formatCurrency(r.payout ?? 0)} payout | ${formatNumber(r.mileage ?? 0, 1)} mi | ${formatCurrency(r.net_profit ?? 0)} net`),
       ];
-      downloadTextFile(`routemax-accepted-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+      shareDocument("Accepted Trips", `routemax-accepted-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
     };
 
     return (
@@ -6512,8 +6533,6 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             )}
           </div>
         )}
-        {/* v2.331: trips grouped by app/preset (full list stays below) */}
-        {presetCollapsibles(accepted)}
         <div className="space-y-2">
           {accepted.map((row) => renderRouteRow(row))}
         </div>
@@ -6599,25 +6618,41 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
       return { label: `Q${q + 1}`, miles, trips: trips.length, deduction: validRate ? miles * rateNum : 0 };
     });
 
-    // v2.331: download tax mileage log as a text file
+    // v2.332: IRS-ready tax mileage log
     const downloadTax = () => {
       const lines = [
-        "ROUTEMAX TAX MILEAGE LOG",
+        "=".repeat(60),
+        "           BUSINESS MILEAGE LOG - FOR TAX FILING",
+        "=".repeat(60),
         `Generated: ${new Date().toLocaleString()}`,
-        `Year: ${year}`,
+        `Tax Year: ${year}`,
+        `App: RouteMax Pro`,
         "",
+        "-".repeat(60),
         "SUMMARY",
-        `Business miles: ${formatNumber(totalMiles, 0)}`,
-        `Rate: ${validRate ? formatCurrency(rateNum) : "not set"}/${DIST}`,
-        `Estimated deduction: ${formatCurrency(deduction)}`,
+        "-".repeat(60),
+        `Total Business Miles: ${formatNumber(totalMiles, 0)}`,
+        `IRS Rate: ${validRate ? formatCurrency(rateNum) : "not set"}/${DIST}`,
+        `Estimated Deduction: ${formatCurrency(deduction)}`,
         "",
+        "-".repeat(60),
         "QUARTERLY BREAKDOWN",
-        ...quarters.map((q) => `${q.label}: ${formatNumber(q.miles, 0)} mi, ${q.trips} trips, ${formatCurrency(q.deduction)} deduction`),
+        "-".repeat(60),
+        ...quarters.map((q) => `${q.label}: ${formatNumber(q.miles, 0)} mi | ${q.trips} trips | ${formatCurrency(q.deduction)} deduction`),
         "",
-        "TRIP LOG (accepted trips only)",
-        ...acceptedHistory.map((r) => `${formatShortDate(r.created_at)}: ${formatNumber(r.mileage, 1)} mi — ${platformLabel(r.platform)}`),
+        "-".repeat(60),
+        "DETAILED TRIP LOG (IRS requires: date, miles, business purpose)",
+        "-".repeat(60),
+        `Date        | Miles    | Platform       | Purpose`,
+        `-`.repeat(60),
+        ...acceptedHistory.map((r) => `${formatShortDate(r.created_at).padEnd(11)} | ${formatNumber(r.mileage, 1).padStart(8)} | ${platformLabel(r.platform).padEnd(14)} | Gig delivery/service`),
+        "",
+        "=".repeat(60),
+        "This log was generated by RouteMax Pro for tax record-keeping.",
+        "Consult a tax professional for filing advice.",
+        "=".repeat(60),
       ];
-      downloadTextFile(`routemax-tax-${year}-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+      shareDocument("Tax Mileage Log", `routemax-tax-${year}-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
     };
 
     return (
