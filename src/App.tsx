@@ -1406,7 +1406,11 @@ const shareDocument = async (title: string, filename: string, content: string): 
       const esc = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       return `<div style="font-family:monospace;white-space:pre-wrap;">${esc}</div>`;
     }).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="padding:20px;max-width:800px;margin:0 auto;">${htmlLines}<div style="margin-top:30px;text-align:center;"><button onclick="window.print()" style="padding:12px 32px;font-size:16px;background:#d4a94e;color:#000;border:none;border-radius:8px;font-weight:bold;">Print / Save as PDF</button></div></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="padding:20px;max-width:800px;margin:0 auto;">${htmlLines}<div style="margin-top:30px;padding:20px;background:#f5f5f5;border-radius:8px;text-align:center;">
+<p style="font-weight:bold;margin-bottom:10px;">To save as PDF:</p>
+<p style="font-size:14px;">Tap the browser menu (&#8942;) &gt; Share &gt; Print &gt; Save as PDF</p>
+<p style="font-size:14px;margin-top:8px;">Or: &#8942; &gt; Download to save this page</p>
+</div></body></html>`;
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank");
@@ -1436,7 +1440,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.333";
+const APP_VERSION = "2.334";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
