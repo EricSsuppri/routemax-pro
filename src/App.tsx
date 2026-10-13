@@ -1389,7 +1389,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.372";
+const APP_VERSION = "2.373";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1796,7 +1796,7 @@ function CameraCoach({ mode, onClose, onLog }: {
       const photo = await CapCamera.getPhoto({
         quality: 80,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Prompt,
+        source: CameraSource.Camera,
       });
       if (!photo.base64String) return null;
       return "data:image/jpeg;base64," + photo.base64String;
@@ -1829,8 +1829,9 @@ function CameraCoach({ mode, onClose, onLog }: {
           if (n >= targetReps) {
             // Set complete!
             if (sets >= targetSets) {
-              setFeedback(`\uD83C\uDF89 Set ${sets} done — that's ${targetSets} sets of ${targetReps}! Beast mode. Tap Finish to log it.`);
               setReps(n);
+              onLog("workouts", 1);
+              setFeedback(`\uD83C\uDF89 All ${targetSets} sets done — beast mode! Logged to Basecamp.`);
             } else {
               setSets(sets + 1);
               setReps(0);
@@ -1857,14 +1858,16 @@ function CameraCoach({ mode, onClose, onLog }: {
         }
       } else {
         setFeedback(text);
+        // Stretch: one form check counts as a session — auto-log it
+        if (mode === "stretch") onLog("stretches", 1);
       }
     } catch { setFeedback("Couldn't reach the coach — try again."); }
     finally { setBusy(false); }
   };
 
   const finish = () => {
+    // Partial workout: log it if they did any reps
     if (mode === "workout" && (reps > 0 || sets > 1)) onLog("workouts", 1);
-    if (mode === "stretch") onLog("stretches", 1);
     onClose();
   };
 
@@ -4910,7 +4913,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       const photo = await CapCamera.getPhoto({
         quality: 80,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Prompt,
+        source: CameraSource.Camera,
       });
       const base64 = photo.base64String;
       if (!base64) throw new Error("Couldn't read the photo. Try again.");
