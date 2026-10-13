@@ -1410,7 +1410,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.360";
+const APP_VERSION = "2.361";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -2516,7 +2516,7 @@ function AppInner() {
     try {
       const raw = await askGemini(
         `You are the Basecamp coach for gig drivers, couriers, motorcycle and bicycle riders, charter pilots, boaters, and travelers. Interpret this person's current state and suggest their single best next move based on health guidelines (hydration: ~8 glasses/day; rest: break every 2 hours on long hauls; nutrition: steady energy from protein + complex carbs, avoid sugar crashes).
-Current state: ${waterGlasses}/8 glasses of water today. ${breakSecs != null ? (breakSecs === 0 ? "Just finished a rest break." : "Currently on a rest break.") : "No break taken recently."}${scanResult ? ` Latest photo analysis: ${scanResult}` : ""}
+Current state: ${waterGlasses}/8 glasses of water today. ${breakSecs != null ? (breakSecs === 0 ? "Just finished a rest break." : "Currently on a rest break.") : "No break taken recently."}${buddyScanResult ? ` Latest photo analysis: ${buddyScanResult}` : ""}
 Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best next move, (3) one specific nutrient tip (what to eat/drink and why). Practical, encouraging, no fluff.`,
         undefined, false
       );
