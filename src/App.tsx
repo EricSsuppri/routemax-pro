@@ -78,8 +78,27 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { askGemini, parseAiJson, isAiConfigured } from "@/lib/ai";
 
-// Android-safe file export: uses Web Share API (works on Android) with Blob fallback
+// File export: on native Android, writes to the app cache dir via Filesystem
+// (app-private, no storage permission needed) then opens the system share sheet
+// via Share (FileProvider is pre-declared by the Capacitor template).
+// Falls back to Web Share API / blob download when not running natively.
 const shareFile = async (content: string, filename: string, mimeType: string) => {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const { uri } = await Filesystem.writeFile({
+        path: filename,
+        data: content,
+        directory: Directory.Cache,
+        encoding: Encoding.UTF8,
+      });
+      await Share.share({ title: filename, url: uri, dialogTitle: "Share " + filename });
+      return true;
+    }
+  } catch (e) {
+    // User cancelled the share sheet — not an error, stop here
+    if ((e as Error)?.message?.includes("canceled")) return true;
+    // Native path failed — fall through to web fallback below
+  }
   const blob = new Blob([content], { type: mimeType });
   const file = new File([blob], filename, { type: mimeType });
   // Try native share (Android)
@@ -104,6 +123,9 @@ const shareFile = async (content: string, filename: string, mimeType: string) =>
   return true;
 };
 import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 import { ScreenshotWatcher } from "@/lib/screenshot-watcher";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import type { PluginListenerHandle } from "@capacitor/core";
@@ -1410,7 +1432,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.361";
+const APP_VERSION = "2.362";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4482,9 +4504,12 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: GOOGLE_OAUTH_REDIRECT, skipBrowserRedirect: true },
+        options: isNativeApp()
+          ? { redirectTo: GOOGLE_OAUTH_REDIRECT, skipBrowserRedirect: true }
+          : { redirectTo: window.location.origin },
       });
       if (error) throw error;
+      if (!isNativeApp()) return; // web: supabase-js redirects the browser itself
       if (data?.url) {
         await Browser.open({ url: data.url });
       } else {
@@ -7391,7 +7416,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               )}
 
               {/* v2 Phase 4: auto-scan screenshots - FREE for everyone */}
-              {isAiConfigured && (
+              {isAiConfigured && isNativeApp() && (
                 <div>
                   <button
                     onClick={toggleWatching}
