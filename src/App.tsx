@@ -1389,7 +1389,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.369";
+const APP_VERSION = "2.370";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1774,6 +1774,7 @@ function CameraCoach({ mode, onClose, onLog }: {
   const [feedback, setFeedback] = useState("");
   const [plan, setPlan] = useState("");
   const [planBusy, setPlanBusy] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   // Native camera capture via the Capacitor plugin — the exact path Scan Offer
   // uses (and the one that works on this device). getUserMedia was removed:
@@ -1804,6 +1805,7 @@ function CameraCoach({ mode, onClose, onLog }: {
     if (busy) return;
     const img = await snap();
     if (!img) { setFeedback("No photo taken — try again."); return; }
+    setPhotoPreview(img);
     setBusy(true); setFeedback("");
     try {
       let prompt = "";
@@ -1855,6 +1857,7 @@ function CameraCoach({ mode, onClose, onLog }: {
     setPlanBusy(true); setPlan("");
     try {
       const img = await snap();
+      if (img) setPhotoPreview(img);
       // Get user's recent activity from localStorage for context
       let weekWorkouts = 0;
       try {
@@ -1873,27 +1876,54 @@ function CameraCoach({ mode, onClose, onLog }: {
     finally { setPlanBusy(false); }
   };
 
-  const titles = { workout: "📷 Workout coach", water: "📷 Water scanner", stretch: "📷 Stretch coach" };
+  const titles = { workout: "Workout coach", water: "Water scanner", stretch: "Stretch coach" };
+  const hints = {
+    workout: "Get into position, then tap Count this rep",
+    water: "Hold up your bottle or cup, then tap Scan my bottle",
+    stretch: "Get into your stretch, then tap Check my form",
+  };
   return (
-    <div className="fixed inset-0 z-[60] bg-black/95 flex flex-col" role="dialog" aria-modal="true">
-      <div className="flex items-center justify-between p-4">
-        <div className="text-sm font-bold text-white">{titles[mode]}</div>
-        <div className="flex gap-2">
-          <button onClick={onClose} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-300 active:scale-95">Close</button>
+    <div className="fixed inset-0 z-[60] bg-[#0a0a0f]/98 flex flex-col" role="dialog" aria-modal="true">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
+        <div className="flex items-center gap-2">
+          <span className="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center">
+            <Camera className="w-4 h-4 text-teal-300" />
+          </span>
+          <div className="text-sm font-bold text-zinc-100">{titles[mode]}</div>
         </div>
+        <button onClick={onClose} aria-label="Close camera coach" className="w-9 h-9 rounded-xl bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center active:scale-95">
+          <X className="w-4 h-4 text-zinc-300" />
+        </button>
       </div>
-      <div className="flex-1 relative overflow-hidden bg-zinc-900 flex items-center justify-center p-6">
-        <div className="text-center">
-          <div className="text-4xl mb-3">📸</div>
-          <div className="text-sm text-zinc-200 font-bold mb-1">
-            {mode === "workout" ? "Get into position, then tap “Count this rep”" : mode === "water" ? "Hold up your bottle or cup, then tap “Scan my bottle”" : "Get into your stretch, then tap “Check my form”"}
+      <div className="flex-1 relative overflow-hidden flex items-center justify-center p-4">
+        {photoPreview ? (
+          <div className="relative w-full max-w-sm">
+            <img src={photoPreview} alt="Last captured photo" className="w-full rounded-2xl border border-zinc-700/60 object-cover max-h-[46vh]" />
+            {mode === "workout" && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-5 py-2 text-center">
+                <div className="text-2xl font-extrabold text-amber-300 tabular-nums">{reps}</div>
+                <div className="text-[10px] text-zinc-400 uppercase tracking-wider">reps</div>
+              </div>
+            )}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 rounded-full px-3 py-1 text-[10px] font-bold text-zinc-300">Last photo</div>
           </div>
-          <div className="text-[11px] text-zinc-500">Uses your phone's camera app — no live preview</div>
-        </div>
-        {mode === "workout" && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-6 py-3 text-center">
-            <div className="text-3xl font-extrabold text-amber-300 tabular-nums">{reps}</div>
-            <div className="text-[10px] text-zinc-400 uppercase tracking-wider">reps</div>
+        ) : (
+          <div className="w-full max-w-sm">
+            <div className="relative rounded-2xl border-2 border-dashed border-teal-500/30 bg-zinc-900/60 aspect-[4/3] flex items-center justify-center">
+              <div className="text-center px-6">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-teal-300" />
+                </div>
+                <div className="text-sm text-zinc-200 font-bold mb-1">{hints[mode]}</div>
+                <div className="text-[11px] text-zinc-500">Opens your camera app — snap a photo and the AI coach sees it</div>
+              </div>
+              {mode === "workout" && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-5 py-2 text-center">
+                  <div className="text-2xl font-extrabold text-amber-300 tabular-nums">{reps}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">reps</div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -1901,7 +1931,7 @@ function CameraCoach({ mode, onClose, onLog }: {
         <div className="px-4 pt-3">
           <div className="flex gap-2">
             {["push-ups", "squats", "jumping jacks", "plank"].map((ex) => (
-              <button key={ex} onClick={() => { setExercise(ex); setReps(0); setFeedback(""); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
+              <button key={ex} onClick={() => { setExercise(ex); setReps(0); setFeedback(""); setPhotoPreview(null); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
             ))}
           </div>
           <button onClick={getPlan} disabled={planBusy} className="w-full mt-2 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98] disabled:opacity-50">
