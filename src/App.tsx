@@ -60,7 +60,6 @@ import {
   Settings,
   Share2,
   MessageSquare,
-  Mic,
   Star,
   FileText,
   LogOut,
@@ -1479,7 +1478,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.341";
+const APP_VERSION = "2.342";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1536,9 +1535,7 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [attachImg, setAttachImg] = useState<string | null>(null);
-  const [listening, setListening] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const recogRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const openPicker = (camera: boolean) => {
     const el = fileRef.current;
@@ -1600,32 +1597,6 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, busy]);
 
-  const toggleMic = () => {
-    if (listening) {
-      try { recogRef.current?.stop(); } catch {}
-      setListening(false);
-      return;
-    }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { setError("Voice input not supported on this device."); return; }
-    try {
-      const recog = new SR();
-      recog.lang = "en-US";
-      recog.interimResults = true;
-      recog.continuous = false;
-      recog.onresult = (e: any) => {
-        let text = "";
-        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-        setInput(text);
-      };
-      recog.onend = () => setListening(false);
-      recog.onerror = () => setListening(false);
-      recogRef.current = recog;
-      recog.start();
-      setListening(true);
-      setError("");
-    } catch { setError("Could not start voice input."); }
-  };
   const send = async () => {
     const text = input.trim();
     const img = attachImg;
@@ -1783,15 +1754,6 @@ function AiChat({ context, accent, chatId, onNavigate, onAction }: { context: st
           placeholder="Ask Eric anything…"
           className="flex-1 min-w-0 w-0 bg-transparent text-xs text-white placeholder-zinc-600 outline-none"
         />
-        <button
-          onClick={toggleMic}
-          disabled={busy}
-          title="Voice input"
-          aria-label="Voice input"
-          className={"w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform disabled:opacity-40 " + (listening ? "bg-red-500/20 animate-pulse" : "")}
-        >
-          <Mic className={"w-4 h-4 " + (listening ? "text-red-400" : "text-amber-400")} />
-        </button>
         <button
           onClick={send}
           disabled={busy || (!input.trim() && !attachImg)}
