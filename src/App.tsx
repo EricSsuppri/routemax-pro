@@ -1394,7 +1394,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.382";
+const APP_VERSION = "2.383";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4970,25 +4970,73 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     }
   };
 
-  // Document upload: handles images AND PDFs from the file picker
+  // Document upload: handles images, PDFs, Word docs, text/HTML/CSV files
   const docUploadRef = useRef<HTMLInputElement>(null);
   const [docBusy, setDocBusy] = useState(false);
+
+  // Text prompt for document text (no image needed)
+  const DOC_TEXT_PROMPT =
+    'You are reading a gig-work document (offer details, receipt, invoice, trip sheet, or expense record) as plain text. Extract the payout or total dollar amount and the trip distance in miles. For receipts: use the total as payout and 0 for miles if no distance is shown. Reply ONLY valid JSON like {"payout": 8.5, "miles": 10}. Numbers only, no $ signs or text. If a value is unclear, use 0.\n\nDocument text:\n';
+
   const pdfToImage = async (file: File): Promise<string> => {
-    // Lazy-load PDF.js only when a PDF is actually picked
     const pdfjs = await import("pdfjs-dist");
-    // Configure the worker from CDN (avoids bundling the worker file)
     if (!(pdfjs as any).GlobalWorkerOptions.workerSrc) {
       (pdfjs as any).GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.worker.min.mjs";
     }
     const buf = await file.arrayBuffer();
     const pdf = await (pdfjs as any).getDocument({ data: buf }).promise;
-    const page = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 2 });
-    const canvas = document.createElement("canvas");
-    canvas.width = viewport.width; canvas.height = viewport.height;
-    await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
-    return canvas.toDataURL("image/jpeg", 0.85);
+    // Try up to 3 pages — some receipts/invoices put totals on page 2+
+    const maxPages = Math.min(pdf.numPages, 3);
+    for (let p = 1; p <= maxPages; p++) {
+      try {
+        const page = await pdf.getPage(p);
+        const viewport = page.getViewport({ scale: 2 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width; canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
+        const img = canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
+        // Try to extract from this page before moving to the next
+        const reply = await askGemini(OFFER_SCAN_PROMPT, img);
+        const data = parseAiJson<{ payout: number; miles: number }>(reply);
+        if ((typeof data.payout === "number" && data.payout > 0) || (typeof data.miles === "number" && data.miles > 0)) {
+          // Found something — fill and return a marker
+          if (typeof data.payout === "number" && data.payout > 0) {
+            setPayout(String(data.payout));
+            autoCalcRef.current = { save: true };
+          }
+          if (typeof data.miles === "number" && data.miles > 0) {
+            setMileage(String(data.miles));
+          }
+          return "FILLED";
+        }
+      } catch { /* try next page */ }
+    }
+    return "NOT_FOUND";
   };
+
+  const extractDocText = async (file: File): Promise<string> => {
+    const ext = file.name.toLowerCase().split(".").pop() || "";
+    const mime = file.type.toLowerCase();
+    // Word documents (.docx) — extract text via mammoth
+    if (ext === "docx" || mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      const mammoth = await import("mammoth");
+      const buf = await file.arrayBuffer();
+      const result = await (mammoth as any).extractRawText({ arrayBuffer: buf });
+      return (result.value || "").trim();
+    }
+    // HTML — strip tags, keep readable text
+    if (ext === "html" || ext === "htm" || mime === "text/html") {
+      const html = await file.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      return (doc.body?.textContent || "").replace(/\s+/g, " ").trim();
+    }
+    // Plain text, CSV, logs, markdown — read directly
+    if (mime.startsWith("text/") || ["txt", "csv", "log", "md", "tsv"].includes(ext)) {
+      return (await file.text()).trim();
+    }
+    throw new Error("UNSUPPORTED");
+  };
+
   const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -4998,37 +5046,71 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     setScanError("");
     setScanOk(false);
     try {
-      let dataUrl: string;
-      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
-        dataUrl = await pdfToImage(file);
-      } else if (file.type.startsWith("image/")) {
-        dataUrl = await new Promise<string>((res, rej) => {
+      const ext = file.name.toLowerCase().split(".").pop() || "";
+      const mime = file.type.toLowerCase();
+      const isPdf = mime === "application/pdf" || ext === "pdf";
+      const isImage = mime.startsWith("image/");
+      const isTextDoc = mime.startsWith("text/") || mime === "text/html" ||
+        ["txt", "csv", "log", "md", "tsv", "html", "htm", "docx"].includes(ext) ||
+        mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+      if (isPdf) {
+        const result = await pdfToImage(file);
+        if (result !== "FILLED") throw new Error("Couldn't find payout and miles in that PDF. Try a clearer file.");
+        setScanOk(true);
+      } else if (isImage) {
+        const dataUrl = await new Promise<string>((res, rej) => {
           const r = new FileReader();
           r.onload = () => res(r.result as string);
           r.onerror = rej;
           r.readAsDataURL(file);
         });
+        const base64 = dataUrl.split(",")[1];
+        const reply = await askGemini(OFFER_SCAN_PROMPT, base64);
+        const data = parseAiJson<{ payout: number; miles: number }>(reply);
+        let filled = false;
+        if (typeof data.payout === "number" && data.payout > 0) {
+          setPayout(String(data.payout));
+          autoCalcRef.current = { save: true };
+          filled = true;
+        }
+        if (typeof data.miles === "number" && data.miles > 0) {
+          setMileage(String(data.miles));
+          filled = true;
+        }
+        if (!filled) throw new Error("Couldn't find payout and miles in that image. Try a clearer file.");
+        setScanOk(true);
+      } else if (isTextDoc) {
+        const text = await extractDocText(file);
+        if (!text || text.length < 10) throw new Error("That file looks empty — couldn't read any text from it.");
+        // Truncate very long documents to keep the AI call fast
+        const clipped = text.length > 8000 ? text.slice(0, 8000) + "\n[truncated]" : text;
+        const reply = await askGemini(DOC_TEXT_PROMPT + clipped);
+        const data = parseAiJson<{ payout: number; miles: number }>(reply);
+        let filled = false;
+        if (typeof data.payout === "number" && data.payout > 0) {
+          setPayout(String(data.payout));
+          autoCalcRef.current = { save: true };
+          filled = true;
+        }
+        if (typeof data.miles === "number" && data.miles > 0) {
+          setMileage(String(data.miles));
+          filled = true;
+        }
+        if (!filled) throw new Error("Couldn't find payout and miles in that document's text. Try a different file.");
+        setScanOk(true);
+      } else if (ext === "doc") {
+        throw new Error("Old .doc files aren't supported — save it as .docx or PDF and try again.");
       } else {
-        throw new Error("Please pick an image or PDF document.");
+        throw new Error(`Can't read .${ext || "that"} files yet. Try PDF, Word (.docx), image, or text.`);
       }
-      const base64 = dataUrl.split(",")[1];
-      const reply = await askGemini(OFFER_SCAN_PROMPT, base64);
-      const data = parseAiJson<{ payout: number; miles: number }>(reply);
-      let filled = false;
-      if (typeof data.payout === "number" && data.payout > 0) {
-        setPayout(String(data.payout));
-        autoCalcRef.current = { save: true };
-        filled = true;
-      }
-      if (typeof data.miles === "number" && data.miles > 0) {
-        setMileage(String(data.miles));
-        filled = true;
-      }
-      if (!filled) throw new Error("Couldn't find payout and miles in that document. Try a clearer file.");
-      setScanOk(true);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Upload failed. Try again.";
-      setScanError(msg);
+      if (msg === "UNSUPPORTED") {
+        setScanError("Can't read that file type. Try PDF, Word, image, or text.");
+      } else {
+        setScanError(msg);
+      }
     } finally {
       setDocBusy(false);
     }
@@ -7754,7 +7836,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <Camera className="w-4 h-4 relative" strokeWidth={2.5} />
                     {scanBusy ? (tripPurpose === "personal" ? "Scanning…" : "Scanning…") : (tripPurpose === "personal" ? "Scan trip, receipt or document" : "Scan offer, receipt or document")}
                   </button>
-                  <input ref={docUploadRef} type="file" accept="image/*,.pdf,application/pdf" onChange={handleDocUpload} className="hidden" aria-hidden="true" tabIndex={-1} />
+                  <input ref={docUploadRef} type="file" accept="image/*,.pdf,.docx,.txt,.csv,.html,.htm,.md,.log,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,text/html" onChange={handleDocUpload} className="hidden" aria-hidden="true" tabIndex={-1} />
                   {scanPickerOpen && (
                     <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="Choose scan source">
                       <div className="absolute inset-0 bg-black/70" onClick={() => setScanPickerOpen(false)} />
@@ -7767,7 +7849,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                           <ImagePlus className="w-5 h-5 text-amber-400" /> From Photos
                         </button>
                         <button onClick={() => { setScanPickerOpen(false); docUploadRef.current && docUploadRef.current.click(); }} className="w-full py-3.5 px-4 rounded-2xl bg-teal-500/10 border border-teal-500/25 text-sm font-bold text-teal-200 active:scale-[0.98] flex items-center gap-3">
-                          <Upload className="w-5 h-5 text-teal-400" /> Upload Document (PDF or file)
+                          <Upload className="w-5 h-5 text-teal-400" /> Upload Document (PDF, Word, image, text)
                         </button>
                       </div>
                     </div>
