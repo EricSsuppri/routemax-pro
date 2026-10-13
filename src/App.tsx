@@ -1393,7 +1393,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.379";
+const APP_VERSION = "2.380";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4967,6 +4967,65 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     }
   };
 
+  // Document upload: handles images AND PDFs from the file picker
+  const docUploadRef = useRef<HTMLInputElement>(null);
+  const [docBusy, setDocBusy] = useState(false);
+  const pdfToImage = async (file: File): Promise<string> => {
+    // Lazy-load PDF.js only when a PDF is actually picked
+    const pdfjs = await import("pdfjs-dist");
+    const buf = await file.arrayBuffer();
+    const pdf = await (pdfjs as any).getDocument({ data: buf }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
+    return canvas.toDataURL("image/jpeg", 0.85);
+  };
+  const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || docBusy) return;
+    setDocBusy(true);
+    setScanError("");
+    setScanOk(false);
+    try {
+      let dataUrl: string;
+      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+        dataUrl = await pdfToImage(file);
+      } else if (file.type.startsWith("image/")) {
+        dataUrl = await new Promise<string>((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result as string);
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        });
+      } else {
+        throw new Error("Please pick an image or PDF document.");
+      }
+      const base64 = dataUrl.split(",")[1];
+      const reply = await askGemini(OFFER_SCAN_PROMPT, base64);
+      const data = parseAiJson<{ payout: number; miles: number }>(reply);
+      let filled = false;
+      if (typeof data.payout === "number" && data.payout > 0) {
+        setPayout(String(data.payout));
+        autoCalcRef.current = { save: true };
+        filled = true;
+      }
+      if (typeof data.miles === "number" && data.miles > 0) {
+        setMileage(String(data.miles));
+        filled = true;
+      }
+      if (!filled) throw new Error("Couldn't find payout and miles in that document. Try a clearer file.");
+      setScanOk(true);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Upload failed. Try again.";
+      setScanError(msg);
+    } finally {
+      setDocBusy(false);
+    }
+  };
+
   // v2: per-app history — small colored badge naming the gig app for a row.
   const platformBadge = (platformKey: string | null) => {
     if (!platformKey) return null;
@@ -7687,6 +7746,15 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <Camera className="w-4 h-4 relative" strokeWidth={2.5} />
                     {scanBusy ? (tripPurpose === "personal" ? "Scanning…" : "Scanning…") : (tripPurpose === "personal" ? "Scan trip, receipt or document" : "Scan offer, receipt or document")}
                   </button>
+                  <button
+                    onClick={() => docUploadRef.current && docUploadRef.current.click()}
+                    disabled={docBusy || scanBusy}
+                    className="w-full mt-2 py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/25 text-xs font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {docBusy ? "Reading document…" : "Upload document (PDF or image)"}
+                  </button>
+                  <input ref={docUploadRef} type="file" accept="image/*,.pdf,application/pdf" onChange={handleDocUpload} className="hidden" aria-hidden="true" tabIndex={-1} />
                   {scanError && (
                     <div className="text-xs text-red-400 font-medium mt-2">{scanError}</div>
                   )}
