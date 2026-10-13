@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, type ReactElement, type ReactNode } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo, type ReactElement, type ReactNode } from "react";
 import {
   Truck,
   DollarSign,
@@ -1432,7 +1432,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.362";
+const APP_VERSION = "2.363";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -2354,6 +2354,10 @@ function AppInner() {
   const [expAdvice, setExpAdvice] = useState("");
   const [expAdviceBusy, setExpAdviceBusy] = useState(false);
   const [expViewId, setExpViewId] = useState<string | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
+  const [importPreview, setImportPreview] = useState<{ rows: Expense[]; skipped: number } | null>(null);
+  const [importMsg, setImportMsg] = useState("");
+  const [expCollapsed, setExpCollapsed] = useState<Record<string, boolean>>({});
   const expFileRef = useRef<HTMLInputElement>(null);
   const expTotal = expenses.reduce((sum, x) => sum + (x.amount || 0), 0);
   const openExpPicker = (camera: boolean) => {
@@ -2420,6 +2424,93 @@ function AppInner() {
     setExpDate(new Date().toISOString().slice(0, 10));
   };
   const deleteExpense = (id: string) => saveExpenses(expenses.filter((x) => x.id !== id));
+  // --- Import external bookkeeping CSVs into the expense vault ---
+  const parseCsvLine = (line: string): string[] => {
+    const out: string[] = [];
+    let cur = "", inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (inQ) {
+        if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+        else cur += c;
+      } else if (c === '"') inQ = true;
+      else if (c === ",") { out.push(cur.trim()); cur = ""; }
+      else cur += c;
+    }
+    out.push(cur.trim());
+    return out;
+  };
+  const importExpensesFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    setImportMsg(""); setImportPreview(null);
+    if (!f) return;
+    try {
+      const text = await f.text();
+      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (lines.length < 2) { setImportMsg("That file looks empty — pick a CSV with a header row plus data."); return; }
+      const headers = parseCsvLine(lines[0]);
+      const findCol = (names: string[]) => headers.findIndex((h) => names.some((n) => h.toLowerCase().includes(n)));
+      const di = findCol(["date", "posted", "transact"]);
+      const ai = findCol(["amount", "total", "cost", "price", "charge", "debit"]);
+      const vi = findCol(["vendor", "description", "merchant", "payee", "details"]);
+      const ci = findCol(["category", "type"]);
+      const ni = findCol(["note", "memo", "reference"]);
+      if (di < 0 || ai < 0) { setImportMsg("Couldn't read this file — it needs at least a date column and an amount column."); return; }
+      const rows: Expense[] = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]);
+        const amtRaw = (cols[ai] || "").replace(/[$,\s]/g, "");
+        const neg = /^\(.*\)$/.test(amtRaw);
+        let amt = parseFloat(amtRaw.replace(/[()]/g, ""));
+        if (isNaN(amt) || amt === 0) continue;
+        amt = Math.abs(Math.round(amt * 100) / 100);
+        void neg;
+        const d = new Date((cols[di] || "").trim());
+        if (isNaN(d.getTime())) continue;
+        const vendor = vi >= 0 ? (cols[vi] || "").trim().slice(0, 60) : "";
+        let category = "Other";
+        if (ci >= 0) {
+          const cRaw = (cols[ci] || "").trim();
+          const match = EXPENSE_CATEGORIES.find((c) => c.toLowerCase() === cRaw.toLowerCase());
+          if (match) category = match;
+        }
+        rows.push({
+          id: "imp" + Date.now().toString(36) + i.toString(36),
+          amount: amt, category,
+          note: ni >= 0 ? (cols[ni] || "").trim().slice(0, 120) : "",
+          date: d.toISOString().slice(0, 10), vendor, createdAt: Date.now(),
+        });
+      }
+      if (rows.length === 0) { setImportMsg("No usable expense rows found — check the file has dates and amounts."); return; }
+      const seen = new Set(expenses.map((x) => `${x.date}|${x.amount.toFixed(2)}|${(x.vendor || "").toLowerCase()}`));
+      const fresh = rows.filter((r) => !seen.has(`${r.date}|${r.amount.toFixed(2)}|${(r.vendor || "").toLowerCase()}`));
+      setImportPreview({ rows: fresh, skipped: rows.length - fresh.length });
+    } catch { setImportMsg("Couldn't read that file — try a CSV export from your bank or spreadsheet app."); }
+  };
+  const confirmImport = () => {
+    if (!importPreview || importPreview.rows.length === 0) return;
+    saveExpenses([...importPreview.rows, ...expenses]);
+    setImportMsg(`Imported ${importPreview.rows.length} expense${importPreview.rows.length === 1 ? "" : "s"} into your vault.`);
+    setImportPreview(null);
+  };
+  // --- Group expenses by month for collapsible organization ---
+  const expByMonth = useMemo(() => {
+    const g: Record<string, Expense[]> = {};
+    expenses.forEach((x) => {
+      const k = (x.date || "").slice(0, 7) || "undated";
+      (g[k] = g[k] || []).push(x);
+    });
+    return Object.keys(g).sort().reverse().map((k) => {
+      let label = "Undated";
+      if (k !== "undated") {
+        const [y, m] = k.split("-");
+        label = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      }
+      return { key: k, label, items: g[k], total: g[k].reduce((s, x) => s + (x.amount || 0), 0) };
+    });
+  }, [expenses]);
+  const isMonthOpen = (k: string) => expCollapsed[k] === undefined ? k === (expByMonth[0] && expByMonth[0].key) : !expCollapsed[k];
   const expenseAdvice = async () => {
     if (expAdviceBusy || expenses.length === 0) return;
     setExpAdviceBusy(true); setExpAdvice("");
@@ -9895,9 +9986,46 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               </div>
               {expenses.length > 0 ? (
                 <div className="mt-3">
-                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Receipt file · {expenses.length}</div>
-                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
-                    {expenses.map((x) => (
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Receipt file · {expenses.length}</div>
+                    <button onClick={() => importFileRef.current && importFileRef.current.click()} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/25 text-[10px] font-bold text-teal-300 active:scale-[0.98]">
+                      <FileText className="w-3.5 h-3.5" /> Import CSV
+                    </button>
+                  </div>
+                  <input ref={importFileRef} type="file" accept=".csv,.txt,text/csv,text/plain" onChange={importExpensesFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+                  {importMsg ? (
+                    <p className="text-[11px] text-teal-300 bg-teal-500/10 border border-teal-500/20 rounded-xl px-3 py-2 mb-2">{importMsg}</p>
+                  ) : null}
+                  {importPreview ? (
+                    <div className="bg-teal-500/10 border border-teal-500/25 rounded-xl p-3 mb-2">
+                      <div className="text-xs font-bold text-teal-200">Found {importPreview.rows.length} expense{importPreview.rows.length === 1 ? "" : "s"} · {formatCurrency(importPreview.rows.reduce((st, r) => st + r.amount, 0))}</div>
+                      {importPreview.skipped > 0 ? (
+                        <div className="text-[10px] text-zinc-400 mt-0.5">{importPreview.skipped} duplicate{importPreview.skipped === 1 ? "" : "s"} skipped</div>
+                      ) : null}
+                      <div className="mt-1.5 space-y-1">
+                        {importPreview.rows.slice(0, 3).map((r) => (
+                          <div key={r.id} className="text-[11px] text-zinc-300 truncate">{r.vendor || r.category} — {formatCurrency(r.amount)} · {r.date}</div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 mt-2.5">
+                        <button onClick={confirmImport} className="flex-1 py-2 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-xs font-bold text-[#0a0a0f] active:scale-[0.98]">Import {importPreview.rows.length}</button>
+                        <button onClick={() => setImportPreview(null)} className="px-4 py-2 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-[0.98]">Cancel</button>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="space-y-1.5 max-h-72 overflow-y-auto pr-0.5">
+                    {expByMonth.map((m) => (
+                      <div key={m.key} className="bg-zinc-900/60 border border-zinc-800/60 rounded-xl overflow-hidden">
+                        <button onClick={() => setExpCollapsed((pr) => ({ ...pr, [m.key]: isMonthOpen(m.key) }))} className="w-full flex items-center gap-2 p-2.5 text-left active:opacity-80">
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-xs font-bold text-zinc-200">{m.label}</span>
+                            <span className="block text-[10px] text-zinc-500">{m.items.length} expense{m.items.length === 1 ? "" : "s"} · {formatCurrency(m.total)}</span>
+                          </span>
+                          <ChevronDown className={"w-3.5 h-3.5 text-zinc-500 transition-transform " + (isMonthOpen(m.key) ? "rotate-180" : "")} />
+                        </button>
+                        {isMonthOpen(m.key) ? (
+                          <div className="px-1.5 pb-1.5 space-y-1.5">
+                            {m.items.map((x) => (
                       <div key={x.id} className="bg-zinc-900/60 border border-zinc-800/60 rounded-xl overflow-hidden">
                         <button onClick={() => setExpViewId(x.id)} className="w-full flex items-center gap-2.5 p-2.5 text-left active:opacity-80">
                           {x.receipt ? (
@@ -9912,10 +10040,14 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                             <span className="block text-[10px] text-zinc-500">{x.category} · {x.date}</span>
                           </span>
                           <span className="text-xs font-extrabold text-white flex-shrink-0">{formatCurrency(x.amount)}</span>
-                        </button>
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : null}
                   </div>
+                ))}
+              </div>
                   <button onClick={expenseAdvice} disabled={expAdviceBusy} className="w-full mt-2.5 py-2.5 rounded-xl bg-[#f7dc8f]/10 border border-[#f7dc8f]/25 text-xs font-bold text-[#f7dc8f] active:scale-[0.98] disabled:opacity-50">
                     {expAdviceBusy ? "Thinking…" : expAdvice ? "Refresh AI filing advice" : "Get AI filing advice"}
                   </button>
