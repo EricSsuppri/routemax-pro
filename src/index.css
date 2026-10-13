@@ -287,7 +287,7 @@ input[type="number"] {
 .bc-heroglow { animation: bc-glowpulse 4s ease-in-out infinite; }
 
 /* Chewing-gum calculator rows: sink while typing, bounce + fling old value on erase */
-.gum-row { transition: transform 0.5s cubic-bezier(0.3, 1.15, 0.4, 1); will-change: transform; }
+.gum-row { transition: transform 0.5s cubic-bezier(0.3, 1.15, 0.4, 1); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 .gum-row.gum-sunk { transform: translateY(10px) scaleY(0.9) scaleX(1.02); }
 @keyframes gum-bounce {
   0% { transform: translateY(7px) scaleY(0.94); }
