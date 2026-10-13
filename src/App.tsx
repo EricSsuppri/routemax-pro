@@ -1389,7 +1389,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.370";
+const APP_VERSION = "2.371";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1770,6 +1770,9 @@ function CameraCoach({ mode, onClose, onLog }: {
 }) {
   const [exercise, setExercise] = useState(mode === "workout" ? "push-ups" : mode === "stretch" ? "standing stretch" : "");
   const [reps, setReps] = useState(0);
+  const [sets, setSets] = useState(1);
+  const [targetReps] = useState(10);
+  const [targetSets] = useState(3);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [plan, setPlan] = useState("");
@@ -1810,23 +1813,38 @@ function CameraCoach({ mode, onClose, onLog }: {
     try {
       let prompt = "";
       if (mode === "workout") {
-        prompt = `You are a fitness coach watching a ${exercise} rep via camera. Look at this photo. (1) Is the person doing a ${exercise} with reasonable form? (2) Count this as ONE rep if you can see them in the exercise position. Reply in this exact format: REP:yes or REP:no | FORM: one short form tip (or "great form!"). Current rep count: ${reps}.`;
+        prompt = `You are an encouraging personal trainer watching your client's ${exercise} via camera. This is rep ${reps + 1} of ${targetReps} in set ${sets} of ${targetSets}. Look at the photo carefully. (1) Is the person in an active ${exercise} position with reasonable effort? Be generous — if they're trying, count it. (2) Give ONE specific, actionable form cue (e.g. "drop your hips 2 inches", "keep your back flat", "go a touch deeper"). Start your reply with REP:yes or REP:no on its own, then | FORM: your cue. If form is already good, say FORM: great form, keep it up!`;
       } else if (mode === "water") {
         prompt = `You are looking at a photo from a user who wants to log water. (1) Do you see a water bottle, cup, or glass? (2) Estimate its size in ounces (common: 8oz cup, 12oz can, 16oz bottle, 24oz bottle, 32oz large bottle). (3) Is the person actively drinking? Reply in this exact format: FOUND:yes or FOUND:no | OZ:number (your best estimate, 0 if none) | DRINKING:yes or no | NOTE: one short observation.`;
       } else {
-        prompt = `You are a stretch coach watching via camera. The user is doing: ${exercise}. Look at the photo and (1) describe what stretch position you see, (2) give ONE specific cue to deepen it safely (e.g. "reach 2 inches higher", "hold 10 more seconds"). Keep it to 2 short sentences, encouraging.`;
+        prompt = `You are a knowledgeable stretch coach guiding your client via camera. They are doing: ${exercise}. Look at the photo. (1) Briefly describe the stretch position you see (one sentence). (2) Give ONE specific cue to deepen or improve it safely — be precise (e.g. "reach 2 inches higher with your right hand", "tuck your chin to feel it in your neck", "hold 10 more seconds and breathe into it"). (3) End with one encouraging line. Keep it to 3 short sentences total, warm and expert.`;
       }
       const raw = await askGemini(prompt, img.split(",")[1], false);
       const text = cleanChatReply(raw);
       if (mode === "workout") {
-        const repYes = /REP:\s*yes/i.test(text);
-        const formTip = (text.match(/FORM:\s*(.+)/i) || [])[1] || "";
-        if (repYes) {
+        // Robust parsing: accept REP:yes, "yes", checkmark, or positive language
+        const repYes = /REP:\s*yes/i.test(text) || /\b(count it|good rep|rep counted|\u2705)\b/i.test(text);
+        const repNo = /REP:\s*no/i.test(text);
+        const formTip = (text.match(/FORM:\s*(.+)/i) || [])[1] || (text.split("|")[1] || "").trim();
+        if (repYes && !repNo) {
           const n = reps + 1;
-          setReps(n);
-          setFeedback(`Rep ${n} counted! ${formTip}`);
+          if (n >= targetReps) {
+            // Set complete!
+            if (sets >= targetSets) {
+              setFeedback(`\uD83C\uDF89 Set ${sets} done — that's ${targetSets} sets of ${targetReps}! Beast mode. Tap Finish to log it.`);
+              setReps(n);
+            } else {
+              setSets(sets + 1);
+              setReps(0);
+              setFeedback(`Set ${sets} complete! Rest 30-60 seconds, shake it out. Then tap Count this rep to start set ${sets + 1}. ${formTip}`);
+            }
+          } else {
+            setReps(n);
+            const remaining = targetReps - n;
+            setFeedback(`Rep ${n}/${targetReps} — set ${sets}/${targetSets}. ${remaining <= 3 ? `${remaining} to go, finish strong! ` : ""}${formTip}`);
+          }
         } else {
-          setFeedback(`Not quite — ${formTip || "get into position and try again."}`);
+          setFeedback(`Not quite a rep — ${formTip || "get into position and try again."}`);
         }
       } else if (mode === "water") {
         const ozM = text.match(/OZ:\s*(\d+)/i);
@@ -1847,7 +1865,7 @@ function CameraCoach({ mode, onClose, onLog }: {
   };
 
   const finish = () => {
-    if (mode === "workout" && reps > 0) onLog("workouts", 1);
+    if (mode === "workout" && (reps > 0 || sets > 1)) onLog("workouts", 1);
     if (mode === "stretch") onLog("stretches", 1);
     onClose();
   };
@@ -1901,8 +1919,8 @@ function CameraCoach({ mode, onClose, onLog }: {
             <img src={photoPreview} alt="Last captured photo" className="w-full rounded-2xl border border-zinc-700/60 object-cover max-h-[46vh]" />
             {mode === "workout" && (
               <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-5 py-2 text-center">
-                <div className="text-2xl font-extrabold text-amber-300 tabular-nums">{reps}</div>
-                <div className="text-[10px] text-zinc-400 uppercase tracking-wider">reps</div>
+                <div className="text-2xl font-extrabold text-amber-300 tabular-nums">{reps}<span className="text-sm text-zinc-400">/{targetReps}</span></div>
+                <div className="text-[10px] text-zinc-400 uppercase tracking-wider">set {sets}/{targetSets}</div>
               </div>
             )}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 rounded-full px-3 py-1 text-[10px] font-bold text-zinc-300">Last photo</div>
@@ -1931,7 +1949,7 @@ function CameraCoach({ mode, onClose, onLog }: {
         <div className="px-4 pt-3">
           <div className="flex gap-2">
             {["push-ups", "squats", "jumping jacks", "plank"].map((ex) => (
-              <button key={ex} onClick={() => { setExercise(ex); setReps(0); setFeedback(""); setPhotoPreview(null); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
+              <button key={ex} onClick={() => { setExercise(ex); setReps(0); setSets(1); setFeedback(""); setPhotoPreview(null); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
             ))}
           </div>
           <button onClick={getPlan} disabled={planBusy} className="w-full mt-2 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98] disabled:opacity-50">
