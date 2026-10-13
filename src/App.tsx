@@ -110,6 +110,8 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { Purchases } from "@revenuecat/purchases-capacitor";
 import { Browser } from "@capacitor/browser";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 import { App as CapApp } from "@capacitor/app";
 
 const WEAR_COST_PER_MILE = 0.3;
@@ -1396,80 +1398,81 @@ const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 // Share helper - opens a printable HTML document in a new tab
 // User taps browser menu > Share/Print > Save as PDF for a real PDF file
 const shareDocument = async (title: string, filename: string, content: string): Promise<boolean> => {
-  try {
-    // Build a professional, presentable HTML document
-    const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const docDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-    const rawLines = content.split("\n");
-    let bodyHtml = "";
-    let inTable = false;
-    const closeTable = () => { if (inTable) { bodyHtml += "</table>"; inTable = false; } };
-    for (const rawLine of rawLines) {
-      const line = rawLine.trim();
-      if (!line) { closeTable(); bodyHtml += '<div style="height:8px;"></div>'; continue; }
-      if (/^=+$/.test(line)) { closeTable(); continue; }
-      if (/^-{10,}$/.test(line)) { closeTable(); bodyHtml += '<hr style="border:none;border-top:1px solid #ddd;margin:12px 0;">'; continue; }
-      if (/^[A-Z][A-Z \/&]+$/.test(line) && line.length < 45 && !line.includes(":") && !line.includes("|")) {
-        closeTable();
-        bodyHtml += '<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:#8a6d2b;margin:20px 0 8px 0;border-bottom:2px solid #d4a94e;padding-bottom:4px;">' + escHtml(line) + '</h3>';
-        continue;
-      }
-      if (line.includes("|")) {
-        const cells = line.split("|").map((c) => escHtml(c.trim()));
-        if (!inTable) { bodyHtml += '<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:13px;">'; inTable = true; }
-        bodyHtml += "<tr>" + cells.map((c, i) => '<td style="padding:6px 8px;border-bottom:1px solid #eee;' + (i === 0 ? "font-weight:600;" : "") + '">' + c + "</td>").join("") + "</tr>";
-        continue;
-      }
-      if (line.includes(":")) {
-        closeTable();
-        const idx2 = line.indexOf(":");
-        bodyHtml += '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-bottom:1px dotted #eee;"><span style="color:#666;">' + escHtml(line.slice(0, idx2).trim()) + '</span><span style="font-weight:700;">' + escHtml(line.slice(idx2 + 1).trim()) + "</span></div>";
-        continue;
-      }
+  // Build the HTML document (same professional formatter as before)
+  const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const docDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const rawLines = content.split("\n");
+  let bodyHtml = "";
+  let inTable = false;
+  const closeTable = () => { if (inTable) { bodyHtml += "</table>"; inTable = false; } };
+  for (const rawLine of rawLines) {
+    const line = rawLine.trim();
+    if (!line) { closeTable(); bodyHtml += '<div style="height:8px;"></div>'; continue; }
+    if (/^=+$/.test(line)) { closeTable(); continue; }
+    if (/^-{10,}$/.test(line)) { closeTable(); bodyHtml += '<hr style="border:none;border-top:1px solid #ddd;margin:12px 0;">'; continue; }
+    if (/^[A-Z][A-Z \/&]+$/.test(line) && line.length < 45 && !line.includes(":") && !line.includes("|")) {
       closeTable();
-      bodyHtml += '<p style="font-size:13px;color:#555;margin:6px 0;">' + escHtml(line) + "</p>";
+      bodyHtml += '<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:#8a6d2b;margin:20px 0 8px 0;border-bottom:2px solid #d4a94e;padding-bottom:4px;">' + escHtml(line) + '</h3>';
+      continue;
+    }
+    if (line.includes("|")) {
+      const cells = line.split("|").map((c) => escHtml(c.trim()));
+      if (!inTable) { bodyHtml += '<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:13px;">'; inTable = true; }
+      bodyHtml += "<tr>" + cells.map((c, i) => '<td style="padding:6px 8px;border-bottom:1px solid #eee;' + (i === 0 ? "font-weight:600;" : "") + '">' + c + "</td>").join("") + "</tr>";
+      continue;
+    }
+    if (line.includes(":")) {
+      closeTable();
+      const idx2 = line.indexOf(":");
+      bodyHtml += '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-bottom:1px dotted #eee;"><span style="color:#666;">' + escHtml(line.slice(0, idx2).trim()) + '</span><span style="font-weight:700;">' + escHtml(line.slice(idx2 + 1).trim()) + "</span></div>";
+      continue;
     }
     closeTable();
-    const safeTitle = escHtml(title);
-    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + safeTitle + '</title></head>'
-      + '<body style="margin:0;padding:0;background:#f9f9f9;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#222;">'
-      + '<div style="max-width:700px;margin:0 auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.08);">'
-      + '<div style="background:linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 100%);padding:28px 32px;color:#fff;">'
-      + '<div style="font-size:11px;letter-spacing:3px;color:#d4a94e;text-transform:uppercase;margin-bottom:6px;">RouteMax Pro</div>'
-      + '<h1 style="margin:0;font-size:22px;font-weight:800;">' + safeTitle + "</h1>"
-      + '<div style="font-size:12px;color:#aaa;margin-top:6px;">Generated ' + escHtml(docDate) + "</div></div>"
-      + '<div style="padding:24px 32px;">' + bodyHtml + "</div>"
-      + '<div style="padding:16px 32px;border-top:1px solid #eee;background:#fafafa;font-size:11px;color:#999;text-align:center;">Generated by RouteMax Pro &bull; For record-keeping purposes</div>'
-      + "</div>"
-      + '<div class="no-print" style="max-width:700px;margin:16px auto;padding:0 16px;text-align:center;">'
-      + '<button id="dlBtn" style="padding:14px 36px;font-size:16px;background:#d4a94e;color:#000;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin:4px;">Download to Phone</button>'
-      + '<button onclick="window.print()" style="padding:14px 36px;font-size:16px;background:#fff;color:#000;border:2px solid #d4a94e;border-radius:8px;font-weight:bold;cursor:pointer;margin:4px;">Print / Save as PDF</button>'
-      + '<p style="font-size:13px;color:#666;margin-top:12px;">Download saves the document to your Downloads folder</p>'
-      + "</div>"
-      + '<script>'
-      + 'document.getElementById("dlBtn").onclick=function(){'
-      + 'var html="<!DOCTYPE html>"+document.documentElement.outerHTML;'
-      + 'var blob=new Blob([html],{type:"text/html;charset=utf-8"});'
-      + 'var url=URL.createObjectURL(blob);'
-      + 'var a=document.createElement("a");a.href=url;'
-      + 'a.download=document.title.replace(/[^a-z0-9]+/gi,"-").toLowerCase()+".html";'
-      + 'document.body.appendChild(a);a.click();document.body.removeChild(a);'
-      + 'setTimeout(function(){URL.revokeObjectURL(url)},2000);'
-      + '};'
-      + "</script>"
-      + '<style>@media print{.no-print{display:none!important}body{background:#fff!important}}</style>'
-      + "</body></html>";
-    // Encoded data URL — works across WebView->browser boundary (blob URLs don't)
+    bodyHtml += '<p style="font-size:13px;color:#555;margin:6px 0;">' + escHtml(line) + "</p>";
+  }
+  closeTable();
+  const safeTitle = escHtml(title);
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + safeTitle + '</title></head>'
+    + '<body style="margin:0;padding:0;background:#f9f9f9;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#222;">'
+    + '<div style="max-width:700px;margin:0 auto;background:#fff;">'
+    + '<div style="background:#1a1a1a;padding:28px 32px;color:#fff;">'
+    + '<div style="font-size:11px;letter-spacing:3px;color:#d4a94e;text-transform:uppercase;margin-bottom:6px;">RouteMax Pro</div>'
+    + '<h1 style="margin:0;font-size:22px;font-weight:800;">' + safeTitle + "</h1>"
+    + '<div style="font-size:12px;color:#aaa;margin-top:6px;">Generated ' + escHtml(docDate) + "</div></div>"
+    + '<div style="padding:24px 32px;">' + bodyHtml + "</div>"
+    + '<div style="padding:16px 32px;border-top:1px solid #eee;background:#fafafa;font-size:11px;color:#999;text-align:center;">Generated by RouteMax Pro &bull; For record-keeping purposes</div>'
+    + "</div></body></html>";
+
+  const safeFilename = filename.replace(/[^a-z0-9.-]/gi, "-").toLowerCase().replace(/\.txt$/, ".html");
+
+  try {
+    // NATIVE: write file to device cache, then open system share sheet
+    const writeResult = await Filesystem.writeFile({
+      path: safeFilename,
+      data: html,
+      directory: Directory.Cache,
+    });
+    await Share.share({
+      title: title,
+      text: title,
+      url: writeResult.uri,
+      dialogTitle: "Share " + title,
+    });
+    return true;
+  } catch (e: any) {
+    if (e?.message?.includes("cancel") || e?.message?.includes("dismiss")) return false;
+    console.error("Native share failed, trying browser fallback:", e);
+  }
+
+  try {
+    // FALLBACK: open in system browser via data URL
     const url = "data:text/html;charset=utf-8," + encodeURIComponent(html);
     const win = window.open(url, "_blank");
-    if (!win) {
-      // Popup blocked — try location fallback
-      window.location.href = url;
-    }
+    if (!win) window.location.href = url;
     return true;
-  } catch (e) {
-    console.error("Share failed:", e);
-    alert("Could not open document. Please try again.");
+  } catch (e2) {
+    console.error("Share failed:", e2);
+    alert("Could not share the document. Please try again.");
     return false;
   }
 };
@@ -1491,7 +1494,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.344";
+const APP_VERSION = "2.345";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
