@@ -1448,14 +1448,12 @@ const shareDocument = async (title: string, filename: string, content: string): 
       + "</div>"
       + '<style>@media print{.no-print{display:none!important}body{background:#fff!important}}</style>'
       + "</body></html>";
-    // Use base64 data URL — blob URLs don't survive the handoff to the system browser
-    const base64 = btoa(unescape(encodeURIComponent(html)));
-    const url = "data:text/html;charset=utf-8;base64," + base64;
-    try {
-      await Browser.open({ url, windowName: "_blank" });
-    } catch {
-      window.open(url, "_blank");
-    }
+    // Blob URL + window.open — opens in system browser where user can save/print
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    // Keep URL alive long enough for the new tab to load
+    setTimeout(() => URL.revokeObjectURL(url), 120000);
     return true;
   } catch (e) {
     console.error("Share failed:", e);
@@ -1481,7 +1479,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.340";
+const APP_VERSION = "2.341";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
