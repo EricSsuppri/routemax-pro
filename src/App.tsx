@@ -1407,10 +1407,23 @@ const shareDocument = async (title: string, filename: string, content: string): 
       return `<div style="font-family:monospace;white-space:pre-wrap;">${esc}</div>`;
     }).join("");
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="padding:20px;max-width:800px;margin:0 auto;">${htmlLines}<div style="margin-top:30px;padding:20px;background:#f5f5f5;border-radius:8px;text-align:center;">
-<p style="font-weight:bold;margin-bottom:10px;">To save as PDF:</p>
-<p style="font-size:14px;">Tap the browser menu (&#8942;) &gt; Share &gt; Print &gt; Save as PDF</p>
-<p style="font-size:14px;margin-top:8px;">Or: &#8942; &gt; Download to save this page</p>
-</div></body></html>`;
+<button id="dlBtn" style="padding:14px 36px;font-size:16px;background:#d4a94e;color:#000;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">Download Document</button>
+<p style="font-size:13px;color:#666;margin-top:12px;">Or: browser menu (&#8942;) &gt; Share &gt; Print &gt; Save as PDF</p>
+</div>
+<script>
+document.getElementById('dlBtn').onclick = function() {
+  var text = document.body.innerText;
+  var blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+};
+</script></body></html>`;
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank");
@@ -1440,7 +1453,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.335";
+const APP_VERSION = "2.336";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
