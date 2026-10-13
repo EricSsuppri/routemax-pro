@@ -166,7 +166,7 @@ Last updated: October 10, 2026
 
 1. What the app does. RouteMax and RouteMax Pro (the free and premium tiers of the same app) are a gig-work earnings calculator and driver wellness companion. It helps you estimate trip profit from figures you enter, and track wellness (water, sleep, mood, breaks, movement). All estimates, AI summaries, and wellness insights are for information only — not financial, medical, or tax advice.
 2. Your data. Trip figures, wellness logs, meal scans (including photos), and activity history are stored on your device and (if signed in) synced to your account to power History, Compare, Reports, and Tax tools. Custom alarm sounds are stored on your device. Account data (email) is used only for sign-in and sync. See the Privacy Policy for details.
-3. AI features. Eric (AI coach), wellness summaries, meal scanner, and receipt scanner use Google Gemini AI. AI outputs are estimates and may be inaccurate — verify important decisions yourself. Do not share sensitive personal information with AI features.
+3. AI features. Eric (AI coach), wellness summaries, meal scanner, and receipt scanner use Groq AI. AI outputs are estimates and may be inaccurate — verify important decisions yourself. Do not share sensitive personal information with AI features.
 4. Subscriptions. Premium is billed through Google Play ($5/month or as shown in the store). Manage or cancel anytime in the Play Store — cancellation stops future charges; already-paid periods are not refunded except as Google Play policy allows.
 5. Acceptable use. Don't abuse the service, attempt to breach security, scrape other users' data, or upload unlawful content as alarm sounds or AI inputs.
 6. No warranties. The app is provided "as is". Mileage, fuel, wear, nutrition, and wellness figures (including vehicle-database MPG/MPGe values) are estimates, not certified specifications — verify against your own vehicle, health professional, or tax advisor.
@@ -1410,7 +1410,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.358";
+const APP_VERSION = "2.359";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
