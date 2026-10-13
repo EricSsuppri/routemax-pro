@@ -1393,7 +1393,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.377";
+const APP_VERSION = "2.378";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4940,7 +4940,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       const photo = await CapCamera.getPhoto({
         quality: 80,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Camera,
+        source: CameraSource.Prompt, // Camera OR Photos — pick from gallery or snap new
       });
       const base64 = photo.base64String;
       if (!base64) throw new Error("Couldn't read the photo. Try again.");
