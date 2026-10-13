@@ -74,6 +74,7 @@ import {
   Undo2,
   Info,
   BookOpen,
+  Upload,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -1393,7 +1394,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.381";
+const APP_VERSION = "2.382";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4975,6 +4976,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const pdfToImage = async (file: File): Promise<string> => {
     // Lazy-load PDF.js only when a PDF is actually picked
     const pdfjs = await import("pdfjs-dist");
+    // Configure the worker from CDN (avoids bundling the worker file)
+    if (!(pdfjs as any).GlobalWorkerOptions.workerSrc) {
+      (pdfjs as any).GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.worker.min.mjs";
+    }
     const buf = await file.arrayBuffer();
     const pdf = await (pdfjs as any).getDocument({ data: buf }).promise;
     const page = await pdf.getPage(1);
