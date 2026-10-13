@@ -1389,7 +1389,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.375";
+const APP_VERSION = "2.376";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -9944,14 +9944,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => bumpMove("stretches", 1)} className="flex-1 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95">+ Stretch</button>
                 <button onClick={() => { if (bcToday.workouts > 0) bumpMove("workouts", -1); else if (bcToday.stretches > 0) bumpMove("stretches", -1); }} disabled={bcToday.workouts + bcToday.stretches === 0} className="px-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95 disabled:opacity-40">−</button>
               </div>
-              <div className="flex gap-2 mt-2">
-                <button onClick={() => setCamMode("workout")} aria-label="Open rep coach camera" className="flex-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-300 active:scale-[0.98] flex items-center justify-center gap-1.5">
-                  <Camera className="w-4 h-4" /> Rep coach
-                </button>
-                <button onClick={() => setCamMode("stretch")} aria-label="Open form coach camera" className="flex-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-300 active:scale-[0.98] flex items-center justify-center gap-1.5">
-                  <Camera className="w-4 h-4" /> Form coach
-                </button>
-              </div>
+
 
               {/* Always-visible AI summary */}
               <button
