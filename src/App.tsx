@@ -1432,7 +1432,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.363";
+const APP_VERSION = "2.364";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -9982,17 +9982,10 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                   <button onClick={addExpense} disabled={!expAmount || parseFloat(expAmount) <= 0} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-xs font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-40">
                     Save expense
                   </button>
-                </div>
-              </div>
-              {expenses.length > 0 ? (
-                <div className="mt-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Receipt file · {expenses.length}</div>
-                    <button onClick={() => importFileRef.current && importFileRef.current.click()} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/25 text-[10px] font-bold text-teal-300 active:scale-[0.98]">
-                      <FileText className="w-3.5 h-3.5" /> Import CSV
-                    </button>
-                  </div>
-                  <input ref={importFileRef} type="file" accept=".csv,.txt,text/csv,text/plain" onChange={importExpensesFile} className="hidden" aria-hidden="true" tabIndex={-1} />
+                  <button onClick={() => importFileRef.current && importFileRef.current.click()} className="w-full mt-2 py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/25 text-xs font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-1.5">
+                    <FileText className="w-4 h-4" /> Import expenses from CSV
+                  </button>
+<input ref={importFileRef} type="file" accept=".csv,.txt,text/csv,text/plain" onChange={importExpensesFile} className="hidden" aria-hidden="true" tabIndex={-1} />
                   {importMsg ? (
                     <p className="text-[11px] text-teal-300 bg-teal-500/10 border border-teal-500/20 rounded-xl px-3 py-2 mb-2">{importMsg}</p>
                   ) : null}
@@ -10013,6 +10006,12 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                       </div>
                     </div>
                   ) : null}
+                  
+                </div>
+              </div>
+              {expenses.length > 0 ? (
+                <div className="mt-3">
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Receipt file · {expenses.length}</div>
                   <div className="space-y-1.5 max-h-72 overflow-y-auto pr-0.5">
                     {expByMonth.map((m) => (
                       <div key={m.key} className="bg-zinc-900/60 border border-zinc-800/60 rounded-xl overflow-hidden">
