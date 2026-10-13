@@ -1459,12 +1459,13 @@ const shareDocument = async (title: string, filename: string, content: string): 
       + "</script>"
       + '<style>@media print{.no-print{display:none!important}body{background:#fff!important}}</style>'
       + "</body></html>";
-    // Blob URL + window.open — opens in system browser where user can save/print
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-    // Keep URL alive long enough for the new tab to load
-    setTimeout(() => URL.revokeObjectURL(url), 120000);
+    // Encoded data URL — works across WebView->browser boundary (blob URLs don't)
+    const url = "data:text/html;charset=utf-8," + encodeURIComponent(html);
+    const win = window.open(url, "_blank");
+    if (!win) {
+      // Popup blocked — try location fallback
+      window.location.href = url;
+    }
     return true;
   } catch (e) {
     console.error("Share failed:", e);
@@ -1490,7 +1491,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.343";
+const APP_VERSION = "2.344";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
