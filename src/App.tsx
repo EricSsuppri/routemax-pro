@@ -1389,7 +1389,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.368";
+const APP_VERSION = "2.369";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1782,6 +1782,14 @@ function CameraCoach({ mode, onClose, onLog }: {
   // takes one native photo and the existing AI analysis scores it.
   const snap = async (): Promise<string | null> => {
     try {
+      // Ensure camera permission before opening the native camera
+      try {
+        const perm = await CapCamera.checkPermissions();
+        if (perm.camera !== "granted") {
+          const req = await CapCamera.requestPermissions();
+          if (req.camera !== "granted") { setFeedback("Camera permission denied — enable it in Settings to use the coach."); return null; }
+        }
+      } catch {}
       const photo = await CapCamera.getPhoto({
         quality: 80,
         resultType: CameraResultType.Base64,
@@ -9084,6 +9092,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => bumpWaterOz(32)} className="py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98]">+32oz</button>
                 <button onClick={() => bumpWaterOz(-8)} disabled={waterOz === 0} className="py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95 disabled:opacity-40">−8oz</button>
               </div>
+              <button onClick={() => setCamMode("water")} aria-label="Scan water bottle with camera" className="w-full mt-2 py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/25 text-xs font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-1.5">
+                <Camera className="w-4 h-4" /> Scan my bottle
+              </button>
 
               {bcStreak >= 2 && (
                 <div className="mt-3 flex items-center gap-2 text-[11px] font-bold text-amber-300">
@@ -9870,6 +9881,14 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                 <button onClick={() => bumpMove("workouts", 1)} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-xs font-bold text-[#0a0a0f] active:scale-[0.98]">+ Workout</button>
                 <button onClick={() => bumpMove("stretches", 1)} className="flex-1 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95">+ Stretch</button>
                 <button onClick={() => { if (bcToday.workouts > 0) bumpMove("workouts", -1); else if (bcToday.stretches > 0) bumpMove("stretches", -1); }} disabled={bcToday.workouts + bcToday.stretches === 0} className="px-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 active:scale-95 disabled:opacity-40">−</button>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => setCamMode("workout")} aria-label="Open rep coach camera" className="flex-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-300 active:scale-[0.98] flex items-center justify-center gap-1.5">
+                  <Camera className="w-4 h-4" /> Rep coach
+                </button>
+                <button onClick={() => setCamMode("stretch")} aria-label="Open form coach camera" className="flex-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-300 active:scale-[0.98] flex items-center justify-center gap-1.5">
+                  <Camera className="w-4 h-4" /> Form coach
+                </button>
               </div>
 
               {/* Always-visible AI summary */}
