@@ -1448,16 +1448,14 @@ const shareDocument = async (title: string, filename: string, content: string): 
       + "</div>"
       + '<style>@media print{.no-print{display:none!important}body{background:#fff!important}}</style>'
       + "</body></html>";
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
+    // Use base64 data URL — blob URLs don't survive the handoff to the system browser
+    const base64 = btoa(unescape(encodeURIComponent(html)));
+    const url = "data:text/html;charset=utf-8;base64," + base64;
     try {
-      // Use Capacitor Browser plugin for full print support
       await Browser.open({ url, windowName: "_blank" });
     } catch {
-      // Fallback to window.open
       window.open(url, "_blank");
     }
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
     return true;
   } catch (e) {
     console.error("Share failed:", e);
@@ -1483,7 +1481,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.339";
+const APP_VERSION = "2.340";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
