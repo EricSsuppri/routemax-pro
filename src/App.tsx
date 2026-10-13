@@ -80,12 +80,6 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { askGemini, parseAiJson, isAiConfigured } from "@/lib/ai";
 
 import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
-import { registerPlugin } from "@capacitor/core";
-const LiveCamera = registerPlugin<{
-  startPreview(o: { exercise: string; autoWatch: boolean; intervalMs: number }): Promise<void>;
-  stopPreview(): Promise<void>;
-  showStatus(o: { text?: string; reps?: string }): Promise<void>;
-}>("LiveCamera");
 import { Capacitor } from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
@@ -1395,7 +1389,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.374";
+const APP_VERSION = "2.375";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1772,7 +1766,7 @@ class AppErrorBoundary extends React.Component<{ children: ReactNode }, { err: s
 function CameraCoach({ mode, onClose, onLog }: {
   mode: "workout" | "water" | "stretch";
   onClose: () => void;
-  onLog: (kind: "workouts" | "stretches" | "waterOz", amount: number) => void;
+  onLog: (kind: "workouts" | "stretches" | "waterOz", amount: number, fromScanner?: boolean) => void;
 }) {
   const [exercise, setExercise] = useState(mode === "workout" ? "push-ups" : mode === "stretch" ? "standing stretch" : "");
   const [reps, setReps] = useState(0);
@@ -1789,7 +1783,7 @@ function CameraCoach({ mode, onClose, onLog }: {
   // it hangs the Android WebView into a black screen that needs force-close.
   // Live rep-counting/video preview cannot run in this WebView, so each tap
   // takes one native photo and the existing AI analysis scores it.
-  const snap = async (): Promise<string | null> => {
+  const snap = async (): Promise<"cancelled" | string | null> => {
     try {
       // Ensure camera permission before opening the native camera
       try {
@@ -1806,13 +1800,19 @@ function CameraCoach({ mode, onClose, onLog }: {
       });
       if (!photo.base64String) return null;
       return "data:image/jpeg;base64," + photo.base64String;
-    } catch { return null; }
+    } catch (e) {
+      // User backed out of the camera — not an error, just return cancelled
+      const msg = (e as Error)?.message || "";
+      if (/cancel|cancelled|dismissed|back/i.test(msg)) return "cancelled";
+      return null;
+    }
   };
 
   const analyze = async () => {
     if (busy) return;
     const img = await snap();
-    if (!img) { setFeedback("No photo taken — try again."); return; }
+    if (img === "cancelled") return; // user backed out — no error message
+    if (!img) { setFeedback("Couldn't open the camera — try again."); return; }
     setBusy(true); setFeedback("");
     try {
       let prompt = "";
@@ -1857,7 +1857,7 @@ function CameraCoach({ mode, onClose, onLog }: {
         const drinking = /DRINKING:\s*yes/i.test(text);
         const note = (text.match(/NOTE:\s*(.+)/i) || [])[1] || "";
         if (oz > 0) {
-          onLog("waterOz", oz);
+          onLog("waterOz", oz, true);
           setFeedback(`${drinking ? "Caught you drinking! " : ""}Logged ~${oz}oz. ${note}`);
         } else {
           setFeedback(`No bottle found. ${note || "Hold up your water bottle or cup."}`);
@@ -1904,92 +1904,6 @@ function CameraCoach({ mode, onClose, onLog }: {
   // Load intro on mount and when exercise changes
   useEffect(() => { loadIntro(exercise); }, [exercise]);
 
-  // ---- Native live preview ----
-  const [liveActive, setLiveActive] = useState(false);
-  const liveReps = useRef(0);
-  const liveSets = useRef(1);
-  const liveBusy = useRef(false);
-
-  const startLiveCoach = async () => {
-    try {
-      liveReps.current = 0; liveSets.current = 1; liveBusy.current = false;
-      setLiveActive(true);
-      // Stream frames back for AI coaching
-      const handle = await (LiveCamera as unknown as {
-        addListener(e: string, cb: (d: { imageBase64?: string }) => void): Promise<{ remove(): void }>;
-      }).addListener("frameCaptured", onLiveFrame);
-      (LiveCamera as unknown as { _lcb?: { remove(): void } })._lcb = handle;
-      await LiveCamera.startPreview({ exercise, autoWatch: true, intervalMs: 5000 });
-      await LiveCamera.showStatus({ text: "Coach is watching — get into position", reps: `Set 1/${targetSets}` });
-    } catch (e) {
-      setLiveActive(false);
-      setFeedback("Couldn't open the live camera — try the snap mode below.");
-    }
-  };
-
-  const onLiveFrame = async (d: { imageBase64?: string }) => {
-    if (!d.imageBase64 || liveBusy.current) return;
-    liveBusy.current = true;
-    try {
-      const prompt = mode === "workout"
-        ? `You are a personal trainer watching your client do ${exercise} via live camera. This is rep ${liveReps.current + 1} of ${targetReps} in set ${liveSets.current} of ${targetSets}. Is the person in an active ${exercise} position with real effort? Be generous — if trying, count it. Reply: REP:yes or REP:no | FORM: one specific cue (or "great form, keep it up!").`
-        : `You are a stretch coach watching via live camera. The user is doing: ${exercise}. Describe the position in one sentence, give ONE specific cue to deepen it safely, end encouraging. 3 short sentences max.`;
-      const raw = await askGemini(prompt, d.imageBase64, false);
-      const text = cleanChatReply(raw);
-      if (mode === "workout") {
-        const repYes = /REP:\s*yes/i.test(text);
-        const repNo = /REP:\s*no/i.test(text);
-        const tip = (text.match(/FORM:\s*(.+)/i) || [])[1] || "";
-        if (repYes && !repNo) {
-          liveReps.current += 1;
-          const n = liveReps.current;
-          if (n >= targetReps) {
-            if (liveSets.current >= targetSets) {
-              await LiveCamera.showStatus({ text: `\uD83C\uDF89 Done! ${targetSets} sets logged.`, reps: `${n}/${targetReps}` });
-              onLog("workouts", 1);
-              setFeedback(`\uD83C\uDF89 All ${targetSets} sets done — logged to Basecamp!`);
-              await LiveCamera.stopPreview();
-              setLiveActive(false);
-            } else {
-              liveSets.current += 1; liveReps.current = 0;
-              await LiveCamera.showStatus({ text: `Set ${liveSets.current - 1} done! Rest 30s…`, reps: `Set ${liveSets.current}/${targetSets}` });
-            }
-          } else {
-            await LiveCamera.showStatus({ text: tip || `Rep ${n} counted!`, reps: `${n}/${targetReps}` });
-          }
-        } else if (tip) {
-          await LiveCamera.showStatus({ text: tip });
-        }
-      } else if (mode === "stretch") {
-        await LiveCamera.showStatus({ text: text.slice(0, 120) });
-        onLog("stretches", 1);
-      } else if (mode === "water") {
-        const ozM = text.match(/OZ:\s*(\d+)/i);
-        const oz = ozM ? parseInt(ozM[1], 10) : 0;
-        if (oz > 0) {
-          onLog("waterOz", oz);
-          await LiveCamera.showStatus({ text: `Logged ~${oz}oz!` });
-        }
-      }
-    } catch { /* keep watching on AI hiccups */ }
-    finally { liveBusy.current = false; }
-  };
-
-  const stopLiveCoach = async () => {
-    try {
-      const h = (LiveCamera as unknown as { _lcb?: { remove(): void } })._lcb;
-      if (h) { await h.remove(); (LiveCamera as unknown as { _lcb?: unknown })._lcb = undefined; }
-      await LiveCamera.stopPreview();
-    } catch {}
-    setLiveActive(false);
-  };
-
-  // Clean up listener if the modal closes mid-stream
-  useEffect(() => () => {
-    const h = (LiveCamera as unknown as { _lcb?: { remove(): void } })._lcb;
-    if (h) h.remove();
-  }, []);
-
   return (
     <div className="fixed inset-0 z-[60] bg-[#0a0a0f] flex flex-col" role="dialog" aria-modal="true">
       <div className="flex items-center justify-between px-4 py-3">
@@ -2035,17 +1949,6 @@ function CameraCoach({ mode, onClose, onLog }: {
         </div>
       )}
 
-      {!liveActive ? (
-        <button onClick={startLiveCoach} className="mx-4 mb-2 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] flex items-center justify-center gap-2">
-          <Camera className="w-4 h-4" />
-          {mode === "workout" ? "▶ Watch me live — coach counts reps" : mode === "water" ? "▶ Watch me live" : "▶ Watch me live — coach checks form"}
-        </button>
-      ) : (
-        <button onClick={stopLiveCoach} className="mx-4 mb-2 py-3 rounded-2xl bg-red-500/20 border border-red-500/40 text-sm font-bold text-red-300 active:scale-[0.98] flex items-center justify-center gap-2">
-          ■ Stop live coaching
-        </button>
-      )}
-      <div className="px-4 pb-1 text-center text-[11px] text-zinc-500">or snap one photo at a time:</div>
       <div className="p-4 pt-2 flex gap-2">
         <button onClick={analyze} disabled={busy} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2">
           <Camera className="w-4 h-4" />
@@ -2972,6 +2875,20 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       return p && p.date === todayKey ? (p.n || 0) : 0;
     } catch { return 0; }
   });
+  // Water scanner history: tracks AI-scanned water (not manual button taps)
+  const [waterScanOpen, setWaterScanOpen] = useState(false);
+  const [waterScanLog, setWaterScanLog] = useState<{ oz: number; date: string }[]>(() => {
+    try { return JSON.parse(localStorage.getItem("routemax_water_scans") || "[]"); }
+    catch { return []; }
+  });
+  const logWaterScan = (oz: number) => {
+    const entry = { oz, date: new Date().toISOString() };
+    setWaterScanLog((prev) => {
+      const next = [entry, ...prev].slice(0, 50);
+      try { localStorage.setItem("routemax_water_scans", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
   const [waterGoal, setWaterGoal] = useState<number>(() => {
     try { return parseInt(localStorage.getItem("routemax_water_goal") || "8", 10) || 8; } catch { return 8; }
   });
@@ -3096,8 +3013,11 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   };
   const [chartRange, setChartRange] = useState<"7d" | "30d">("7d");
   const [camMode, setCamMode] = useState<"workout" | "water" | "stretch" | null>(null);
-  const handleCamLog = (kind: "workouts" | "stretches" | "waterOz", amount: number) => {
-    if (kind === "waterOz") bumpWaterOz(amount);
+  const handleCamLog = (kind: "workouts" | "stretches" | "waterOz", amount: number, fromScanner?: boolean) => {
+    if (kind === "waterOz") {
+      bumpWaterOz(amount);
+      if (fromScanner) logWaterScan(amount);
+    }
     else touchBcDay((d) => ({ ...d, [kind]: d[kind] + amount }));
   };
   const [waterExp, setWaterExp] = useState(false);
@@ -9215,6 +9135,28 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <button onClick={() => setCamMode("water")} aria-label="Scan water bottle with camera" className="w-full mt-2 py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/25 text-xs font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-1.5">
                 <Camera className="w-4 h-4" /> Scan my bottle
               </button>
+              {waterScanLog.length > 0 && (
+                <div className="mt-2 rounded-xl bg-teal-500/5 border border-teal-500/15 px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-teal-200">
+                      📷 {waterScanLog.reduce((t, x) => t + x.oz, 0)}oz scanned · {waterScanLog.length} scan{waterScanLog.length === 1 ? "" : "s"}
+                    </span>
+                    <button onClick={() => setWaterScanOpen((v) => !v)} className="text-[10px] font-bold text-teal-300/70 active:opacity-70">
+                      {waterScanOpen ? "Hide" : "Log"}
+                    </button>
+                  </div>
+                  {waterScanOpen && (
+                    <div className="mt-1.5 space-y-1 max-h-32 overflow-y-auto">
+                      {waterScanLog.slice(0, 10).map((x, i) => (
+                        <div key={i} className="flex justify-between text-[11px] text-zinc-400">
+                          <span>{new Date(x.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {new Date(x.date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
+                          <span className="font-bold text-teal-300">~{x.oz}oz</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {bcStreak >= 2 && (
                 <div className="mt-3 flex items-center gap-2 text-[11px] font-bold text-amber-300">
