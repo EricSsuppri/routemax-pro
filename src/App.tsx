@@ -1440,7 +1440,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.334";
+const APP_VERSION = "2.335";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -5436,34 +5436,71 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     return p ? p.label : key;
   };
 
-  // v2.331 shared: per-preset collapsible trip groups (keeps the all-trips summary above)
-  const presetCollapsibles = (trips: RouteHistoryRow[]): ReactElement | null => {
+  // v2.335 shared: per-preset collapsible groups with full metrics (earnings/tax/accepted modes)
+  const presetCollapsibles = (trips: RouteHistoryRow[], mode: "earnings" | "tax" | "accepted" = "earnings"): ReactElement | null => {
     const groups = groupTripsByPlatform(trips);
     const entries = Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
     if (entries.length <= 1) return null;
+    const titles: Record<string, string> = { earnings: "Earnings by app", tax: "Tax tracking by app", accepted: "Accepted trips by app" };
     return (
       <div className="space-y-2">
         <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider px-1">
-          Trips by app
+          {titles[mode]}
         </div>
         {entries.map(([key, rows]) => {
           const net = rows.reduce((s, r) => s + (r.net_profit || 0), 0);
           const miles = rows.reduce((s, r) => s + (r.mileage || 0), 0);
+          const gross = rows.reduce((s, r) => s + (r.payout || 0), 0);
+          const hours = rows.reduce((s, r) => s + (r.hours || 0), 0);
+          const fuel = rows.reduce((s, r) => s + (r.fuel_cost || 0), 0);
+          const dates = rows.map((r) => r.created_at).sort();
+          const dateRange = dates.length > 0 ? `${formatShortDate(dates[0])} – ${formatShortDate(dates[dates.length - 1])}` : "";
+          const hourly = hours > 0 ? net / hours : 0;
           return (
             <details key={key} className="glass rounded-2xl overflow-hidden group">
               <summary className="w-full p-3.5 cursor-pointer list-none active:opacity-70 [&::-webkit-details-marker]:hidden">
                 <div className="flex items-center justify-between">
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-white truncate">{platformLabel(key)}</div>
                     <div className="text-[11px] text-zinc-500 mt-0.5">
                       {rows.length} trip{rows.length === 1 ? "" : "s"} · {formatCurrency(net)} net · {formatNumber(miles, 0)} mi
                     </div>
+                    {dateRange ? <div className="text-[10px] text-zinc-600 mt-0.5">{dateRange}</div> : null}
                   </div>
                   <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0 transition-transform group-open:rotate-180" />
                 </div>
               </summary>
-              <div className="px-3.5 pb-3.5 pt-1 border-t border-zinc-800/40 space-y-2">
-                {rows.map((row, i) => renderRouteRow(row, i))}
+              <div className="px-3.5 pb-3.5 pt-1 border-t border-zinc-800/40">
+                {/* Total metrics grid */}
+                <div className="grid grid-cols-3 gap-2 py-3">
+                  <div className="text-center">
+                    <div className="text-[10px] text-zinc-500 uppercase">Gross</div>
+                    <div className="text-sm font-bold text-amber-300">{formatCurrency(gross)}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-zinc-500 uppercase">Net</div>
+                    <div className="text-sm font-bold text-green-400">{formatCurrency(net)}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-zinc-500 uppercase">Miles</div>
+                    <div className="text-sm font-bold text-white">{formatNumber(miles, 0)}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-zinc-500 uppercase">Hours</div>
+                    <div className="text-sm font-bold text-white">{formatNumber(hours, 1)}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-zinc-500 uppercase">$/hr</div>
+                    <div className="text-sm font-bold text-white">{formatCurrency(hourly)}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-zinc-500 uppercase">Fuel</div>
+                    <div className="text-sm font-bold text-zinc-300">{formatCurrency(fuel)}</div>
+                  </div>
+                </div>
+                <div className="space-y-2 border-t border-zinc-800/40 pt-3">
+                  {rows.map((row, i) => renderRouteRow(row, i))}
+                </div>
               </div>
             </details>
           );
@@ -6105,7 +6142,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
         </div>
 
         {/* v2.331: trips grouped by app/preset (all-trips summary stays above) */}
-        {presetCollapsibles(history)}
+        {presetCollapsibles(history, "earnings")}
 
         {/* Weekly bars */}
         <div className="glass rounded-2xl p-4">
@@ -6529,6 +6566,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             )}
           </div>
         )}
+        {presetCollapsibles(accepted, "accepted")}
         <div className="space-y-2">
           {accepted.map((row) => renderRouteRow(row))}
         </div>
@@ -6833,6 +6871,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
         <p className="text-[10px] text-zinc-600 leading-relaxed px-1">
           Estimate only — not tax advice. The IRS sets a new standard mileage rate each year; make sure the rate above matches the current year before filing.
         </p>
+
+        {presetCollapsibles(acceptedHistory, "tax")}
 
         {isAiConfigured && (
           <div className="glass rounded-2xl p-4">
