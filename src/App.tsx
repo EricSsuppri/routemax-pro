@@ -80,6 +80,12 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { askGemini, parseAiJson, isAiConfigured } from "@/lib/ai";
 
 import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { registerPlugin } from "@capacitor/core";
+const LiveCamera = registerPlugin<{
+  startPreview(o: { exercise: string; autoWatch: boolean; intervalMs: number }): Promise<void>;
+  stopPreview(): Promise<void>;
+  showStatus(o: { text?: string; reps?: string }): Promise<void>;
+}>("LiveCamera");
 import { Capacitor } from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
@@ -1389,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.373";
+const APP_VERSION = "2.374";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1898,6 +1904,92 @@ function CameraCoach({ mode, onClose, onLog }: {
   // Load intro on mount and when exercise changes
   useEffect(() => { loadIntro(exercise); }, [exercise]);
 
+  // ---- Native live preview ----
+  const [liveActive, setLiveActive] = useState(false);
+  const liveReps = useRef(0);
+  const liveSets = useRef(1);
+  const liveBusy = useRef(false);
+
+  const startLiveCoach = async () => {
+    try {
+      liveReps.current = 0; liveSets.current = 1; liveBusy.current = false;
+      setLiveActive(true);
+      // Stream frames back for AI coaching
+      const handle = await (LiveCamera as unknown as {
+        addListener(e: string, cb: (d: { imageBase64?: string }) => void): Promise<{ remove(): void }>;
+      }).addListener("frameCaptured", onLiveFrame);
+      (LiveCamera as unknown as { _lcb?: { remove(): void } })._lcb = handle;
+      await LiveCamera.startPreview({ exercise, autoWatch: true, intervalMs: 5000 });
+      await LiveCamera.showStatus({ text: "Coach is watching — get into position", reps: `Set 1/${targetSets}` });
+    } catch (e) {
+      setLiveActive(false);
+      setFeedback("Couldn't open the live camera — try the snap mode below.");
+    }
+  };
+
+  const onLiveFrame = async (d: { imageBase64?: string }) => {
+    if (!d.imageBase64 || liveBusy.current) return;
+    liveBusy.current = true;
+    try {
+      const prompt = mode === "workout"
+        ? `You are a personal trainer watching your client do ${exercise} via live camera. This is rep ${liveReps.current + 1} of ${targetReps} in set ${liveSets.current} of ${targetSets}. Is the person in an active ${exercise} position with real effort? Be generous — if trying, count it. Reply: REP:yes or REP:no | FORM: one specific cue (or "great form, keep it up!").`
+        : `You are a stretch coach watching via live camera. The user is doing: ${exercise}. Describe the position in one sentence, give ONE specific cue to deepen it safely, end encouraging. 3 short sentences max.`;
+      const raw = await askGemini(prompt, d.imageBase64, false);
+      const text = cleanChatReply(raw);
+      if (mode === "workout") {
+        const repYes = /REP:\s*yes/i.test(text);
+        const repNo = /REP:\s*no/i.test(text);
+        const tip = (text.match(/FORM:\s*(.+)/i) || [])[1] || "";
+        if (repYes && !repNo) {
+          liveReps.current += 1;
+          const n = liveReps.current;
+          if (n >= targetReps) {
+            if (liveSets.current >= targetSets) {
+              await LiveCamera.showStatus({ text: `\uD83C\uDF89 Done! ${targetSets} sets logged.`, reps: `${n}/${targetReps}` });
+              onLog("workouts", 1);
+              setFeedback(`\uD83C\uDF89 All ${targetSets} sets done — logged to Basecamp!`);
+              await LiveCamera.stopPreview();
+              setLiveActive(false);
+            } else {
+              liveSets.current += 1; liveReps.current = 0;
+              await LiveCamera.showStatus({ text: `Set ${liveSets.current - 1} done! Rest 30s…`, reps: `Set ${liveSets.current}/${targetSets}` });
+            }
+          } else {
+            await LiveCamera.showStatus({ text: tip || `Rep ${n} counted!`, reps: `${n}/${targetReps}` });
+          }
+        } else if (tip) {
+          await LiveCamera.showStatus({ text: tip });
+        }
+      } else if (mode === "stretch") {
+        await LiveCamera.showStatus({ text: text.slice(0, 120) });
+        onLog("stretches", 1);
+      } else if (mode === "water") {
+        const ozM = text.match(/OZ:\s*(\d+)/i);
+        const oz = ozM ? parseInt(ozM[1], 10) : 0;
+        if (oz > 0) {
+          onLog("waterOz", oz);
+          await LiveCamera.showStatus({ text: `Logged ~${oz}oz!` });
+        }
+      }
+    } catch { /* keep watching on AI hiccups */ }
+    finally { liveBusy.current = false; }
+  };
+
+  const stopLiveCoach = async () => {
+    try {
+      const h = (LiveCamera as unknown as { _lcb?: { remove(): void } })._lcb;
+      if (h) { await h.remove(); (LiveCamera as unknown as { _lcb?: unknown })._lcb = undefined; }
+      await LiveCamera.stopPreview();
+    } catch {}
+    setLiveActive(false);
+  };
+
+  // Clean up listener if the modal closes mid-stream
+  useEffect(() => () => {
+    const h = (LiveCamera as unknown as { _lcb?: { remove(): void } })._lcb;
+    if (h) h.remove();
+  }, []);
+
   return (
     <div className="fixed inset-0 z-[60] bg-[#0a0a0f] flex flex-col" role="dialog" aria-modal="true">
       <div className="flex items-center justify-between px-4 py-3">
@@ -1943,6 +2035,17 @@ function CameraCoach({ mode, onClose, onLog }: {
         </div>
       )}
 
+      {!liveActive ? (
+        <button onClick={startLiveCoach} className="mx-4 mb-2 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] flex items-center justify-center gap-2">
+          <Camera className="w-4 h-4" />
+          {mode === "workout" ? "▶ Watch me live — coach counts reps" : mode === "water" ? "▶ Watch me live" : "▶ Watch me live — coach checks form"}
+        </button>
+      ) : (
+        <button onClick={stopLiveCoach} className="mx-4 mb-2 py-3 rounded-2xl bg-red-500/20 border border-red-500/40 text-sm font-bold text-red-300 active:scale-[0.98] flex items-center justify-center gap-2">
+          ■ Stop live coaching
+        </button>
+      )}
+      <div className="px-4 pb-1 text-center text-[11px] text-zinc-500">or snap one photo at a time:</div>
       <div className="p-4 pt-2 flex gap-2">
         <button onClick={analyze} disabled={busy} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2">
           <Camera className="w-4 h-4" />
