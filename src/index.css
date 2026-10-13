@@ -315,11 +315,10 @@ input[type="number"] {
 .glass-input:focus-within input, .glass-input:focus-within select { transform: translateY(4px); }
 .trippy-stretch { transform-origin: top center; will-change: transform; touch-action: pan-y; }
 @keyframes trippy-in {
-  0% { opacity: 0; transform: translateY(28px) scale(0.95) rotate(-1.4deg); }
-  55% { opacity: 1; transform: translateY(-5px) scale(1.012) rotate(0.6deg); }
-  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
-.animate-trippy-in { animation: trippy-in 0.55s cubic-bezier(0.3, 1.25, 0.4, 1) backwards; }
+.animate-trippy-in { animation: trippy-in 0.28s ease-out backwards; }
 @keyframes orb-drift-a { 0%, 100% { transform: translate(0, 0) scale(1); filter: hue-rotate(0deg); } 50% { transform: translate(36px, -30px) scale(1.12); filter: hue-rotate(45deg); } }
 @keyframes orb-drift-b { 0%, 100% { transform: translate(0, 0) scale(1); filter: hue-rotate(0deg); } 50% { transform: translate(-28px, 34px) scale(0.92); filter: hue-rotate(-35deg); } }
 .orb-a { animation: orb-drift-a 14s ease-in-out infinite; }
