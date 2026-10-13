@@ -173,6 +173,18 @@ jobs:
               s2 = re.sub(r'(<color name="ic_launcher_background">)[^<]*', r'\1#0EA968', s)
               open(bg, 'w').write(s2)
           print('custom icons installed')
+      - name: Set app launcher name to RouteMax
+        run: |
+          python3 - <<'EOF'
+          import os, re
+          p = 'android/app/src/main/res/values/strings.xml'
+          if os.path.exists(p):
+              s = open(p).read()
+              s2 = re.sub(r'<string name="app_name">.*?</string>', '<string name="app_name">RouteMax</string>', s)
+              if s2 != s:
+                  open(p, 'w').write(s2)
+                  print('app_name set to RouteMax')
+          EOF
           EOF
 
       - name: Set up Java JDK 21
