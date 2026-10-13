@@ -44,6 +44,7 @@ import {
   Milestone,
   ArrowUpDown,
   Droplets,
+  Download,
   Flame,
   Dumbbell,
   Coffee,
@@ -1432,7 +1433,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.364";
+const APP_VERSION = "2.365";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -2615,6 +2616,16 @@ function AppInner() {
     const totalDeduction = history.reduce((s, h) => s + h.mileage * irsRateFor(h.created_at), 0);
     const csv = "Date,Destination,Business Purpose,Miles,Deduction ($)\n" + rows.join("\n") + `\n,,,Total:,${total.toFixed(1)},$${totalDeduction.toFixed(2)}`;
     shareFile(csv, `irs-mileage-log-${new Date().toISOString().split("T")[0]}.csv`, "text/csv");
+  };
+  // Accepted trips — export as CSV
+  const shareAcceptedCsv = () => {
+    const rows = history.filter((h) => h.accepted);
+    if (rows.length === 0) return;
+    const csv = "Date,Payout ($),Miles,Net Profit ($),$/hr\n" + rows.map((h) => {
+      const date = new Date(h.created_at).toLocaleDateString("en-US");
+      return [date, (h.payout || 0).toFixed(2), (h.mileage || 0).toFixed(1), (h.net_profit || 0).toFixed(2), (h.hourly_earnings || 0).toFixed(2)].join(",");
+    }).join("\n");
+    shareFile(csv, `routemax-accepted-trips-${new Date().toISOString().split("T")[0]}.csv`, "text/csv");
   };
   const saveIrsDetail = (id: string, field: "dest" | "purpose", value: string) => {
     setIrsDetails((prev) => {
@@ -5648,6 +5659,21 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const bookEarnPerMile = book.miles > 0 ? book.gross / book.miles : 0;
     const bookHourly = book.hours > 0 ? book.net / book.hours : 0;
     const bookOtherCosts = book.totalCost - book.fuelCost;
+    // Share bookkeeping summary as a text file
+    const shareBookkeeping = () => {
+      const periodLabel = bookPeriod === "day" ? "Today" : bookPeriod === "week" ? "Last 7 days" : bookPeriod === "month" ? "Last 30 days" : bookPeriod === "year" ? "Last 12 months" : "All time";
+      const txt =
+`RouteMax Bookkeeping Summary — ${periodLabel} (${new Date().toLocaleDateString("en-US")})
+Trips: ${book.trips}
+Miles: ${book.miles.toFixed(1)}
+Gross earnings: ${formatCurrency(book.gross)}
+Fuel cost: ${formatCurrency(book.fuelCost)} (${book.gallons.toFixed(1)} gal)
+Other costs: ${formatCurrency(bookOtherCosts)}
+Net profit: ${formatCurrency(book.net)}
+Hours: ${book.hours.toFixed(1)} · ${formatCurrency(bookHourly)}/hr
+Cost per mile: ${formatCurrency(bookCostPerMile)} · Earned per mile: ${formatCurrency(bookEarnPerMile)}`;
+      shareFile(txt, `routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().split("T")[0]}.txt`, "text/plain");
+    };
     // v2.331: download bookkeeping summary as a text file
 
 
@@ -5822,10 +5848,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
               <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">{tr("bookkeep")}</span>
-              
-
-              
             </div>
+            <button onClick={shareBookkeeping} aria-label="Download bookkeeping summary" className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center active:scale-95">
+              <Download className="w-4 h-4 text-amber-300" />
+            </button>
           </div>
           <div className="flex items-center gap-1 mb-3">
               {(["day", "week", "month", "year", "all"] as const).map((p) => (
@@ -6296,7 +6322,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               <FileText className="w-4 h-4 text-amber-300" />
               <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{countryInfo.taxSystem} Mileage Log</div>
             </div>
-
+            <button onClick={exportIrsCsv} aria-label="Download mileage log" className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center active:scale-95">
+              <Download className="w-4 h-4 text-amber-300" />
+            </button>
           </div>
           <p className="text-[11px] text-zinc-500 mb-3 leading-relaxed">
             {countryInfo.taxSystem} requires date, destination, business purpose, and distance for every deduction. Fill in the details below — you're ready for taxes.
@@ -6447,7 +6475,15 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           Accepted Routes
         </span>
         <div className="flex items-center gap-1.5">
-
+          {accepted.length > 0 && (
+            <button
+              onClick={shareAcceptedCsv}
+              aria-label="Download accepted trips"
+              className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/25 flex items-center justify-center active:scale-95"
+            >
+              <Download className="w-4 h-4 text-teal-300" />
+            </button>
+          )}
           {acceptedBackup && acceptedBackup.length > 0 && (
             <button
               onClick={recoverAccepted}
