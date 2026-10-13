@@ -1393,7 +1393,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.380";
+const APP_VERSION = "2.381";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4931,8 +4931,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   }, [payout, mileage, calcTick]);
 
   // v2 Phase 3: snap the offer screen — AI fills payout + miles
-  const scanOffer = async () => {
+  const [scanPickerOpen, setScanPickerOpen] = useState(false);
+  const scanOffer = async (source?: CameraSource) => {
     if (!isPremium || !isAiConfigured || scanBusy) return;
+    setScanPickerOpen(false);
     setScanBusy(true);
     setScanError("");
     setScanOk(false);
@@ -4940,7 +4942,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       const photo = await CapCamera.getPhoto({
         quality: 80,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Prompt, // Camera OR Photos — pick from gallery or snap new
+        source: source || CameraSource.Prompt,
       });
       const base64 = photo.base64String;
       if (!base64) throw new Error("Couldn't read the photo. Try again.");
@@ -4986,6 +4988,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || docBusy) return;
+    setScanPickerOpen(false);
     setDocBusy(true);
     setScanError("");
     setScanOk(false);
@@ -7736,7 +7739,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               {isPremium && isAiConfigured && (
                 <div>
                   <button
-                    onClick={scanOffer}
+                    onClick={() => setScanPickerOpen(true)}
                     disabled={scanBusy}
                     className="relative w-full glass-input border border-amber-500/30 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 py-3 text-sm font-bold text-amber-300 active:scale-[0.98] transition-transform disabled:opacity-60"
                   >
@@ -7746,15 +7749,24 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
                     <Camera className="w-4 h-4 relative" strokeWidth={2.5} />
                     {scanBusy ? (tripPurpose === "personal" ? "Scanning…" : "Scanning…") : (tripPurpose === "personal" ? "Scan trip, receipt or document" : "Scan offer, receipt or document")}
                   </button>
-                  <button
-                    onClick={() => docUploadRef.current && docUploadRef.current.click()}
-                    disabled={docBusy || scanBusy}
-                    className="w-full mt-2 py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/25 text-xs font-bold text-teal-300 active:scale-[0.98] flex items-center justify-center gap-1.5 disabled:opacity-50"
-                  >
-                    <Upload className="w-4 h-4" />
-                    {docBusy ? "Reading document…" : "Upload document (PDF or image)"}
-                  </button>
                   <input ref={docUploadRef} type="file" accept="image/*,.pdf,application/pdf" onChange={handleDocUpload} className="hidden" aria-hidden="true" tabIndex={-1} />
+                  {scanPickerOpen && (
+                    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="Choose scan source">
+                      <div className="absolute inset-0 bg-black/70" onClick={() => setScanPickerOpen(false)} />
+                      <div className="relative w-full max-w-md bg-zinc-900 border-t border-zinc-700/50 rounded-t-3xl p-4 pb-8 animate-drawerin">
+                        <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3 px-1">Scan from</div>
+                        <button onClick={() => scanOffer(CameraSource.Camera)} className="w-full py-3.5 px-4 rounded-2xl bg-zinc-800/70 border border-zinc-700/50 text-sm font-bold text-zinc-100 active:scale-[0.98] flex items-center gap-3 mb-2">
+                          <Camera className="w-5 h-5 text-amber-400" /> Take Picture
+                        </button>
+                        <button onClick={() => scanOffer(CameraSource.Photos)} className="w-full py-3.5 px-4 rounded-2xl bg-zinc-800/70 border border-zinc-700/50 text-sm font-bold text-zinc-100 active:scale-[0.98] flex items-center gap-3 mb-2">
+                          <ImagePlus className="w-5 h-5 text-amber-400" /> From Photos
+                        </button>
+                        <button onClick={() => { setScanPickerOpen(false); docUploadRef.current && docUploadRef.current.click(); }} className="w-full py-3.5 px-4 rounded-2xl bg-teal-500/10 border border-teal-500/25 text-sm font-bold text-teal-200 active:scale-[0.98] flex items-center gap-3">
+                          <Upload className="w-5 h-5 text-teal-400" /> Upload Document (PDF or file)
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {scanError && (
                     <div className="text-xs text-red-400 font-medium mt-2">{scanError}</div>
                   )}
