@@ -1393,7 +1393,37 @@ const fmtNum = (n: number | string, decimals = 2): string => {
 };
 const fmt$ = (n: number | string): string => "$" + fmtNum(n, 2);
 
-const APP_VERSION = "2.330";
+// Download helper - creates and downloads a text file (works on mobile)
+const downloadTextFile = (filename: string, content: string): boolean => {
+  try {
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  } catch (e) {
+    console.error("Download failed:", e);
+    return false;
+  }
+};
+
+// Group trips by platform/preset for collapsible organization
+const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHistoryRow[]> => {
+  const groups: Record<string, RouteHistoryRow[]> = {};
+  trips.forEach((t) => {
+    const key = t.platform || "Other";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(t);
+  });
+  return groups;
+};
+
+const APP_VERSION = "2.331";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -5370,6 +5400,61 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   };
 
   /* ---------- reports tab ---------- */
+  // v2.331 shared: small download icon button (uses Download lucide icon, not "Export" text)
+  const downloadIconBtn = (onDownload: () => void, title: string): ReactElement => (
+    <button
+      onClick={onDownload}
+      title={title}
+      aria-label={title}
+      className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center active:scale-95 transition-transform shrink-0"
+    >
+      <Download className="w-4 h-4 text-amber-300" strokeWidth={2.5} />
+    </button>
+  );
+
+  // v2.331 shared: resolve a platform key to its display label
+  const platformLabel = (key: string | null): string => {
+    if (!key || key === "Other") return "Other";
+    const p = allPresets.find((pr) => pr.key === key);
+    return p ? p.label : key;
+  };
+
+  // v2.331 shared: per-preset collapsible trip groups (keeps the all-trips summary above)
+  const presetCollapsibles = (trips: RouteHistoryRow[]): ReactElement | null => {
+    const groups = groupTripsByPlatform(trips);
+    const entries = Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
+    if (entries.length <= 1) return null;
+    return (
+      <div className="space-y-2">
+        <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider px-1">
+          Trips by app
+        </div>
+        {entries.map(([key, rows]) => {
+          const net = rows.reduce((s, r) => s + (r.net_profit || 0), 0);
+          const miles = rows.reduce((s, r) => s + (r.mileage || 0), 0);
+          return (
+            <details key={key} className="glass rounded-2xl overflow-hidden group">
+              <summary className="w-full p-3.5 cursor-pointer list-none active:opacity-70 [&::-webkit-details-marker]:hidden">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-white truncate">{platformLabel(key)}</div>
+                    <div className="text-[11px] text-zinc-500 mt-0.5">
+                      {rows.length} trip{rows.length === 1 ? "" : "s"} · {formatCurrency(net)} net · {formatNumber(miles, 0)} mi
+                    </div>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0 transition-transform group-open:rotate-180" />
+                </div>
+              </summary>
+              <div className="px-3.5 pb-3.5 pt-1 border-t border-zinc-800/40 space-y-2">
+                {rows.map((row, i) => renderRouteRow(row, i))}
+              </div>
+            </details>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderReportsTab = () => {
     if (!isPremium) {
       return renderPremiumLock(
@@ -5433,6 +5518,28 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const bookEarnPerMile = book.miles > 0 ? book.gross / book.miles : 0;
     const bookHourly = book.hours > 0 ? book.net / book.hours : 0;
     const bookOtherCosts = book.totalCost - book.fuelCost;
+    // v2.331: download bookkeeping summary as a text file
+    const downloadBookkeeping = () => {
+      const lines = [
+        "ROUTEMAX BOOKKEEPING SUMMARY",
+        `Period: ${bookPeriod}`,
+        `Generated: ${new Date().toLocaleString()}`,
+        "",
+        `Trips: ${book.trips}`,
+        `Miles driven: ${formatNumber(book.miles, 1)}`,
+        `Gas used: ${formatNumber(book.gallons, 1)} gal`,
+        `Fuel cost: ${formatCurrency(book.fuelCost)}`,
+        `Other expenses: ${formatCurrency(bookOtherCosts)}`,
+        `Gross earnings: ${formatCurrency(book.gross)}`,
+        `Net profit: ${formatCurrency(book.net)}`,
+        `Hours: ${formatNumber(book.hours, 1)}`,
+        `Earnings/mile: ${formatCurrency(bookEarnPerMile)}`,
+        `Cost/mile: ${formatCurrency(bookCostPerMile)}`,
+        `Hourly rate: ${formatCurrency(bookHourly)}`,
+      ];
+      downloadTextFile(`routemax-bookkeeping-${bookPeriod}-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+    };
+
 
     // Last 8 weeks of net profit
     const weeks: { key: string; label: string; net: number }[] = [];
@@ -5584,13 +5691,47 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const whatIfKeptNet = whatIfKept.reduce((s, r) => s + r.net_profit, 0);
     const whatIfKeptHours = whatIfKept.reduce((s, r) => s + r.hours, 0);
     const whatIfDiff = whatIfKeptNet - whatIfActualNet;
+    // v2.331: download full earnings report as a text file
+    const downloadReports = () => {
+      const byPlat = Object.entries(groupTripsByPlatform(history)).sort((a, b) => b[1].length - a[1].length);
+      const lines = [
+        "ROUTEMAX EARNINGS REPORT",
+        `Generated: ${new Date().toLocaleString()}`,
+        `App version: ${APP_VERSION}`,
+        "",
+        "TOTALS (all saved routes)",
+        `Routes: ${totals.routes}`,
+        `Gross: ${formatCurrency(totals.gross)}`,
+        `Costs: ${formatCurrency(totals.cost)}`,
+        `Net: ${formatCurrency(totals.net)}`,
+        `Hours: ${formatNumber(totals.hours, 1)}`,
+        `Miles: ${formatNumber(totals.miles, 1)}`,
+        `Avg hourly: ${formatCurrency(avgHourly)}`,
+        "",
+        "MONTHLY BREAKDOWN",
+        ...months.map((m) => `${m.label}: ${m.routes} trips, ${formatCurrency(m.gross)} gross, ${formatCurrency(m.net)} net`),
+        "",
+        "BY APP / PLATFORM",
+        ...byPlat.map(([k, rows]) => {
+          const net = rows.reduce((s, r) => s + (r.net_profit || 0), 0);
+          return `${platformLabel(k)}: ${rows.length} trips, ${formatCurrency(net)} net`;
+        }),
+      ];
+      downloadTextFile(`routemax-report-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+    };
+
 
     return (
       <div className="space-y-4 animate-fade-in-up">
-        <TabHero
-          title="Earnings Reports"
-          subtitle="True profit after fuel and wear, from your saved routes."
-        />
+        <div className="relative">
+          <TabHero
+            title="Earnings Reports"
+            subtitle="True profit after fuel and wear, from your saved routes."
+          />
+          <div className="absolute top-3 right-3">
+            {downloadIconBtn(downloadReports, "Download earnings report")}
+          </div>
+        </div>
 
         {/* Bookkeeping Dashboard */}
         <div className="glass rounded-2xl p-4 border border-amber-500/15">
@@ -5599,7 +5740,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               <BookOpen className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
               <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">{tr("bookkeep")}</span>
             </div>
-            <div className="flex gap-1">
+            <div className="flex items-center gap-1">
+              {downloadIconBtn(downloadBookkeeping, "Download bookkeeping summary")}
               {(["day", "week", "month", "year", "all"] as const).map((p) => (
                 <button
                   key={p}
@@ -5945,6 +6087,9 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             "0.38s")}
         </div>
 
+        {/* v2.331: trips grouped by app/preset (all-trips summary stays above) */}
+        {presetCollapsibles(history)}
+
         {/* Weekly bars */}
         <div className="glass rounded-2xl p-4">
           <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
@@ -6217,6 +6362,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
           Accepted Routes
         </span>
         <div className="flex items-center gap-1.5">
+          {accepted.length > 0 && downloadIconBtn(downloadAccepted, "Download accepted trips")}
           {acceptedBackup && acceptedBackup.length > 0 && (
             <button
               onClick={recoverAccepted}
@@ -6294,6 +6440,26 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
       .map(([label, v]) => `${label}: ${v.n} trips, ${formatCurrency(v.net)} net`)
       .join("; ");
     const acceptedPayouts = accepted.map((r) => formatCurrency(r.payout ?? 0)).join(", ");
+    // v2.331: download accepted trips as a text file
+    const downloadAccepted = () => {
+      const lines = [
+        "ROUTEMAX ACCEPTED TRIPS",
+        `Generated: ${new Date().toLocaleString()}`,
+        "",
+        "SUMMARY",
+        `Trips: ${accepted.length}`,
+        `Total net: ${formatCurrency(totalNet)}`,
+        `Total miles: ${formatNumber(totalMiles, 0)}`,
+        "",
+        "BY APP / PLATFORM",
+        ...providerEntries.map(([label, v]) => `${label}: ${v.n} trips, ${formatCurrency(v.net)} net, ${formatNumber(v.miles, 0)} mi`),
+        "",
+        "TRIP DETAILS",
+        ...accepted.map((r) => `${formatShortDate(r.created_at)} | ${platformLabel(r.platform)} | ${formatCurrency(r.payout ?? 0)} payout | ${formatNumber(r.mileage ?? 0, 1)} mi | ${formatCurrency(r.net_profit ?? 0)} net`),
+      ];
+      downloadTextFile(`routemax-accepted-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+    };
+
     return (
       <div>
         {acceptedHeader}
@@ -6346,6 +6512,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             )}
           </div>
         )}
+        {/* v2.331: trips grouped by app/preset (full list stays below) */}
+        {presetCollapsibles(accepted)}
         <div className="space-y-2">
           {accepted.map((row) => renderRouteRow(row))}
         </div>
@@ -6431,12 +6599,38 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
       return { label: `Q${q + 1}`, miles, trips: trips.length, deduction: validRate ? miles * rateNum : 0 };
     });
 
+    // v2.331: download tax mileage log as a text file
+    const downloadTax = () => {
+      const lines = [
+        "ROUTEMAX TAX MILEAGE LOG",
+        `Generated: ${new Date().toLocaleString()}`,
+        `Year: ${year}`,
+        "",
+        "SUMMARY",
+        `Business miles: ${formatNumber(totalMiles, 0)}`,
+        `Rate: ${validRate ? formatCurrency(rateNum) : "not set"}/${DIST}`,
+        `Estimated deduction: ${formatCurrency(deduction)}`,
+        "",
+        "QUARTERLY BREAKDOWN",
+        ...quarters.map((q) => `${q.label}: ${formatNumber(q.miles, 0)} mi, ${q.trips} trips, ${formatCurrency(q.deduction)} deduction`),
+        "",
+        "TRIP LOG (accepted trips only)",
+        ...acceptedHistory.map((r) => `${formatShortDate(r.created_at)}: ${formatNumber(r.mileage, 1)} mi — ${platformLabel(r.platform)}`),
+      ];
+      downloadTextFile(`routemax-tax-${year}-${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
+    };
+
     return (
       <div className="space-y-4 animate-fade-in-up">
-        <TabHero
-          title="Tax Mileage Log"
-          subtitle="Only trips you mark ✓ accepted count as business miles. Multiply by the IRS standard rate for your deduction estimate."
-        />
+        <div className="relative">
+          <TabHero
+            title="Tax Mileage Log"
+            subtitle="Only trips you mark ✓ accepted count as business miles. Multiply by the IRS standard rate for your deduction estimate."
+          />
+          <div className="absolute top-3 right-3">
+            {downloadIconBtn(downloadTax, "Download tax mileage log")}
+          </div>
+        </div>
 
         {/* Import receipt for AI analysis */}
         <div className="glass rounded-2xl p-4 border border-amber-500/15">
