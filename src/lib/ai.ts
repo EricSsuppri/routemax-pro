@@ -1,4 +1,5 @@
 // Shared AI helper — every v2 AI feature calls askGemini().
+// v2.359: text model -> openai/gpt-oss-120b (Groq deprecated llama-3.3-70b); disclosure now says Groq AI; strip <think> blocks.
 // v2.358: vision model set to qwen/qwen3.8-27b, verified on Groq's official vision docs (no fallback chain).
 // v2.357: Groq retired Llama-4-Scout vision (404); switched to qwen/qwen3.6-27b with qwen3.8-27b auto-fallback on 404.
 // v2.356: switched provider from Gemini to Groq (free tier, no card needed).
@@ -7,7 +8,8 @@
 // The askGemini export name is kept so all call sites in App.tsx stay untouched.
 
 const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY as string | undefined;
-const TEXT_MODEL = "llama-3.3-70b-versatile";
+// openai/gpt-oss-120b: Groq production model (llama-3.3-70b was deprecated by Groq).
+const TEXT_MODEL = "openai/gpt-oss-120b";
 // Vision model verified 2026-10-13 against Groq's official vision docs:
 // qwen/qwen3.8-27b is Groq's current multimodal model (text+image, JSON mode).
 // (Llama 4 Scout/Maverick vision were retired — confirmed by live 404.)
@@ -15,9 +17,13 @@ const VISION_MODEL = "qwen/qwen3.8-27b";
 
 export const isAiConfigured = Boolean(GROQ_KEY);
 
-/** Strip markdown code fences some models wrap around JSON replies. */
+/** Strip markdown code fences and <think> reasoning blocks some models emit. */
 function cleanJson(text: string): string {
-  return text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim();
+  return text
+    .replace(/<think>[\s\S]*?<\/think>/g, "")
+    .replace(/^```(?:json)?\s*/, "")
+    .replace(/\s*```$/, "")
+    .trim();
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
