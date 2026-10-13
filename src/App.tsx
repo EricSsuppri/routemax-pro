@@ -1450,7 +1450,13 @@ const shareDocument = async (title: string, filename: string, content: string): 
       + "</body></html>";
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+    try {
+      // Use Capacitor Browser plugin for full print support
+      await Browser.open({ url, windowName: "_blank" });
+    } catch {
+      // Fallback to window.open
+      window.open(url, "_blank");
+    }
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     return true;
   } catch (e) {
