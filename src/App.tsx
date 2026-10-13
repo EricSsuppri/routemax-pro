@@ -110,8 +110,6 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { Purchases } from "@revenuecat/purchases-capacitor";
 import { Browser } from "@capacitor/browser";
-import { Filesystem, Directory } from "@capacitor/filesystem";
-import { Share } from "@capacitor/share";
 import { App as CapApp } from "@capacitor/app";
 
 const WEAR_COST_PER_MILE = 0.3;
@@ -1446,33 +1444,17 @@ const shareDocument = async (title: string, filename: string, content: string): 
   const safeFilename = filename.replace(/[^a-z0-9.-]/gi, "-").toLowerCase().replace(/\.txt$/, ".html");
 
   try {
-    // NATIVE: write file to device cache, then open system share sheet
-    const writeResult = await Filesystem.writeFile({
-      path: safeFilename,
-      data: html,
-      directory: Directory.Cache,
-    });
-    await Share.share({
-      title: title,
-      text: title,
-      url: writeResult.uri,
-      dialogTitle: "Share " + title,
-    });
-    return true;
-  } catch (e: any) {
-    if (e?.message?.includes("cancel") || e?.message?.includes("dismiss")) return false;
-    console.error("Native share failed, trying browser fallback:", e);
-  }
-
-  try {
-    // FALLBACK: open in system browser via data URL
+    // Open in system browser via data URL — user can save/share from there
     const url = "data:text/html;charset=utf-8," + encodeURIComponent(html);
     const win = window.open(url, "_blank");
-    if (!win) window.location.href = url;
+    if (!win) {
+      // Popup blocked — try Browser plugin as fallback
+      await Browser.open({ url: "about:blank", windowName: "_blank" });
+    }
     return true;
-  } catch (e2) {
-    console.error("Share failed:", e2);
-    alert("Could not share the document. Please try again.");
+  } catch (e: any) {
+    console.error("Share failed:", e);
+    alert("Could not open the document. Please try again.");
     return false;
   }
 };
@@ -1494,7 +1476,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.345";
+const APP_VERSION = "2.346";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
