@@ -1483,7 +1483,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
   return groups;
 };
 
-const APP_VERSION = "2.338";
+const APP_VERSION = "2.339";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -6550,6 +6550,18 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             </p>
           </div>
           {renderTrashFolder()}
+        </div>
+      );
+    }
+    // v2.339: loading guard — history still fetching after sign-in, don't touch accepted[0]
+    if (historyLoading) {
+      return (
+        <div>
+          {acceptedHeader}
+          <div className="glass rounded-2xl p-8 text-center">
+            <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-400 rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-xs text-zinc-500">Loading your accepted trips…</p>
+          </div>
         </div>
       );
     }
