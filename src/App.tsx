@@ -1389,7 +1389,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.371";
+const APP_VERSION = "2.372";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -1775,9 +1775,8 @@ function CameraCoach({ mode, onClose, onLog }: {
   const [targetSets] = useState(3);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [plan, setPlan] = useState("");
-  const [planBusy, setPlanBusy] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+
 
   // Native camera capture via the Capacitor plugin — the exact path Scan Offer
   // uses (and the one that works on this device). getUserMedia was removed:
@@ -1808,7 +1807,6 @@ function CameraCoach({ mode, onClose, onLog }: {
     if (busy) return;
     const img = await snap();
     if (!img) { setFeedback("No photo taken — try again."); return; }
-    setPhotoPreview(img);
     setBusy(true); setFeedback("");
     try {
       let prompt = "";
@@ -1870,117 +1868,85 @@ function CameraCoach({ mode, onClose, onLog }: {
     onClose();
   };
 
-  const getPlan = async () => {
-    if (planBusy) return;
-    setPlanBusy(true); setPlan("");
-    try {
-      const img = await snap();
-      if (img) setPhotoPreview(img);
-      // Get user's recent activity from localStorage for context
-      let weekWorkouts = 0;
-      try {
-        const log = JSON.parse(localStorage.getItem("routemax_basecamp_log") || "{}");
-        const t = new Date();
-        for (let i = 0; i < 7; i++) {
-          const d = new Date(t); d.setDate(d.getDate() - i);
-          const k = d.toISOString().slice(0, 10);
-          weekWorkouts += (log[k]?.workouts || 0) + (log[k]?.stretches || 0);
-        }
-      } catch {}
-      const prompt = `You are a personal trainer. Look at this photo of the user and their context: they did ${weekWorkouts} workout sessions in the last 7 days, just did ${reps} ${exercise} reps. Design a 7-day workout schedule tailored to them — realistic for a gig driver with limited time (20-30 min/day max). Include: (1) which days for strength vs cardio vs rest, (2) 3-4 specific exercises per workout day with sets/reps, (3) one technique tip based on what you see in the photo. Format clearly with day headers. Encouraging tone.`;
-      const raw = await askGemini(prompt, img ? img.split(",")[1] : undefined, false);
-      setPlan(cleanChatReply(raw));
-    } catch { setPlan("Couldn't generate a plan — try again."); }
-    finally { setPlanBusy(false); }
-  };
+  const titles = { workout: "Rep Coach", water: "Water Scanner", stretch: "Form Coach" };
+  const exercises = mode === "workout"
+    ? ["push-ups", "squats", "jumping jacks", "plank"]
+    : mode === "stretch"
+      ? ["standing stretch", "neck rolls", "shoulder stretch", "touch toes"]
+      : [];
 
-  const titles = { workout: "Workout coach", water: "Water scanner", stretch: "Stretch coach" };
-  const hints = {
-    workout: "Get into position, then tap Count this rep",
-    water: "Hold up your bottle or cup, then tap Scan my bottle",
-    stretch: "Get into your stretch, then tap Check my form",
+  // Coach intro: guidance on open / exercise change (no photo needed)
+  const [coachIntro, setCoachIntro] = useState("");
+  const [introBusy, setIntroBusy] = useState(false);
+  const loadIntro = async (ex: string) => {
+    if (mode === "water" || introBusy) return;
+    setIntroBusy(true); setCoachIntro("");
+    try {
+      const raw = await askGemini(
+        mode === "workout"
+          ? `You are a personal trainer. Your client is about to do ${ex}. In 2 short sentences: (1) how to get into perfect starting position, (2) the ONE most common form mistake to avoid. Direct, encouraging, like you're standing next to them.`
+          : `You are a stretch coach. Your client is about to do: ${ex}. In 2 short sentences: (1) how to get into the stretch, (2) what they should feel and one safety tip. Warm and expert.`,
+        undefined, false
+      );
+      setCoachIntro(cleanChatReply(raw));
+    } catch { setCoachIntro("Get into position and tap the button — I'll watch your form."); }
+    finally { setIntroBusy(false); }
   };
+  // Load intro on mount and when exercise changes
+  useEffect(() => { loadIntro(exercise); }, [exercise]);
+
   return (
-    <div className="fixed inset-0 z-[60] bg-[#0a0a0f]/98 flex flex-col" role="dialog" aria-modal="true">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
-        <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center">
-            <Camera className="w-4 h-4 text-teal-300" />
-          </span>
-          <div className="text-sm font-bold text-zinc-100">{titles[mode]}</div>
-        </div>
-        <button onClick={onClose} aria-label="Close camera coach" className="w-9 h-9 rounded-xl bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center active:scale-95">
-          <X className="w-4 h-4 text-zinc-300" />
+    <div className="fixed inset-0 z-[60] bg-[#0a0a0f] flex flex-col" role="dialog" aria-modal="true">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="text-sm font-bold text-zinc-100">{titles[mode]} <span className="text-teal-300">·</span> <span className="text-zinc-400 font-normal">{exercise || "AI coach"}</span></div>
+        <button onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-lg bg-zinc-800/80 flex items-center justify-center active:scale-95">
+          <X className="w-4 h-4 text-zinc-400" />
         </button>
       </div>
-      <div className="flex-1 relative overflow-hidden flex items-center justify-center p-4">
-        {photoPreview ? (
-          <div className="relative w-full max-w-sm">
-            <img src={photoPreview} alt="Last captured photo" className="w-full rounded-2xl border border-zinc-700/60 object-cover max-h-[46vh]" />
-            {mode === "workout" && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-5 py-2 text-center">
-                <div className="text-2xl font-extrabold text-amber-300 tabular-nums">{reps}<span className="text-sm text-zinc-400">/{targetReps}</span></div>
-                <div className="text-[10px] text-zinc-400 uppercase tracking-wider">set {sets}/{targetSets}</div>
-              </div>
-            )}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 rounded-full px-3 py-1 text-[10px] font-bold text-zinc-300">Last photo</div>
+
+      {exercises.length > 0 && (
+        <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto no-scrollbar">
+          {exercises.map((ex) => (
+            <button key={ex} onClick={() => { setExercise(ex); setReps(0); setSets(1); setFeedback(""); }}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-teal-500 text-[#0a0a0f]" : "bg-zinc-800/70 text-zinc-400"}`}>{ex}</button>
+          ))}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto px-4 py-2">
+        {(introBusy && !coachIntro && !feedback) ? (
+          <div className="text-[13px] text-zinc-500">Coach is getting ready…</div>
+        ) : null}
+        {coachIntro && !feedback ? (
+          <div className="text-[15px] text-zinc-100 leading-relaxed">
+            <span className="text-teal-300 font-bold">Coach: </span>{coachIntro}
           </div>
-        ) : (
-          <div className="w-full max-w-sm">
-            <div className="relative rounded-2xl border-2 border-dashed border-teal-500/30 bg-zinc-900/60 aspect-[4/3] flex items-center justify-center">
-              <div className="text-center px-6">
-                <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-teal-300" />
-                </div>
-                <div className="text-sm text-zinc-200 font-bold mb-1">{hints[mode]}</div>
-                <div className="text-[11px] text-zinc-500">Opens your camera app — snap a photo and the AI coach sees it</div>
-              </div>
-              {mode === "workout" && (
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 rounded-2xl px-5 py-2 text-center">
-                  <div className="text-2xl font-extrabold text-amber-300 tabular-nums">{reps}</div>
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">reps</div>
-                </div>
-              )}
-            </div>
+        ) : null}
+        {feedback ? (
+          <div className="text-[15px] text-zinc-100 leading-relaxed animate-fade-in-up">
+            <span className="text-amber-300 font-bold">Coach: </span>{feedback}
           </div>
-        )}
+        ) : null}
+
       </div>
+
       {mode === "workout" && (
-        <div className="px-4 pt-3">
-          <div className="flex gap-2">
-            {["push-ups", "squats", "jumping jacks", "plank"].map((ex) => (
-              <button key={ex} onClick={() => { setExercise(ex); setReps(0); setSets(1); setFeedback(""); setPhotoPreview(null); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
-            ))}
+        <div className="px-4 pb-1">
+          <div className="h-1.5 rounded-full bg-zinc-800/70 overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-teal-400 to-amber-400 transition-all duration-300"
+              style={{ width: `${Math.min(100, ((sets - 1) * targetReps + reps) / (targetSets * targetReps) * 100)}%` }} />
           </div>
-          <button onClick={getPlan} disabled={planBusy} className="w-full mt-2 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-200 active:scale-[0.98] disabled:opacity-50">
-            {planBusy ? "Building your plan…" : "📋 Get my 7-day workout plan (AI sees you + your history)"}
-          </button>
+          <div className="text-[11px] text-zinc-500 mt-1 text-center tabular-nums">Set {sets}/{targetSets} · Rep {reps}/{targetReps}</div>
         </div>
       )}
-      {mode === "stretch" && (
-        <div className="px-4 pt-3">
-          <div className="flex gap-2">
-            {["standing stretch", "neck rolls", "shoulder stretch", "touch toes"].map((ex) => (
-              <button key={ex} onClick={() => { setExercise(ex); setFeedback(""); }} className={`flex-1 py-2 rounded-xl text-[11px] font-bold active:scale-95 ${exercise === ex ? "bg-amber-500 text-[#0a0a0f]" : "bg-zinc-800 text-zinc-400"}`}>{ex}</button>
-            ))}
-          </div>
-        </div>
-      )}
-      {feedback && (
-        <div className="mx-4 mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[12px] text-zinc-200 leading-relaxed">{feedback}</div>
-      )}
-      {plan && (
-        <div className="mx-4 mt-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 max-h-64 overflow-y-auto">
-          <div className="text-[11px] font-bold text-amber-200 uppercase tracking-wider mb-2">Your 7-day plan</div>
-          <div className="text-[12px] text-zinc-200 leading-relaxed whitespace-pre-line">{plan}</div>
-        </div>
-      )}
-      <div className="p-4 flex gap-2">
-        <button onClick={analyze} disabled={busy} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50">
-          {busy ? "Watching…" : mode === "workout" ? "Count this rep 📸" : mode === "water" ? "Scan my bottle 📸" : "Check my form 📸"}
+
+      <div className="p-4 pt-2 flex gap-2">
+        <button onClick={analyze} disabled={busy} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2">
+          <Camera className="w-4 h-4" />
+          {busy ? "Coach is watching…" : mode === "workout" ? "Count this rep" : mode === "water" ? "Scan my bottle" : "Check my form"}
         </button>
-        <button onClick={finish} className="px-5 py-3.5 rounded-2xl bg-zinc-800 border border-zinc-700 text-sm font-bold text-zinc-200 active:scale-95">
-          {mode === "water" ? "Done" : `Finish${mode === "workout" && reps > 0 ? ` (${reps})` : ""}`}
+        <button onClick={finish} aria-label="Finish and log" className="px-5 py-3.5 rounded-2xl bg-zinc-800/70 border border-zinc-700/50 text-sm font-bold text-zinc-300 active:scale-95">
+          Done
         </button>
       </div>
     </div>
