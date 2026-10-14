@@ -680,11 +680,10 @@ body {
   0% { background-position: center top, center 0%; }
   100% { background-position: center top, center 100%; }
 }
-/* === PSYCHEDELIC TAB TRANSITIONS — GOLD THEME (v2.391) === */
-/* Matched to the gold/dark theme. Dopamine-tuned: warm golds feel like
-   reward, the sweep feels like unwrapping, micro-variance keeps it fresh. */
+/* === PSYCHEDELIC TAB TRANSITIONS — GOLD THEME (v2.392) === */
+/* GPU-CHEAP: transform + opacity only. No filter animations — those */
+/* jank on phone GPUs and caused the tab-switch flicker. */
 
-/* Buttery smooth scrolling everywhere */
 * {
   -webkit-overflow-scrolling: touch;
 }
@@ -703,35 +702,27 @@ html {
   border-radius: 99px;
 }
 
-/* Psychedelic tab content entrance — golden wave sweep */
+/* Tab content entrance — slide + fade + subtle scale. Cheap. */
 @keyframes psyche-in {
   0% {
     opacity: 0;
-    transform: translateY(24px) scale(0.98);
-    filter: hue-rotate(-30deg) saturate(2.2) blur(4px);
-  }
-  40% {
-    opacity: 1;
-    filter: hue-rotate(15deg) saturate(1.7) blur(0px);
-  }
-  70% {
-    filter: hue-rotate(-8deg) saturate(1.25);
+    transform: translateY(18px) scale(0.985);
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: hue-rotate(0deg) saturate(1) blur(0px);
   }
 }
 .animate-psyche-in {
-  animation: psyche-in 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: psyche-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
 }
 
-/* Liquid gold sweep — like unwrapping a reward */
+/* Liquid gold sweep — gradient slide, no blur, no filter */
 @keyframes psyche-sweep {
   0% {
     transform: translateX(-100%) skewX(-12deg);
-    opacity: 0.9;
+    opacity: 0.55;
   }
   100% {
     transform: translateX(200%) skewX(-12deg);
@@ -743,42 +734,37 @@ html {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 60%;
+  width: 55%;
   pointer-events: none;
   z-index: 60;
   background: linear-gradient(105deg,
     transparent,
-    rgba(230, 197, 124, 0.28),
-    rgba(245, 158, 11, 0.32),
-    rgba(180, 83, 9, 0.26),
-    rgba(255, 236, 208, 0.18),
+    rgba(230, 197, 124, 0.22),
+    rgba(245, 158, 11, 0.26),
+    rgba(255, 236, 208, 0.14),
     transparent);
-  filter: blur(12px);
-  animation: psyche-sweep 0.6s ease-out forwards;
+  animation: psyche-sweep 0.5s ease-out forwards;
+  will-change: transform, opacity;
 }
 
-/* Reward pulse on the tab bar — warm dopamine glow cycle */
+/* Warm glow pulse on the tab bar — box-shadow only */
 @keyframes psyche-glow {
-  0%, 100% { box-shadow: 0 0 12px rgba(230, 197, 124, 0.35); }
-  25% { box-shadow: 0 0 26px rgba(245, 158, 11, 0.55); }
-  50% { box-shadow: 0 0 26px rgba(255, 236, 208, 0.5); }
-  75% { box-shadow: 0 0 26px rgba(180, 83, 9, 0.5); }
+  0%, 100% { box-shadow: 0 0 10px rgba(230, 197, 124, 0.3); }
+  50% { box-shadow: 0 0 22px rgba(245, 158, 11, 0.5); }
 }
 .animate-psyche-glow {
-  animation: psyche-glow 1.2s ease-in-out;
+  animation: psyche-glow 1s ease-in-out;
 }
 
-/* Micro shimmer on the active tab icon — the "ooh" moment */
+/* Micro shimmer on the active tab icon — opacity pulse, no filter */
 @keyframes psyche-icon-shimmer {
-  0% { filter: brightness(1) drop-shadow(0 0 0 rgba(230,197,124,0)); }
-  50% { filter: brightness(1.6) drop-shadow(0 0 8px rgba(230,197,124,0.9)); }
-  100% { filter: brightness(1) drop-shadow(0 0 0 rgba(230,197,124,0)); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
 }
 .animate-psyche-icon {
-  animation: psyche-icon-shimmer 0.9s ease-in-out;
+  animation: psyche-icon-shimmer 0.7s ease-in-out;
 }
 
-/* Smooth momentum scroll containers */
 .smooth-scroll {
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
