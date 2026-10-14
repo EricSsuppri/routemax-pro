@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.395";
+const APP_VERSION = "2.396";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -2245,6 +2245,9 @@ function AppInner() {
   const [parkingBusy, setParkingBusy] = useState(false);
   const [parkingErr, setParkingErr] = useState("");
   const [parkingRadius, setParkingRadius] = useState(2000);
+  const [parkingCategory, setParkingCategory] = useState("car");
+  const [parkingAiTip, setParkingAiTip] = useState("");
+  const [parkingAiBusy, setParkingAiBusy] = useState(false);
   const [navFrom, setNavFrom] = useState<GeoSugg | null>(null);
   const [navTo, setNavTo] = useState<GeoSugg | null>(null);
   // Basecamp hub: hydration + break timer for drivers/riders/pilots/travelers.
@@ -4496,7 +4499,16 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   };
 
   // Parking finder — free, OpenStreetMap Overpass API, no key needed.
-  // Finds parking lots/garages near the device location.
+  // Categories: car, truck, rv, plane, boat, bike, motorcycle.
+  const PARKING_CATS: Record<string, { label: string; query: string; icon: string }> = {
+    car: { label: "Cars", query: 'node["amenity"="parking"];way["amenity"="parking"];', icon: "Car" },
+    truck: { label: "Trucks", query: 'node["amenity"="parking"]["hgv"];way["amenity"="parking"]["hgv"];node["amenity"="parking"]["hgv"="designated"];', icon: "Truck" },
+    rv: { label: "RVs", query: 'node["tourism"="caravan_site"];way["tourism"="caravan_site"];', icon: "Car" },
+    plane: { label: "Planes", query: 'node["aeroway"="aerodrome"];way["aeroway"="aerodrome"];', icon: "Plane" },
+    boat: { label: "Boats", query: 'node["leisure"="marina"];way["leisure"="marina"];', icon: "Ship" },
+    bike: { label: "Bikes & Scooters", query: 'node["amenity"="bicycle_parking"];way["amenity"="bicycle_parking"];', icon: "Bike" },
+    motorcycle: { label: "Motorcycles", query: 'node["amenity"="motorcycle_parking"];way["amenity"="motorcycle_parking"];', icon: "Bike" },
+  };
   const findParking = () => {
     if (parkingBusy || !navigator.geolocation) {
       if (!navigator.geolocation) setParkingErr("Location isn't available on this device.");
@@ -4505,12 +4517,19 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     setParkingBusy(true);
     setParkingErr("");
     setParkingSpots([]);
+    setParkingAiTip("");
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
           const r = parkingRadius;
-          const q = `[out:json][timeout:12];(node["amenity"="parking"](around:${r},${latitude},${longitude});way["amenity"="parking"](around:${r},${latitude},${longitude}););out center 25;`;
+          const cat = PARKING_CATS[parkingCategory] || PARKING_CATS.car;
+          const inner = cat.query
+            .split(";")
+            .filter(Boolean)
+            .map((part) => `${part}(around:${r},${latitude},${longitude})`)
+            .join(";");
+          const q = `[out:json][timeout:15];(${inner};);out center 25;`;
           const resp = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`);
           if (!resp.ok) throw new Error("overpass");
           const j = await resp.json();
@@ -4528,15 +4547,20 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               const lon = typeof e.lon === "number" ? e.lon : e.center?.lon;
               if (typeof lat !== "number" || typeof lon !== "number") return null;
               const tags = e.tags || {};
-              const name = tags.name || (tags["parking"] ? `${tags["parking"].charAt(0).toUpperCase() + tags["parking"].slice(1)} parking` : "Parking");
-              const fee = tags.fee === "yes" ? "Paid" : tags.fee === "no" ? "Free" : "Fee unknown";
+              const name = tags.name || "Parking";
+              const fee = tags.fee === "yes" ? "Paid" : tags.fee === "no" ? "Free" : "";
               return { name, lat, lon, dist: distM(latitude, longitude, lat, lon), fee };
             })
             .filter(Boolean)
             .sort((a: any, b: any) => a.dist - b.dist)
             .slice(0, 15);
           setParkingSpots(spots as any);
-          if (spots.length === 0) setParkingErr("No parking spots found nearby — try a wider radius.");
+          if (spots.length === 0) {
+            setParkingErr(`No ${cat.label.toLowerCase()} parking found nearby — try a wider radius.`);
+          } else {
+            // AI tip: smart parking advice for this vehicle type
+            getParkingAiTip(cat.label, spots.length);
+          }
         } catch {
           setParkingErr("Couldn't reach the parking service — check your connection and try again.");
         }
@@ -4548,6 +4572,25 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       },
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
     );
+  };
+  // AI parking coach — one smart tip per search, tailored to vehicle type.
+  const getParkingAiTip = async (vehicleLabel: string, count: number) => {
+    if (!isAiConfigured()) return;
+    setParkingAiBusy(true);
+    try {
+      const hour = new Date().getHours();
+      const timeOfDay = hour < 6 ? "early morning" : hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night";
+      const raw = await askGemini(
+        `You are Eric, a gig-work coach. The driver just searched for ${vehicleLabel} parking near their location (${timeOfDay}) and found ${count} spots. Give ONE specific, useful parking tip for a ${vehicleLabel} driver right now — e.g. best strategy for this vehicle type at this time of day, what to watch for, or how to save on fees. One or two sentences max. Plain text, no markdown. Talk directly to them.`,
+        "",
+        false
+      );
+      const cleaned = cleanChatReply(raw);
+      if (cleaned) setParkingAiTip(cleaned);
+    } catch {
+      // AI tip is a bonus — silently skip on failure
+    }
+    setParkingAiBusy(false);
   };
 
   // Live weather at the top of Basecamp — device location via GPS
@@ -9046,9 +9089,8 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-bold text-white">Find Parking</div>
-                        <div className="text-[11px] text-zinc-500">Free spots near you</div>
+                        <div className="text-[11px] text-zinc-500">Spots near you</div>
                       </div>
-                      <span className="text-[9px] font-extrabold tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-1.5 py-0.5">FREE</span>
                     </button>
                   </div>
 
@@ -9298,14 +9340,42 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               </button>
             </div>
 
-            <div className="flex gap-2 mt-4 mb-3">
-              {[1000, 2000, 5000].map((r) => (
+            <div className="mt-4 mb-2">
+              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Your ride</div>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { key: "car", label: "Car", Icon: Car },
+                  { key: "truck", label: "Truck", Icon: Truck },
+                  { key: "rv", label: "RV", Icon: Car },
+                  { key: "motorcycle", label: "Moto", Icon: Bike },
+                  { key: "bike", label: "Bike", Icon: Bike },
+                  { key: "boat", label: "Boat", Icon: Ship },
+                  { key: "plane", label: "Plane", Icon: Plane },
+                ].map(({ key, label, Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => setParkingCategory(key)}
+                    className={`flex flex-col items-center gap-1 py-2.5 rounded-xl active:scale-[0.97] transition-all ${parkingCategory === key ? "bg-amber-500/20 border border-amber-500/40" : "bg-zinc-800/40 border border-zinc-700/40"}`}
+                  >
+                    <Icon className={`w-4 h-4 ${parkingCategory === key ? "text-amber-300" : "text-zinc-500"}`} strokeWidth={2.5} />
+                    <span className={`text-[10px] font-bold ${parkingCategory === key ? "text-amber-200" : "text-zinc-500"}`}>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-3 mb-3">
+              {[
+                { m: 1609, label: "1 mi" },
+                { m: 3218, label: "2 mi" },
+                { m: 8046, label: "5 mi" },
+              ].map(({ m, label }) => (
                 <button
-                  key={r}
-                  onClick={() => setParkingRadius(r)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold active:scale-[0.98] transition-all ${parkingRadius === r ? "bg-amber-500/20 border border-amber-500/40 text-amber-300" : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-400"}`}
+                  key={m}
+                  onClick={() => setParkingRadius(m)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold active:scale-[0.98] transition-all ${parkingRadius === m ? "bg-amber-500/20 border border-amber-500/40 text-amber-300" : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-400"}`}
                 >
-                  {r >= 1000 ? `${r / 1000} km` : `${r} m`}
+                  {useKm ? `${Math.round(m / 1000)} km` : label}
                 </button>
               ))}
             </div>
@@ -9321,6 +9391,17 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <><Navigation className="w-4 h-4" /> Find parking near me</>
               )}
             </button>
+
+            {parkingAiBusy ? (
+              <div className="mt-3 flex items-center justify-center gap-2 text-xs text-amber-300/70">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Eric is thinking…
+              </div>
+            ) : parkingAiTip ? (
+              <div className="mt-3 p-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
+                <div className="text-[10px] font-bold text-amber-400/80 uppercase tracking-wider mb-1">Eric's tip</div>
+                <div className="text-xs text-zinc-300 leading-relaxed">{parkingAiTip}</div>
+              </div>
+            ) : null}
 
             {parkingErr ? (
               <div className="mt-3 text-xs text-red-400 font-semibold text-center leading-relaxed">{parkingErr}</div>
@@ -9343,7 +9424,10 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-white truncate">{sp.name}</div>
                       <div className="text-[11px] text-zinc-500">
-                        {sp.dist < 1000 ? `${Math.round(sp.dist)} m away` : `${(sp.dist / 1000).toFixed(1)} km away`} · {sp.fee}
+                        {useKm
+                          ? `${sp.dist < 1000 ? `${Math.round(sp.dist)} m` : `${(sp.dist / 1000).toFixed(1)} km`} away`
+                          : `${sp.dist < 1609 ? `${Math.round(sp.dist * 3.281)} ft` : `${(sp.dist / 1609).toFixed(1)} mi`} away`}
+                        {sp.fee ? ` · ${sp.fee}` : ""}
                       </div>
                     </div>
                     <Navigation className="w-4 h-4 text-zinc-500 flex-shrink-0" />
@@ -9353,7 +9437,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             )}
 
             <div className="mt-4 text-center text-[10px] text-zinc-600">
-              Free forever · Powered by OpenStreetMap
+              Powered by OpenStreetMap
             </div>
           </div>
         </div>
@@ -9415,7 +9499,6 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Parking</div>
                 <div className="text-sm font-bold text-white">Find a spot nearby</div>
               </div>
-              <span className="text-[9px] font-extrabold tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-1.5 py-0.5 flex-shrink-0">FREE</span>
             </button>
 
             <div className="mb-4">
