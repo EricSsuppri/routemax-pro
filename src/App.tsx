@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.385";
+const APP_VERSION = "2.386";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -8708,7 +8708,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
               {authMode === "signin"
                 ? "Welcome back! Sign in to pick up where you left off."
-                : "Create a free account to save your routes and sync across devices."}
+                : "Join RouteMax — free to get started, no card required."}
             </p>
 
             {/* Mode toggle */}
