@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.388";
+const APP_VERSION = "2.389";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4181,6 +4181,12 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
 
   // Tabs
   const [activeTab, setActiveTab] = useState<TabKey>("calc");
+  const [psycheKey, setPsycheKey] = useState(0);
+  const switchTab = (t: TabKey) => {
+    if (t === activeTab) return;
+    setPsycheKey((k) => k + 1);
+    setActiveTab(t);
+  };
   const [dlToast, setDlToast] = useState("");
   // Guided app tour — helps users learn navigation
   const [tourOpen, setTourOpen] = useState(false);
@@ -7338,7 +7344,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
         </header>
 
         {/* Tab bar */}
-        <nav className="grid grid-cols-5 gap-1.5 p-1.5 rounded-2xl glass mb-5 sm:mb-6 animate-fade-in-up">
+        <nav key={`nav-${psycheKey}`} className="grid grid-cols-5 gap-1.5 p-1.5 rounded-2xl glass mb-5 sm:mb-6 animate-fade-in-up animate-psyche-glow">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -7346,7 +7352,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             return (
               <button
                 key={`${tab.key}-${isActive ? "on" : "off"}`}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => switchTab(tab.key)}
                 className={`relative flex flex-col items-center gap-1 py-2.5 rounded-xl transition-all active:scale-95 ${
                   isActive
                     ? "bg-amber-500/15 border border-amber-500/30 tab-active-glow"
@@ -7372,6 +7378,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
           })}
         </nav>
 
+        {psycheKey > 0 && <div key={psycheKey} className="psyche-sweep" />}
         {activeTab === "calc" ? (
           <>
             {/* Hero tagline — Apple-style with living road */}
