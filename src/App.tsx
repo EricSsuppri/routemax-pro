@@ -1394,7 +1394,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.383";
+const APP_VERSION = "2.384";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4979,7 +4979,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     'You are reading a gig-work document (offer details, receipt, invoice, trip sheet, or expense record) as plain text. Extract the payout or total dollar amount and the trip distance in miles. For receipts: use the total as payout and 0 for miles if no distance is shown. Reply ONLY valid JSON like {"payout": 8.5, "miles": 10}. Numbers only, no $ signs or text. If a value is unclear, use 0.\n\nDocument text:\n';
 
   const pdfToImage = async (file: File): Promise<string> => {
-    const pdfjs = await import("pdfjs-dist");
+    // Load PDF.js from CDN (not bundled — avoids Vite build issues)
+    const pdfjs = await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.min.mjs");
     if (!(pdfjs as any).GlobalWorkerOptions.workerSrc) {
       (pdfjs as any).GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.worker.min.mjs";
     }
@@ -5019,7 +5020,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const mime = file.type.toLowerCase();
     // Word documents (.docx) — extract text via mammoth
     if (ext === "docx" || mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-      const mammoth = await import("mammoth");
+      // Load mammoth from CDN (not bundled — avoids Vite build issues)
+      const mammoth = await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/mammoth@1.9.1/mammoth.browser.min.js");
       const buf = await file.arrayBuffer();
       const result = await (mammoth as any).extractRawText({ arrayBuffer: buf });
       return (result.value || "").trim();
