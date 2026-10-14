@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.391";
+const APP_VERSION = "2.392";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -7355,7 +7355,8 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
         </header>
 
         {/* Tab bar */}
-        <nav key={`nav-${psycheKey}`} className="grid grid-cols-5 gap-1.5 p-1.5 rounded-2xl glass mb-5 sm:mb-6 animate-fade-in-up animate-psyche-glow">
+        <nav className="relative grid grid-cols-5 gap-1.5 p-1.5 rounded-2xl glass mb-5 sm:mb-6 animate-fade-in-up">
+          {psycheKey > 0 && <div key={`glow-${psycheKey}`} className="absolute inset-0 rounded-2xl pointer-events-none animate-psyche-glow" />}
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
