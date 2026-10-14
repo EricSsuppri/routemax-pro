@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.398";
+const APP_VERSION = "2.399";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4239,18 +4239,41 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const gumEndRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gumAnimRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
-    // Orb parallax (independent of gum)
+    // Orb parallax + glass-melting scroll effect
     let ticking = false;
     let lastY = window.scrollY;
+    let meltTimeout: ReturnType<typeof setTimeout> | null = null;
     const onScroll = () => {
       const y = window.scrollY;
-      if (Math.abs(y - lastY) < 2) return;
+      const velocity = y - lastY;
+      if (Math.abs(velocity) < 2) return;
       lastY = y;
       if (!ticking) {
         ticking = true;
         requestAnimationFrame(() => {
           const orbs = orbParRef.current;
           if (orbs) orbs.style.transform = "translateY(" + (y * -0.08).toFixed(1) + "px)";
+          // Glass-melting: warp glass cards based on scroll velocity
+          // Faster scroll = more melt. Subtle enough to feel magical, not broken.
+          const melt = Math.max(-1, Math.min(1, velocity / 40));
+          // Only melt visible glass cards for performance
+          const cards = document.querySelectorAll(".glass:not(.no-melt)");
+          cards.forEach((card) => {
+            const el = card as HTMLElement;
+            const rect = el.getBoundingClientRect();
+            // Skip off-screen cards
+            if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+            // Skew + scaleY creates the melting illusion
+            el.style.transform = `skewY(${(melt * 1.2).toFixed(2)}deg) scaleY(${(1 - Math.abs(melt) * 0.02).toFixed(4)})`;
+            el.style.transition = "transform 0.18s cubic-bezier(0.22, 1, 0.36, 1)";
+          });
+          // Clear the melt after scrolling stops
+          if (meltTimeout) clearTimeout(meltTimeout);
+          meltTimeout = setTimeout(() => {
+            document.querySelectorAll(".glass").forEach((card) => {
+              (card as HTMLElement).style.transform = "";
+            });
+          }, 160);
           ticking = false;
         });
       }
@@ -4529,8 +4552,23 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             .map((part) => `${part}(around:${r},${latitude},${longitude})`)
             .join(";");
           const q = `[out:json][timeout:15];(${inner};);out center 25;`;
-          const resp = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`);
-          if (!resp.ok) throw new Error("overpass");
+          const endpoints = [
+            "https://overpass-api.de/api/interpreter",
+            "https://overpass.kumi.systems/api/interpreter",
+            "https://overpass.nchc.org.tw/api/interpreter",
+          ];
+          let resp: Response | null = null;
+          let lastErr: any = null;
+          for (const ep of endpoints) {
+            try {
+              const r = await fetch(`${ep}?data=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(18000) });
+              if (r.ok) { resp = r; break; }
+              lastErr = new Error(`HTTP ${r.status}`);
+            } catch (e) {
+              lastErr = e;
+            }
+          }
+          if (!resp) throw lastErr || new Error("overpass");
           const j = await resp.json();
           const els = Array.isArray(j?.elements) ? j.elements : [];
           const toRad = (d: number) => (d * Math.PI) / 180;
@@ -9331,7 +9369,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-white">Find Parking</h3>
-                  <p className="text-xs text-zinc-400">Free spots near you, no more circling</p>
+                  <p className="text-xs text-zinc-400">Spots near you, no more circling</p>
                 </div>
               </div>
               <button onClick={() => setParkingOpen(false)} aria-label="Close" className="w-8 h-8 rounded-full bg-zinc-800/70 flex items-center justify-center active:scale-95">
@@ -9386,7 +9424,15 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <div className="text-[10px] font-bold text-amber-400/80 uppercase tracking-wider mb-1">Eric's tip</div>
                 <div className="text-xs text-zinc-300 leading-relaxed">{parkingAiTip}</div>
               </div>
-            ) : null}
+            ) : (
+              <button
+                onClick={() => getParkingAiTip(PARKING_CATS[parkingCategory]?.label || "Cars", parkingSpots.length)}
+                disabled={parkingAiBusy || !isAiConfigured()}
+                className="mt-3 w-full py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-300 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Ask Eric for parking advice
+              </button>
+            )}
 
             {parkingErr ? (
               <div className="mt-3 text-xs text-red-400 font-semibold text-center leading-relaxed">{parkingErr}</div>
