@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.397";
+const APP_VERSION = "2.398";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -9394,7 +9394,10 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
 
             {parkingSpots.length > 0 && (
               <div className="mt-4 space-y-2">
-                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{parkingSpots.length} spots found</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{parkingSpots.length} spots found</div>
+                  <div className="text-[10px] font-semibold text-amber-400/70">Nearest first</div>
+                </div>
                 {parkingSpots.map((sp, i) => (
                   <a
                     key={i}
