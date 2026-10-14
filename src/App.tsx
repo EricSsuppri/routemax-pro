@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.390";
+const APP_VERSION = "2.391";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -7371,7 +7371,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 }`}
               >
                 <Icon
-                  className={`w-4.5 h-4.5 ${isActive ? "text-amber-400 animate-tabpop text-glow-purple" : "text-zinc-500"}`}
+                  className={`w-4.5 h-4.5 ${isActive ? "text-amber-400 animate-tabpop animate-psyche-icon text-glow-purple" : "text-zinc-500"}`}
                   strokeWidth={2.5}
                 />
                 <span
