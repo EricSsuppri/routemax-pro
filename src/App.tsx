@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.394";
+const APP_VERSION = "2.395";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -2239,6 +2239,12 @@ function AppInner() {
   const [bcWmo, setBcWmo] = useState<number | null>(null);
   const [bcWxBusy, setBcWxBusy] = useState(false);
   const [bcWxErr, setBcWxErr] = useState("");
+  // Parking finder — free for everyone, OpenStreetMap data, no API key needed.
+  const [parkingOpen, setParkingOpen] = useState(false);
+  const [parkingSpots, setParkingSpots] = useState<Array<{name: string; lat: number; lon: number; dist: number; fee: string}>>([]);
+  const [parkingBusy, setParkingBusy] = useState(false);
+  const [parkingErr, setParkingErr] = useState("");
+  const [parkingRadius, setParkingRadius] = useState(2000);
   const [navFrom, setNavFrom] = useState<GeoSugg | null>(null);
   const [navTo, setNavTo] = useState<GeoSugg | null>(null);
   // Basecamp hub: hydration + break timer for drivers/riders/pilots/travelers.
@@ -4487,6 +4493,61 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     } catch {
       // ignore
     }
+  };
+
+  // Parking finder — free, OpenStreetMap Overpass API, no key needed.
+  // Finds parking lots/garages near the device location.
+  const findParking = () => {
+    if (parkingBusy || !navigator.geolocation) {
+      if (!navigator.geolocation) setParkingErr("Location isn't available on this device.");
+      return;
+    }
+    setParkingBusy(true);
+    setParkingErr("");
+    setParkingSpots([]);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const r = parkingRadius;
+          const q = `[out:json][timeout:12];(node["amenity"="parking"](around:${r},${latitude},${longitude});way["amenity"="parking"](around:${r},${latitude},${longitude}););out center 25;`;
+          const resp = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`);
+          if (!resp.ok) throw new Error("overpass");
+          const j = await resp.json();
+          const els = Array.isArray(j?.elements) ? j.elements : [];
+          const toRad = (d: number) => (d * Math.PI) / 180;
+          const distM = (a: number, b: number, c: number, d: number) => {
+            const R = 6371000;
+            const x = toRad(c - a), y = toRad(d - b);
+            const h = Math.sin(x / 2) ** 2 + Math.cos(toRad(a)) * Math.cos(toRad(c)) * Math.sin(y / 2) ** 2;
+            return 2 * R * Math.asin(Math.sqrt(h));
+          };
+          const spots = els
+            .map((e: any) => {
+              const lat = typeof e.lat === "number" ? e.lat : e.center?.lat;
+              const lon = typeof e.lon === "number" ? e.lon : e.center?.lon;
+              if (typeof lat !== "number" || typeof lon !== "number") return null;
+              const tags = e.tags || {};
+              const name = tags.name || (tags["parking"] ? `${tags["parking"].charAt(0).toUpperCase() + tags["parking"].slice(1)} parking` : "Parking");
+              const fee = tags.fee === "yes" ? "Paid" : tags.fee === "no" ? "Free" : "Fee unknown";
+              return { name, lat, lon, dist: distM(latitude, longitude, lat, lon), fee };
+            })
+            .filter(Boolean)
+            .sort((a: any, b: any) => a.dist - b.dist)
+            .slice(0, 15);
+          setParkingSpots(spots as any);
+          if (spots.length === 0) setParkingErr("No parking spots found nearby — try a wider radius.");
+        } catch {
+          setParkingErr("Couldn't reach the parking service — check your connection and try again.");
+        }
+        setParkingBusy(false);
+      },
+      () => {
+        setParkingErr("Location is not permitted — allow it in App info > Permissions > Location, then try again.");
+        setParkingBusy(false);
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+    );
   };
 
   // Live weather at the top of Basecamp — device location via GPS
@@ -8476,6 +8537,22 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               </div>
             )}
 
+            {/* Subtle parking nudge — heading there? Don't circle for a spot. */}
+            {results && (
+              <button
+                onClick={() => setParkingOpen(true)}
+                className="w-full mt-1 flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-500/6 border border-amber-500/15 active:scale-[0.99] text-left"
+              >
+                <div className="w-8 h-8 rounded-lg bg-amber-500/12 flex items-center justify-center flex-shrink-0">
+                  <Car className="w-4 h-4 text-amber-400/80" strokeWidth={2.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-semibold text-zinc-300">Heading there? Find parking nearby</div>
+                  <div className="text-[11px] text-zinc-500">Free · No more circling the block</div>
+                </div>
+              </button>
+            )}
+
             {/* Route History — premium feature */}
             {isSupabaseConfigured && (
               <div className="mt-5 sm:mt-6 animate-fade-in-up">
@@ -8958,6 +9035,23 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                     </div>
                   </div>
 
+                  {/* Parking — free finder */}
+                  <div className="posh-rise" style={{ animationDelay: "0.1s" }}>
+                    <button
+                      onClick={() => { setSettingsOpen(false); setParkingOpen(true); }}
+                      className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 rounded-xl bg-amber-500/8 border border-amber-500/20"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                        <Car className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-white">Find Parking</div>
+                        <div className="text-[11px] text-zinc-500">Free spots near you</div>
+                      </div>
+                      <span className="text-[9px] font-extrabold tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-1.5 py-0.5">FREE</span>
+                    </button>
+                  </div>
+
                   {/* Chapter II — Profile */}
                   <div className="posh-rise" style={{ animationDelay: "0.13s" }}>
                     <div className="steel-chapter">Chapter II · Profile</div>
@@ -9184,6 +9278,87 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
           </div>
         </div>
       )}
+      {parkingOpen && (
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Find parking">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setParkingOpen(false)} />
+          <div className="absolute inset-x-0 bottom-0 top-[8%] sm:inset-0 sm:m-auto sm:max-w-md sm:h-fit sm:max-h-[86vh] bg-[#14141c] border border-zinc-800 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 animate-fade-in-up max-h-[92vh] overflow-y-auto">
+            <div className="w-10 h-1 rounded-full bg-zinc-700 mx-auto mb-4" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+                  <Car className="w-5 h-5 text-amber-400" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white">Find Parking</h3>
+                  <p className="text-xs text-zinc-400">Free spots near you, no more circling</p>
+                </div>
+              </div>
+              <button onClick={() => setParkingOpen(false)} aria-label="Close" className="w-8 h-8 rounded-full bg-zinc-800/70 flex items-center justify-center active:scale-95">
+                <X className="w-4 h-4 text-zinc-400" />
+              </button>
+            </div>
+
+            <div className="flex gap-2 mt-4 mb-3">
+              {[1000, 2000, 5000].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setParkingRadius(r)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold active:scale-[0.98] transition-all ${parkingRadius === r ? "bg-amber-500/20 border border-amber-500/40 text-amber-300" : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-400"}`}
+                >
+                  {r >= 1000 ? `${r / 1000} km` : `${r} m`}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={findParking}
+              disabled={parkingBusy}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-sm font-extrabold text-[#0a0a0f] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {parkingBusy ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Searching…</>
+              ) : (
+                <><Navigation className="w-4 h-4" /> Find parking near me</>
+              )}
+            </button>
+
+            {parkingErr ? (
+              <div className="mt-3 text-xs text-red-400 font-semibold text-center leading-relaxed">{parkingErr}</div>
+            ) : null}
+
+            {parkingSpots.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{parkingSpots.length} spots found</div>
+                {parkingSpots.map((sp, i) => (
+                  <a
+                    key={i}
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${sp.lat},${sp.lon}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/40 border border-zinc-700/40 active:scale-[0.99]"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-white truncate">{sp.name}</div>
+                      <div className="text-[11px] text-zinc-500">
+                        {sp.dist < 1000 ? `${Math.round(sp.dist)} m away` : `${(sp.dist / 1000).toFixed(1)} km away`} · {sp.fee}
+                      </div>
+                    </div>
+                    <Navigation className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                  </a>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4 text-center text-[10px] text-zinc-600">
+              Free forever · Powered by OpenStreetMap
+            </div>
+          </div>
+        </div>
+      )}
+
       {buddyOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="Basecamp">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setBuddyOpen(false)} />
@@ -9228,6 +9403,20 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <RefreshCw className={`w-4 h-4 text-amber-300 ${bcWxBusy ? "animate-spin" : ""}`} />
               </button>
             </div>
+
+            <button
+              onClick={() => { setBuddyOpen(false); setParkingOpen(true); }}
+              className="mb-3 w-full rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/20 p-3 flex items-center gap-3 active:scale-[0.99]"
+            >
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center flex-shrink-0">
+                <Car className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Parking</div>
+                <div className="text-sm font-bold text-white">Find a spot nearby</div>
+              </div>
+              <span className="text-[9px] font-extrabold tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-1.5 py-0.5 flex-shrink-0">FREE</span>
+            </button>
 
             <div className="mb-4">
               <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 px-0.5">Crew in action — tap to join in</div>
