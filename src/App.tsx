@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.396";
+const APP_VERSION = "2.397";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -2244,7 +2244,6 @@ function AppInner() {
   const [parkingSpots, setParkingSpots] = useState<Array<{name: string; lat: number; lon: number; dist: number; fee: string}>>([]);
   const [parkingBusy, setParkingBusy] = useState(false);
   const [parkingErr, setParkingErr] = useState("");
-  const [parkingRadius, setParkingRadius] = useState(2000);
   const [parkingCategory, setParkingCategory] = useState("car");
   const [parkingAiTip, setParkingAiTip] = useState("");
   const [parkingAiBusy, setParkingAiBusy] = useState(false);
@@ -4502,12 +4501,12 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   // Categories: car, truck, rv, plane, boat, bike, motorcycle.
   const PARKING_CATS: Record<string, { label: string; query: string; icon: string }> = {
     car: { label: "Cars", query: 'node["amenity"="parking"];way["amenity"="parking"];', icon: "Car" },
-    truck: { label: "Trucks", query: 'node["amenity"="parking"]["hgv"];way["amenity"="parking"]["hgv"];node["amenity"="parking"]["hgv"="designated"];', icon: "Truck" },
-    rv: { label: "RVs", query: 'node["tourism"="caravan_site"];way["tourism"="caravan_site"];', icon: "Car" },
-    plane: { label: "Planes", query: 'node["aeroway"="aerodrome"];way["aeroway"="aerodrome"];', icon: "Plane" },
-    boat: { label: "Boats", query: 'node["leisure"="marina"];way["leisure"="marina"];', icon: "Ship" },
-    bike: { label: "Bikes & Scooters", query: 'node["amenity"="bicycle_parking"];way["amenity"="bicycle_parking"];', icon: "Bike" },
-    motorcycle: { label: "Motorcycles", query: 'node["amenity"="motorcycle_parking"];way["amenity"="motorcycle_parking"];', icon: "Bike" },
+    truck: { label: "Trucks", query: 'node["amenity"="parking"]["hgv"];way["amenity"="parking"]["hgv"];node["amenity"="parking"];way["amenity"="parking"];', icon: "Truck" },
+    rv: { label: "RVs", query: 'node["tourism"="caravan_site"];way["tourism"="caravan_site"];node["amenity"="parking"];way["amenity"="parking"];', icon: "Car" },
+    plane: { label: "Planes", query: 'node["aeroway"="aerodrome"];way["aeroway"="aerodrome"];node["aeroway"="helipad"];', icon: "Plane" },
+    boat: { label: "Boats", query: 'node["leisure"="marina"];way["leisure"="marina"];node["amenity"="boat_ramp"];way["amenity"="boat_ramp"];', icon: "Ship" },
+    bike: { label: "Bikes & Scooters", query: 'node["amenity"="bicycle_parking"];way["amenity"="bicycle_parking"];node["amenity"="parking"];way["amenity"="parking"];', icon: "Bike" },
+    motorcycle: { label: "Motorcycles", query: 'node["amenity"="motorcycle_parking"];way["amenity"="motorcycle_parking"];node["amenity"="parking"];way["amenity"="parking"];', icon: "Bike" },
   };
   const findParking = () => {
     if (parkingBusy || !navigator.geolocation) {
@@ -4522,7 +4521,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const r = parkingRadius;
+          const r = 5000;
           const cat = PARKING_CATS[parkingCategory] || PARKING_CATS.car;
           const inner = cat.query
             .split(";")
@@ -9364,21 +9363,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               </div>
             </div>
 
-            <div className="flex gap-2 mt-3 mb-3">
-              {[
-                { m: 1609, label: "1 mi" },
-                { m: 3218, label: "2 mi" },
-                { m: 8046, label: "5 mi" },
-              ].map(({ m, label }) => (
-                <button
-                  key={m}
-                  onClick={() => setParkingRadius(m)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold active:scale-[0.98] transition-all ${parkingRadius === m ? "bg-amber-500/20 border border-amber-500/40 text-amber-300" : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-400"}`}
-                >
-                  {useKm ? `${Math.round(m / 1000)} km` : label}
-                </button>
-              ))}
-            </div>
+
 
             <button
               onClick={findParking}
