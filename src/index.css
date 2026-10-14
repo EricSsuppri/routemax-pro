@@ -680,9 +680,9 @@ body {
   0% { background-position: center top, center 0%; }
   100% { background-position: center top, center 100%; }
 }
-/* === PSYCHEDELIC — PURPLE HUE BLENDED WITH GOLD/BROWN THEME (v2.393) === */
-/* Warm muted purples melt into the gold/brown theme. Purple = depth/mystery, */
-/* gold = reward. GPU-cheap: transform + opacity only. */
+/* === SENSUAL TRANSITIONS — PURPLE/GOLD SEDUCTION (v2.394) === */
+/* Slow, lingering, confident. Like the app is flirting with you. */
+/* GPU-cheap: transform + opacity only. */
 
 * {
   -webkit-overflow-scrolling: touch;
@@ -702,11 +702,14 @@ html {
   border-radius: 99px;
 }
 
-/* Tab content entrance — slide + fade + subtle scale */
+/* Content unveils slowly — no rush, savor it */
 @keyframes psyche-in {
   0% {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
+    transform: translateY(28px) scale(0.97);
+  }
+  60% {
+    opacity: 0.85;
   }
   100% {
     opacity: 1;
@@ -714,15 +717,21 @@ html {
   }
 }
 .animate-psyche-in {
-  animation: psyche-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: psyche-in 0.85s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
 
-/* Liquid sweep — purple melts into gold, like twilight into sunrise */
+/* The caress — a slow golden-purple wave that lingers */
 @keyframes psyche-sweep {
   0% {
     transform: translateX(-100%) skewX(-12deg);
-    opacity: 0.6;
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.65;
+  }
+  75% {
+    opacity: 0.4;
   }
   100% {
     transform: translateX(200%) skewX(-12deg);
@@ -739,32 +748,82 @@ html {
   z-index: 60;
   background: linear-gradient(105deg,
     transparent,
-    rgba(139, 111, 168, 0.24),
-    rgba(154, 127, 181, 0.20),
-    rgba(230, 197, 124, 0.24),
-    rgba(245, 158, 11, 0.20),
+    rgba(139, 111, 168, 0.26),
+    rgba(154, 127, 181, 0.22),
+    rgba(230, 197, 124, 0.28),
+    rgba(245, 158, 11, 0.22),
     transparent);
-  animation: psyche-sweep 0.5s ease-out forwards;
+  animation: psyche-sweep 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 }
 
-/* Glow pulse — breathes between royal purple and warm gold */
+/* Breathing glow — slow, hypnotic, like a heartbeat slowed down */
 @keyframes psyche-glow {
-  0%, 100% { box-shadow: 0 0 10px rgba(139, 111, 168, 0.35); }
-  33% { box-shadow: 0 0 22px rgba(230, 197, 124, 0.5); }
-  66% { box-shadow: 0 0 22px rgba(154, 127, 181, 0.45); }
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(139, 111, 168, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(230, 197, 124, 0.55), 0 0 48px rgba(139, 111, 168, 0.25);
+  }
 }
 .animate-psyche-glow {
-  animation: psyche-glow 1.4s ease-in-out;
+  animation: psyche-glow 2.4s ease-in-out infinite;
 }
 
-/* Micro shimmer on the active tab icon — opacity pulse */
+/* The tease — slow shimmer across locked premium content */
+@keyframes psyche-tease {
+  0% {
+    transform: translateX(-120%) skewX(-15deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(240%) skewX(-15deg);
+    opacity: 0;
+  }
+}
+.psyche-tease {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(105deg,
+    transparent,
+    rgba(230, 197, 124, 0.14),
+    rgba(154, 127, 181, 0.12),
+    transparent);
+  animation: psyche-tease 3.2s ease-in-out infinite;
+}
+
+/* Crown beckons — slow, irresistible pulse */
+@keyframes psyche-crown {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 1;
+  }
+}
+.animate-psyche-crown {
+  animation: psyche-crown 2.8s ease-in-out infinite;
+}
+
+/* Micro shimmer on the active tab icon */
 @keyframes psyche-icon-shimmer {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.65; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
 }
 .animate-psyche-icon {
-  animation: psyche-icon-shimmer 0.7s ease-in-out;
+  animation: psyche-icon-shimmer 1.1s ease-in-out;
 }
 
 .smooth-scroll {
