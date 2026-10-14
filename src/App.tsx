@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.402";
+const APP_VERSION = "2.403";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -9387,7 +9387,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             )}
 
             <div className="mt-4 text-center text-[10px] text-zinc-600">
-              Powered by OpenStreetMap
+              Powered by Google Maps
             </div>
           </div>
         </div>
