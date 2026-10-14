@@ -680,9 +680,9 @@ body {
   0% { background-position: center top, center 0%; }
   100% { background-position: center top, center 100%; }
 }
-/* === PSYCHEDELIC TAB TRANSITIONS — GOLD THEME (v2.392) === */
-/* GPU-CHEAP: transform + opacity only. No filter animations — those */
-/* jank on phone GPUs and caused the tab-switch flicker. */
+/* === PSYCHEDELIC — PURPLE HUE BLENDED WITH GOLD/BROWN THEME (v2.393) === */
+/* Warm muted purples melt into the gold/brown theme. Purple = depth/mystery, */
+/* gold = reward. GPU-cheap: transform + opacity only. */
 
 * {
   -webkit-overflow-scrolling: touch;
@@ -698,11 +698,11 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #e6c57c, #f59e0b, #b45309);
+  background: linear-gradient(180deg, #8b6fa8, #e6c57c, #b45309);
   border-radius: 99px;
 }
 
-/* Tab content entrance — slide + fade + subtle scale. Cheap. */
+/* Tab content entrance — slide + fade + subtle scale */
 @keyframes psyche-in {
   0% {
     opacity: 0;
@@ -718,11 +718,11 @@ html {
   will-change: transform, opacity;
 }
 
-/* Liquid gold sweep — gradient slide, no blur, no filter */
+/* Liquid sweep — purple melts into gold, like twilight into sunrise */
 @keyframes psyche-sweep {
   0% {
     transform: translateX(-100%) skewX(-12deg);
-    opacity: 0.55;
+    opacity: 0.6;
   }
   100% {
     transform: translateX(200%) skewX(-12deg);
@@ -739,24 +739,26 @@ html {
   z-index: 60;
   background: linear-gradient(105deg,
     transparent,
-    rgba(230, 197, 124, 0.22),
-    rgba(245, 158, 11, 0.26),
-    rgba(255, 236, 208, 0.14),
+    rgba(139, 111, 168, 0.24),
+    rgba(154, 127, 181, 0.20),
+    rgba(230, 197, 124, 0.24),
+    rgba(245, 158, 11, 0.20),
     transparent);
   animation: psyche-sweep 0.5s ease-out forwards;
   will-change: transform, opacity;
 }
 
-/* Warm glow pulse on the tab bar — box-shadow only */
+/* Glow pulse — breathes between royal purple and warm gold */
 @keyframes psyche-glow {
-  0%, 100% { box-shadow: 0 0 10px rgba(230, 197, 124, 0.3); }
-  50% { box-shadow: 0 0 22px rgba(245, 158, 11, 0.5); }
+  0%, 100% { box-shadow: 0 0 10px rgba(139, 111, 168, 0.35); }
+  33% { box-shadow: 0 0 22px rgba(230, 197, 124, 0.5); }
+  66% { box-shadow: 0 0 22px rgba(154, 127, 181, 0.45); }
 }
 .animate-psyche-glow {
-  animation: psyche-glow 1s ease-in-out;
+  animation: psyche-glow 1.4s ease-in-out;
 }
 
-/* Micro shimmer on the active tab icon — opacity pulse, no filter */
+/* Micro shimmer on the active tab icon — opacity pulse */
 @keyframes psyche-icon-shimmer {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.65; }
