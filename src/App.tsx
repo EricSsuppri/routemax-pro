@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.393";
+const APP_VERSION = "2.394";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -5635,8 +5635,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       return (
         <div className="relative overflow-hidden glass rounded-2xl p-5 text-center border border-[#ffecd0]/15 animate-fade-in-up">
           <div className="absolute -top-10 -right-8 w-32 h-32 rounded-full bg-[#f7dc8f]/10 blur-2xl animate-orb pointer-events-none" />
+          <div className="psyche-tease" />
           <div className="relative w-10 h-10 rounded-xl bg-[#ffecd0]/15 flex items-center justify-center mx-auto mb-3">
-            <Lock className="w-5 h-5 text-[#ffecd0]" strokeWidth={2.5} />
+            <Lock className="w-5 h-5 text-[#ffecd0] animate-psyche-crown" strokeWidth={2.5} />
           </div>
           <p className="text-sm font-bold text-white">{feature} is Premium</p>
           <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">{blurb}</p>
@@ -5660,8 +5661,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     return (
       <div className="relative overflow-hidden glass rounded-2xl p-5 text-center border border-[#ffecd0]/15 animate-fade-in-up">
         <div className="absolute -top-10 -right-8 w-32 h-32 rounded-full bg-[#f7dc8f]/10 blur-2xl animate-orb pointer-events-none" />
+        <div className="psyche-tease" />
         <div className="relative w-10 h-10 rounded-xl bg-[#ffecd0]/15 flex items-center justify-center mx-auto mb-3">
-          <Crown className="w-5 h-5 text-[#ffecd0]" strokeWidth={2.5} />
+          <Crown className="w-5 h-5 text-[#ffecd0] animate-psyche-crown" strokeWidth={2.5} />
         </div>
         <p className="text-sm font-bold text-white">{feature} is Premium</p>
         <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">{blurb}</p>
