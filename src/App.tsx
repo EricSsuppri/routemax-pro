@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.386";
+const APP_VERSION = "2.387";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -6240,9 +6240,21 @@ SUMMARY (${bookPeriod}): ${book.trips} trips, ${fmtNum(book.miles, 1)} miles, ${
 
 RECENT TRIPS: ${tripDetails || "No individual trips in range."}
 
-Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms are most vs least profitable, (2) fuel efficiency vs expected, (3) cost per mile trend, (4) one specific actionable tip using their real data. Be concise, use their numbers, no generic advice.`;
+Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms are most vs least profitable, (2) fuel efficiency vs expected, (3) cost per mile trend, (4) one specific actionable tip using their real data. Be concise, use their numbers, no generic advice.
+
+FORMATTING RULES (critical): Write in plain text only. Do NOT use markdown (no **bold**, no # headers, no |tables|, no - bullets, no numbered lists). Do NOT use HTML tags (no <br>, no <b>). Write each insight as a short paragraph separated by a blank line. Use simple dashes for any list items.`;
                           const res = await askGemini(prompt, undefined, false);
-                          setBookAiSummary(res);
+                          // Safety net: strip any markdown/HTML the AI might still emit
+                          const clean = res
+                            .replace(/\*\*(.*?)\*\*/g, "$1")
+                            .replace(/\*(.*?)\*/g, "$1")
+                            .replace(/^#{1,6}\s/gm, "")
+                            .replace(/<br\s*\/?>/gi, "\n")
+                            .replace(/<[^>]+>/g, "")
+                            .replace(/^\|.*\|$/gm, "")
+                            .replace(/^\|[-\s|]+\|$/gm, "")
+                            .trim();
+                          setBookAiSummary(clean);
                         } catch { setBookAiSummary("Could not generate insights. Try again."); }
                         setBookAiBusy(false);
                       }}
