@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.399";
+const APP_VERSION = "2.400";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4255,6 +4255,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           if (orbs) orbs.style.transform = "translateY(" + (y * -0.08).toFixed(1) + "px)";
           // Glass-melting: warp glass cards based on scroll velocity
           // Faster scroll = more melt. Subtle enough to feel magical, not broken.
+          // Skip when a modal is open to avoid interfering with modal content.
+          if (document.querySelector('[role="dialog"]')) { ticking = false; return; }
           const melt = Math.max(-1, Math.min(1, velocity / 40));
           // Only melt visible glass cards for performance
           const cards = document.querySelectorAll(".glass:not(.no-melt)");
@@ -4561,7 +4563,14 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           let lastErr: any = null;
           for (const ep of endpoints) {
             try {
-              const r = await fetch(`${ep}?data=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(18000) });
+              const fetchOpts: RequestInit = {};
+              // AbortSignal.timeout may not exist in older WebViews
+              try {
+                if (typeof AbortSignal !== "undefined" && typeof (AbortSignal as any).timeout === "function") {
+                  fetchOpts.signal = (AbortSignal as any).timeout(18000);
+                }
+              } catch {}
+              const r = await fetch(`${ep}?data=${encodeURIComponent(q)}`, fetchOpts);
               if (r.ok) { resp = r; break; }
               lastErr = new Error(`HTTP ${r.status}`);
             } catch (e) {
@@ -9426,7 +9435,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               </div>
             ) : (
               <button
-                onClick={() => getParkingAiTip(PARKING_CATS[parkingCategory]?.label || "Cars", parkingSpots.length)}
+                onClick={() => { try { getParkingAiTip((PARKING_CATS && PARKING_CATS[parkingCategory]?.label) || "Cars", parkingSpots.length); } catch {} }}
                 disabled={parkingAiBusy || !isAiConfigured()}
                 className="mt-3 w-full py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-300 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
               >
@@ -9444,7 +9453,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                   <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{parkingSpots.length} spots found</div>
                   <div className="text-[10px] font-semibold text-amber-400/70">Nearest first</div>
                 </div>
-                {parkingSpots.map((sp, i) => (
+                {(Array.isArray(parkingSpots) ? parkingSpots : []).map((sp, i) => { if (!sp || typeof sp.lat !== "number") return null; return (
                   <a
                     key={i}
                     href={`https://www.google.com/maps/dir/?api=1&destination=${sp.lat},${sp.lon}`}
@@ -9466,7 +9475,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                     </div>
                     <Navigation className="w-4 h-4 text-zinc-500 flex-shrink-0" />
                   </a>
-                ))}
+                );})}
               </div>
             )}
 
