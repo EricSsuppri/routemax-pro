@@ -976,6 +976,7 @@ const FREE_VS_PREMIUM: { label: string; free: boolean; premium: boolean }[] = [
   { label: "Route distance + drop-off weather", free: true, premium: true },
   { label: "Split trip cost explainer", free: true, premium: true },
   { label: "Eric AI coach (chat + photo analysis)", free: true, premium: true },
+  { label: "Offer & document scanner (camera, photos, PDF, Word)", free: true, premium: true },
   { label: "Guided app tour", free: true, premium: true },
   { label: "Basecamp wellness hub (water, sleep, breaks, mover, mood)", free: false, premium: true },
   { label: "AI summaries for every wellness card", free: false, premium: true },
@@ -1394,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.384";
+const APP_VERSION = "2.385";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4934,7 +4935,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   // v2 Phase 3: snap the offer screen — AI fills payout + miles
   const [scanPickerOpen, setScanPickerOpen] = useState(false);
   const scanOffer = async (source?: CameraSource) => {
-    if (!isPremium || !isAiConfigured || scanBusy) return;
+    if (!isAiConfigured || scanBusy) return;
     setScanPickerOpen(false);
     setScanBusy(true);
     setScanError("");
@@ -7825,7 +7826,7 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
               )}
 
               {/* Eric offer scanner — premium */}
-              {isPremium && isAiConfigured && (
+              {isAiConfigured && (
                 <div>
                   <button
                     onClick={() => setScanPickerOpen(true)}
@@ -8706,8 +8707,8 @@ Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms
             </div>
             <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
               {authMode === "signin"
-                ? "Sign in to access your premium route history."
-                : "One account keeps your route history safe across devices."}
+                ? "Welcome back! Sign in to pick up where you left off."
+                : "Create a free account to save your routes and sync across devices."}
             </p>
 
             {/* Mode toggle */}
