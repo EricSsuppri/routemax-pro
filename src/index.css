@@ -831,3 +831,48 @@ html {
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
+
+/* === GLASS-MELTING SCROLL (v2.399) === */
+/* Glass cards subtly warp and flow as you scroll — like melting glass. */
+/* GPU-cheap: transform only, applied via JS scroll velocity. */
+
+.glass-melt {
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Performance: off-screen cards skip rendering until visible */
+/* Applied to basecamp and other card-heavy areas */
+.bc-card,
+.buddy-scroll > div {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
+}
+
+/* Ultra-smooth scrolling base */
+.melt-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Subtle liquid shimmer on glass while scrolling */
+@keyframes melt-shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+.melt-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(230, 197, 124, 0.06),
+    transparent 30%,
+    transparent 70%,
+    rgba(139, 111, 168, 0.06));
+  opacity: 0;
+}
+.melting .melt-glow {
+  animation: melt-shimmer 0.6s ease-in-out;
+}
