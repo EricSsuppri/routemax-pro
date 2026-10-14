@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.400";
+const APP_VERSION = "2.401";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4621,7 +4621,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   };
   // AI parking coach — one smart tip per search, tailored to vehicle type.
   const getParkingAiTip = async (vehicleLabel: string, count: number) => {
-    if (!isAiConfigured()) return;
+    try {
+      const cfg = typeof isAiConfigured === "function" ? isAiConfigured() : !!isAiConfigured;
+      if (!cfg) return;
+    } catch { return; }
     setParkingAiBusy(true);
     try {
       const hour = new Date().getHours();
@@ -9436,7 +9439,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             ) : (
               <button
                 onClick={() => { try { getParkingAiTip((PARKING_CATS && PARKING_CATS[parkingCategory]?.label) || "Cars", parkingSpots.length); } catch {} }}
-                disabled={parkingAiBusy || !isAiConfigured()}
+                disabled={parkingAiBusy}
                 className="mt-3 w-full py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-300 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-3.5 h-3.5" /> Ask Eric for parking advice
