@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.389";
+const APP_VERSION = "2.390";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4253,6 +4253,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     let startY = 0, startX = 0;
     let dragging = false;
     const onTouchStart = (e: TouchEvent) => {
+      // Only engage the gum stretch when the page is at the very top —
+      // otherwise let the browser handle normal scrolling untouched.
+      if (window.scrollY > 4) { dragging = false; return; }
       dragging = true;
       startY = e.touches[0].clientY;
       startX = e.touches[0].clientX;
@@ -4263,6 +4266,14 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     };
     const onTouchMove = (e: TouchEvent) => {
       if (!dragging) return;
+      // If the page started scrolling, bail out — this is a scroll, not a pull.
+      if (window.scrollY > 4) {
+        dragging = false;
+        const tabEl = tabStretchRef.current;
+        if (tabEl) { tabEl.style.transition = ""; tabEl.style.transform = ""; }
+        setGum(null);
+        return;
+      }
       const x1 = e.touches[0].clientX;
       const y1 = e.touches[0].clientY;
       const dx = x1 - startX, dy = y1 - startY;
