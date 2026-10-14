@@ -1395,7 +1395,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.387";
+const APP_VERSION = "2.388";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -6234,15 +6234,23 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                           const tripDetails = bookRows.slice(0, 20).map((r) =>
                             `${new Date(r.created_at).toLocaleDateString()}: ${(r.mileage || 0).toFixed(1)}mi, ${countryInfo.symbol}${(r.payout || 0).toFixed(2)} payout, ${countryInfo.symbol}${(r.net_profit || 0).toFixed(2)} net, ${(r.hours || 0).toFixed(1)}hrs${r.platform ? ` via ${r.platform}` : ""}`
                           ).join("; ");
-                          const prompt = `You are a bookkeeping assistant for a gig driver in ${countryInfo.name}. Analyze this real trip data and give 4-5 specific, data-driven insights.
+                          const prompt = `You are Eric, a straight-talking gig-work coach briefing a driver on their ${bookPeriod} performance. Talk TO them like a coach, not like a spreadsheet.
 
-SUMMARY (${bookPeriod}): ${book.trips} trips, ${fmtNum(book.miles, 1)} miles, ${fmtNum(book.gallons, 1)} gallons (${fuelEffVal(bookMpg).toFixed(1)} {FUEL_EFF} avg), fuel ${countryInfo.symbol}${book.fuelCost.toFixed(2)}, other costs ${countryInfo.symbol}${bookOtherCosts.toFixed(2)}, gross ${countryInfo.symbol}${book.gross.toFixed(2)}, net ${countryInfo.symbol}${book.net.toFixed(2)}, ${countryInfo.symbol}${bookHourly.toFixed(2)}/hr, ${countryInfo.symbol}${bookCostPerMile.toFixed(2)}/mile cost.
+THEIR NUMBERS: ${book.trips} trips, ${fmtNum(book.miles, 1)} miles, ${fmtNum(book.gallons, 1)} gallons (${fuelEffVal(bookMpg).toFixed(1)} {FUEL_EFF} avg), fuel ${countryInfo.symbol}${book.fuelCost.toFixed(2)}, other costs ${countryInfo.symbol}${bookOtherCosts.toFixed(2)}, gross ${countryInfo.symbol}${book.gross.toFixed(2)}, net ${countryInfo.symbol}${book.net.toFixed(2)}, ${countryInfo.symbol}${bookHourly.toFixed(2)}/hr, ${countryInfo.symbol}${bookCostPerMile.toFixed(2)}/mile cost.
 
 RECENT TRIPS: ${tripDetails || "No individual trips in range."}
 
-Base EVERY insight on the actual numbers above. Cover: (1) which trips/platforms are most vs least profitable, (2) fuel efficiency vs expected, (3) cost per mile trend, (4) one specific actionable tip using their real data. Be concise, use their numbers, no generic advice.
+YOUR JOB: Brief them. Do NOT just restate the numbers they can already see above — INTERPRET what the numbers mean and tell them what to DO differently.
 
-FORMATTING RULES (critical): Write in plain text only. Do NOT use markdown (no **bold**, no # headers, no |tables|, no - bullets, no numbered lists). Do NOT use HTML tags (no <br>, no <b>). Write each insight as a short paragraph separated by a blank line. Use simple dashes for any list items.`;
+Write 4-5 short paragraphs, each separated by a blank line. Every paragraph must do one of these:
+- Call out a WIN: "Your $57/hr is excellent — you're earning like a top-tier driver because..."
+- Call out a PROBLEM with the fix: "You're losing money on short Custom trips — anything under $30 for under 10 miles is a net loss. Skip those."
+- Spot a PATTERN: "Your charter trips pay less per mile than your custom deliveries — lean into custom when you can."
+- Give ONE specific action for next week using their real numbers.
+
+RULES: Talk directly to them ("you", "your"). Use their actual numbers to back up every point. No generic advice like "track your expenses" — they already do. Be specific, be opinionated, be useful. If something looks bad, say so plainly.
+
+FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, no HTML tags. Just paragraphs.`;
                           const res = await askGemini(prompt, undefined, false);
                           // Safety net: strip any markdown/HTML the AI might still emit
                           const clean = res
@@ -6251,8 +6259,10 @@ FORMATTING RULES (critical): Write in plain text only. Do NOT use markdown (no *
                             .replace(/^#{1,6}\s/gm, "")
                             .replace(/<br\s*\/?>/gi, "\n")
                             .replace(/<[^>]+>/g, "")
-                            .replace(/^\|.*\|$/gm, "")
-                            .replace(/^\|[-\s|]+\|$/gm, "")
+                            .replace(/^\|[-:\s|]+\|$/gm, "")
+                            .replace(/\|/g, " ")
+                            .replace(/[ \t]{2,}/g, " ")
+                            .replace(/\n{3,}/g, "\n\n")
                             .trim();
                           setBookAiSummary(clean);
                         } catch { setBookAiSummary("Could not generate insights. Try again."); }
