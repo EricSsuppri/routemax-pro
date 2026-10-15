@@ -107,7 +107,7 @@ const wmoDesc = (c: number): string => {
 };
 const WHOP_URL = "https://whop.com/routemax-pro-profit-vqsu-2/routemax-pro/";
 const SUPPORT_EMAIL = "routemaxprosupport@gmail.com";
-const REVENUECAT_API_KEY = "test_ZiRlEEYcMKIspKzuiYEqHfZInYk";
+const REVENUECAT_API_KEY = "goog_WODgDSEDIGlvUNuwUFozlRENGRt";
 const PREMIUM_ENTITLEMENT = "premium";
 const GOOGLE_OAUTH_REDIRECT = "com.routemax.pro://oauth";
 const DEFAULT_TAX_RATE = "0.70";
