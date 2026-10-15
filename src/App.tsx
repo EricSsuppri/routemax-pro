@@ -1244,7 +1244,15 @@ function PremiumFeaturesModal({
   );
 }
 
-function PremiumBuyButton({ onUnlocked }: { onUnlocked: () => void }) {
+function PremiumBuyButton({
+  onUnlocked,
+  signedIn,
+  onRequireSignup,
+}: {
+  onUnlocked: () => void;
+  signedIn: boolean;
+  onRequireSignup: () => void;
+}) {
   const [showFeatures, setShowFeatures] = useState(false);
   const wrappedUnlocked = () => {
     setShowFeatures(false);
@@ -1255,6 +1263,12 @@ function PremiumBuyButton({ onUnlocked }: { onUnlocked: () => void }) {
   const handleContinue = () => {
     if (!pkg) {
       // Play products aren't configured yet — Whop checkout stays working meanwhile.
+      // Web: require an account first so the purchase can be tied to the user.
+      if (!isNativeApp() && !signedIn) {
+        setShowFeatures(false);
+        onRequireSignup();
+        return;
+      }
       window.open(WHOP_URL, "_blank", "noopener,noreferrer");
       return;
     }
@@ -1290,7 +1304,15 @@ function PremiumBuyButton({ onUnlocked }: { onUnlocked: () => void }) {
   );
 }
 
-function PremiumBanner({ onUnlocked }: { onUnlocked: () => void }) {
+function PremiumBanner({
+  onUnlocked,
+  signedIn,
+  onRequireSignup,
+}: {
+  onUnlocked: () => void;
+  signedIn: boolean;
+  onRequireSignup: () => void;
+}) {
   const [showFeatures, setShowFeatures] = useState(false);
   const wrappedUnlocked = () => {
     setShowFeatures(false);
@@ -1300,6 +1322,12 @@ function PremiumBanner({ onUnlocked }: { onUnlocked: () => void }) {
 
   const handleContinue = () => {
     if (!pkg) {
+      // Web: require an account first so the purchase can be tied to the user.
+      if (!isNativeApp() && !signedIn) {
+        setShowFeatures(false);
+        onRequireSignup();
+        return;
+      }
       window.open(WHOP_URL, "_blank", "noopener,noreferrer");
       return;
     }
@@ -1395,7 +1423,7 @@ const groupTripsByPlatform = (trips: RouteHistoryRow[]): Record<string, RouteHis
 
 
 
-const APP_VERSION = "2.403";
+const APP_VERSION = "2.404";
 
 function cleanChatReply(text: string): string {
   const t = text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim()
@@ -4185,6 +4213,27 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "busy" | "done">("idle");
   const [deleteError, setDeleteError] = useState("");
 
+  // Web premium flow: tapping Upgrade while signed out opens signup first.
+  // The pending flag lives in sessionStorage so it survives the Google OAuth
+  // redirect; onAuthStateChange picks it up and opens Whop after sign-in.
+  const openSignupForWhop = () => {
+    try { sessionStorage.setItem("rm_pending_whop", "1"); } catch { /* private mode */ }
+    setAuthMode("signup");
+    setAuthError("");
+    setAuthInfo("");
+    setAuthOpen(true);
+  };
+  const clearPendingWhop = () => {
+    try { sessionStorage.removeItem("rm_pending_whop"); } catch { /* private mode */ }
+  };
+  // Manual dismiss of the auth modal (X / backdrop) — drop the pending Whop
+  // redirect so a later unrelated sign-in doesn't pop Whop unexpectedly.
+  // handleAuth's success path intentionally does NOT use this.
+  const dismissAuthModal = () => {
+    clearPendingWhop();
+    setAuthOpen(false);
+  };
+
   // Tabs
   const [activeTab, setActiveTab] = useState<TabKey>("calc");
   const [psycheKey, setPsycheKey] = useState(0);
@@ -4445,6 +4494,14 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       if (newSession?.user) {
         fetchProfile(newSession.user.id);
         fetchHistory();
+        // Web premium flow: user signed up via the Upgrade button — now send them to Whop.
+        try {
+          if (sessionStorage.getItem("rm_pending_whop") === "1") {
+            sessionStorage.removeItem("rm_pending_whop");
+            setAuthOpen(false);
+            window.open(WHOP_URL, "_blank", "noopener,noreferrer");
+          }
+        } catch { /* private mode */ }
       } else {
         setIsPremium(false);
         setHistory([]);
@@ -5763,7 +5820,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           <FreeVsPremium compact />
         </div>
         <div className="mt-4">
-          <PremiumBuyButton onUnlocked={() => setIsPremium(true)} />
+          <PremiumBuyButton onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
         </div>
       </div>
     );
@@ -6913,7 +6970,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             <FreeVsPremium compact />
           </div>
           <div className="mt-4">
-            <PremiumBuyButton onUnlocked={() => setIsPremium(true)} />
+            <PremiumBuyButton onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
           </div>
         </div>
       );
@@ -8664,7 +8721,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                       <FreeVsPremium compact />
                     </div>
                     <div className="mt-4">
-                      <PremiumBuyButton onUnlocked={() => setIsPremium(true)} />
+                      <PremiumBuyButton onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
                     </div>
                   </div>
                 ) : history.length === 0 && !historyLoading ? (
@@ -8763,7 +8820,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
         {/* Premium upgrade button */}
         {!isPremium && (
           <div className="mt-6 sm:mt-8 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-            <PremiumBanner onUnlocked={() => setIsPremium(true)} />
+            <PremiumBanner onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
           </div>
         )}
 
@@ -8838,7 +8895,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
       {authOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
-          onClick={() => setAuthOpen(false)}
+          onClick={dismissAuthModal}
         >
           <div
             className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 animate-fade-in-up border border-[var(--synth-purple-light)]/25" style={{ background: "linear-gradient(165deg, #3d2a1a 0%, #2c1c10 60%, #241a08 100%)" }}
@@ -8849,7 +8906,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 {authMode === "signin" ? "Welcome back" : "Create your account"}
               </h3>
               <button
-                onClick={() => setAuthOpen(false)}
+                onClick={dismissAuthModal}
                 aria-label="Close"
                 className="w-8 h-8 rounded-lg bg-zinc-800/60 flex items-center justify-center active:scale-95 transition-transform"
               >
@@ -10918,7 +10975,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                   <button onClick={() => { setBuddyPaywall(false); openAuth("signup"); }} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform btn-sheen">{tr("createaccount")}</button>
                 </div>
               ) : (
-                <PremiumBuyButton onUnlocked={() => { setIsPremium(true); setBuddyPaywall(false); setBuddyOpen(true); }} />
+                <PremiumBuyButton onUnlocked={() => { setIsPremium(true); setBuddyPaywall(false); setBuddyOpen(true); }} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
               )}
             </div>
           </div>
