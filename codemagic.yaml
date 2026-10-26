@@ -2,8 +2,9 @@
 # RouteMax Pro — iOS build & TestFlight delivery (Codemagic)
 #
 # This file is INERT until the app is connected in Codemagic. Nothing here
-# contains a real secret: every Apple value arrives through one encrypted
-# environment-variable group that Eric creates in the Codemagic UI.
+# contains a real secret: publishing authenticates through the App Store
+# Connect integration connected in the Codemagic UI, and the signing step
+# uses one encrypted environment-variable group Eric creates there.
 #
 # BEFORE THE FIRST BUILD, Eric (with Milo's step-by-step) must:
 #   1. Apple Developer enrollment ACTIVE (paid $99; wait for Apple's
@@ -24,10 +25,13 @@
 #        APP_STORE_CONNECT_PRIVATE_KEY      (the FULL contents of the .p8
 #                                            file, including the BEGIN/END
 #                                            PRIVATE KEY lines)
-#   6. Also connect the same API key under Codemagic -> (app) Settings ->
-#      "App Store Connect" integration if the UI offers it; the build below
-#      works from the variable group alone, the integration additionally
-#      unlocks Codemagic's TestFlight conveniences.
+#   6. REQUIRED: connect the same API key under Codemagic -> (app) Settings
+#      -> "App Store Connect" integration (Issuer ID + Key ID + upload the
+#      .p8 file). Publishing below authenticates through that integration,
+#      not through the variable group — the group stays only for the
+#      signing-fetch step. (2026-10-26: the editor kept flagging the
+#      variable-based publishing block even with correct names, so
+#      publishing was moved to the integration.)
 #   7. Start the "routemax-ios" workflow manually the first time.
 #
 # What this workflow does: installs deps, builds the web app, makes sure the
@@ -96,9 +100,10 @@ workflows:
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_identifier: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        # No api_key fields here on purpose: publishing authenticates through
+        # the App Store Connect integration connected in Codemagic (app
+        # Settings -> App Store Connect). The env-var group below stays for
+        # the signing-fetch step only.
         submit_to_testflight: true
         # Deliberately false: submitting for review stays a human tap in
         # App Store Connect (Phase 7), never a side effect of a build.
