@@ -1,0 +1,13 @@
+{
+	"appId": "com.routemax.pro",
+	"appName": "RouteMax",
+	"webDir": "dist",
+	"packageClassList": [
+		"AppPlugin",
+		"CAPBrowserPlugin",
+		"CAPCameraPlugin",
+		"FilesystemPlugin",
+		"LocalNotificationsPlugin",
+		"PurchasesPlugin"
+	]
+}
