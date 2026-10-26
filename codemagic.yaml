@@ -1,0 +1,105 @@
+# ============================================================================
+# RouteMax Pro — iOS build & TestFlight delivery (Codemagic)
+#
+# This file is INERT until the app is connected in Codemagic. Nothing here
+# contains a real secret: every Apple value arrives through one encrypted
+# environment-variable group that Eric creates in the Codemagic UI.
+#
+# BEFORE THE FIRST BUILD, Eric (with Milo's step-by-step) must:
+#   1. Apple Developer enrollment ACTIVE (paid $99; wait for Apple's
+#      "welcome" email — builds cannot be signed or uploaded before this).
+#   2. App Store Connect -> My Apps -> create the app record for bundle ID
+#      com.routemax.pro (Phase 3 of the launch steps).
+#   3. App Store Connect -> Users and Access -> Integrations ->
+#      App Store Connect API -> Generate API Key (role: App Manager or
+#      Admin). Download the .p8 file (Apple lets you download it ONCE) and
+#      note the Key ID and the Issuer ID shown on that page.
+#   4. codemagic.io -> sign in with GitHub -> Add application -> pick the
+#      routemax-pro repository -> choose "codemagic.yaml" as the config.
+#   5. In the Codemagic app -> Environment variables -> create a group named
+#      EXACTLY:  app_store_connect
+#      and inside it add these three variables, all marked SECRET:
+#        APP_STORE_CONNECT_ISSUER_ID        (the Issuer ID from step 3)
+#        APP_STORE_CONNECT_KEY_IDENTIFIER   (the Key ID from step 3)
+#        APP_STORE_CONNECT_PRIVATE_KEY      (the FULL contents of the .p8
+#                                            file, including the BEGIN/END
+#                                            PRIVATE KEY lines)
+#   6. Also connect the same API key under Codemagic -> (app) Settings ->
+#      "App Store Connect" integration if the UI offers it; the build below
+#      works from the variable group alone, the integration additionally
+#      unlocks Codemagic's TestFlight conveniences.
+#   7. Start the "routemax-ios" workflow manually the first time.
+#
+# What this workflow does: installs deps, builds the web app, makes sure the
+# ios/ platform exists, syncs it, lets Codemagic's tools create/fetch the
+# Apple signing certificate + provisioning profile AUTOMATICALLY from the
+# API key (no manual certificates, ever), archives an IPA, and publishes it
+# to TestFlight. It does NOT submit for App Store review.
+# ============================================================================
+
+workflows:
+  routemax-ios:
+    name: RouteMax Pro iOS
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      groups:
+        - app_store_connect # the encrypted group from step 5 above
+      vars:
+        BUNDLE_ID: "com.routemax.pro"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: |
+          # npm ci when a lockfile is present (deterministic), else install.
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Build the web app
+        script: npm run build
+      - name: Ensure the iOS platform exists
+        script: |
+          # The ios/ folder is generated, not hand-written. Locally it is
+          # already scaffolded; if a fresh checkout ever lacks it, add it.
+          if [ ! -d "ios" ]; then npx cap add ios; fi
+      - name: Sync web assets into the iOS project
+        script: npx cap sync ios
+      - name: Set the build number from Codemagic's counter
+        script: |
+          # TestFlight rejects duplicate build numbers; Codemagic's
+          # BUILD_NUMBER is unique per build.
+          cd ios/App
+          agvtool new-version -all "$BUILD_NUMBER"
+      - name: Fetch Apple signing files (automatic code signing)
+        script: |
+          # Uses the APP_STORE_CONNECT_* variables from the encrypted group.
+          # --create lets Codemagic make the distribution certificate and
+          # App Store provisioning profile on first run.
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+      - name: Add the certificates to the keychain
+        script: |
+          keychain initialize
+          keychain add-certificates
+      - name: Apply the provisioning profiles to the project
+        script: xcode-project use-profiles
+      - name: Build the IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_identifier: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        # Deliberately false: submitting for review stays a human tap in
+        # App Store Connect (Phase 7), never a side effect of a build.
+        submit_to_app_store: false
