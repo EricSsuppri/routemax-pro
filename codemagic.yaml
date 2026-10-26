@@ -25,12 +25,14 @@
 #        APP_STORE_CONNECT_PRIVATE_KEY      (the FULL contents of the .p8
 #                                            file, including the BEGIN/END
 #                                            PRIVATE KEY lines)
-#   6. REQUIRED: connect the same API key under Codemagic -> (app) Settings
-#      -> "App Store Connect" integration (Issuer ID + Key ID + upload the
-#      .p8 file). Publishing below authenticates through that integration,
-#      not through the variable group — the group stays only for the
-#      signing-fetch step. (2026-10-26: the editor kept flagging the
-#      variable-based publishing block even with correct names, so
+#   6. REQUIRED: in Codemagic Team settings go to Team integrations >
+#      Developer Portal > Manage keys > Add key. Name the key EXACTLY
+#      "Codemagic" (the workflow above refers to it by that name), enter
+#      the Issuer ID + Key ID, upload the .p8 file, Save. Publishing below
+#      authenticates through that integration (auth: integration), not
+#      through the variable group — the group stays only as a fallback
+#      for the signing-fetch step. (2026-10-26: the editor kept flagging
+#      the variable-based publishing block even with correct names, so
 #      publishing was moved to the integration.)
 #   7. Start the "routemax-ios" workflow manually the first time.
 #
@@ -44,6 +46,11 @@
 workflows:
   routemax-ios:
     name: RouteMax Pro iOS
+    # Refers to the App Store Connect API key stored in Codemagic under
+    # Team integrations > Developer Portal. The key MUST be named exactly
+    # "Codemagic" here, or this reference breaks.
+    integrations:
+      app_store_connect: Codemagic
     instance_type: mac_mini_m2
     max_build_duration: 60
     environment:
@@ -100,10 +107,10 @@ workflows:
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
-        # No api_key fields here on purpose: publishing authenticates through
-        # the App Store Connect integration connected in Codemagic (app
-        # Settings -> App Store Connect). The env-var group below stays for
-        # the signing-fetch step only.
+        # Authenticates through the integration referenced above (auth:
+        # integration), NOT through api_key fields. The env-var group below
+        # stays as a fallback for the signing-fetch step only.
+        auth: integration
         submit_to_testflight: true
         # Deliberately false: submitting for review stays a human tap in
         # App Store Connect (Phase 7), never a side effect of a build.
