@@ -83,7 +83,6 @@ import { askGemini, parseAiJson, isAiConfigured } from "@/lib/ai";
 import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
-import { Share } from "@capacitor/share";
 import { ScreenshotWatcher } from "@/lib/screenshot-watcher";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import type { PluginListenerHandle } from "@capacitor/core";
@@ -107,7 +106,15 @@ const wmoDesc = (c: number): string => {
 };
 const WHOP_URL = "https://whop.com/routemax-pro-profit-vqsu-2/routemax-pro/";
 const SUPPORT_EMAIL = "routemaxprosupport@gmail.com";
-const REVENUECAT_API_KEY = "goog_WODgDSEDIGlvUNuwUFozlRENGRt";
+// RevenueCat public SDK keys — one per store. The Android key is the live
+// Google Play key, unchanged. The iOS key stays empty until the App Store
+// app exists in RevenueCat; paste it from RevenueCat -> Project settings ->
+// Apps -> the iOS app -> "Public API key". While it is empty, purchases
+// quietly stay off on iPhone (ensureRC bails out) instead of throwing.
+const REVENUECAT_API_KEY_ANDROID = "goog_WODgDSEDIGlvUNuwUFozlRENGRt";
+const REVENUECAT_API_KEY_IOS = ""; // TODO(iOS launch): paste the RevenueCat iOS public SDK key
+const REVENUECAT_API_KEY =
+  Capacitor.getPlatform() === "ios" ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
 const PREMIUM_ENTITLEMENT = "premium";
 const GOOGLE_OAUTH_REDIRECT = "com.routemax.pro://oauth";
 const DEFAULT_TAX_RATE = "0.70";
@@ -147,7 +154,7 @@ Last updated: October 13, 2026
 1. What the app does. RouteMax and RouteMax Pro (the free and premium tiers of the same app) are a gig-work earnings calculator and driver wellness companion. It helps you estimate trip profit from figures you enter, track wellness (water, sleep, mood, breaks, movement), and generate professional reports (IRS mileage logs, bookkeeping summaries, expense reports). All estimates, AI summaries, and wellness insights are for information only — not financial, medical, or tax advice.
 2. Your data. Trip figures, wellness logs, meal and water scans (including photos), expense records, and activity history are stored on your device and (if signed in) synced to your account to power History, Compare, Reports, and Tax tools. Downloaded reports are saved to your device's Documents folder. Custom alarm sounds are stored on your device. Account data (email) is used only for sign-in and sync. See the Privacy Policy for details.
 3. AI features. Eric (AI coach), wellness summaries, meal scanner, water scanner, and receipt scanner use Groq AI. Photos you take for AI analysis are sent to Groq's API for processing and are not stored by us. AI outputs are estimates and may be inaccurate — verify important decisions yourself. Do not share sensitive personal information with AI features.
-4. Subscriptions. Premium is billed through Google Play ($5/month or as shown in the store). Manage or cancel anytime in the Play Store — cancellation stops future charges; already-paid periods are not refunded except as Google Play policy allows.
+4. Subscriptions. Premium is billed through your app store ($5/month or as shown in the store). Manage or cancel anytime in your app store's subscription settings — cancellation stops future charges; already-paid periods are not refunded except as your app store's policy allows.
 5. Acceptable use. Don't abuse the service, attempt to breach security, scrape other users' data, or upload unlawful content as alarm sounds, photos, or AI inputs.
 6. No warranties. The app is provided "as is". Mileage, fuel, wear, nutrition, wellness figures (including vehicle-database MPG/MPGe values), and AI-generated reports are estimates, not certified specifications — verify against your own vehicle, health professional, or tax advisor before filing taxes or making financial decisions.
 7. Liability. To the maximum extent allowed by law, TewieWorks is not liable for indirect or consequential losses, including lost earnings decisions, health decisions, or tax filings made using estimates, AI outputs, or generated reports.
@@ -164,7 +171,7 @@ Data we collect
 • Route data: the trips, offers, mileage and expense figures you enter. This is your data — stored so History, Compare, Reports and Tax tools work.
 • Wellness data: water, sleep, mood, break, and movement logs you enter in Basecamp.
 • Photos: when you use the camera features (offer scanner, meal scanner, water scanner, receipt import), photos are sent to Groq's AI API for analysis. We do not store your photos on our servers — they remain on your device unless you save them.
-• Purchase data: when you buy Premium, Google Play processes the payment. We receive only the purchase status (active / expired) via RevenueCat — we never see card details.
+• Purchase data: when you buy Premium, your app store processes the payment. We receive only the purchase status (active / expired) via RevenueCat — we never see card details.
 
 Data we do NOT collect
 • No location tracking. No background GPS. You type in your own miles.
@@ -825,7 +832,7 @@ function writeLocal(key: string, value: string) {
 
 /* ---------- RevenueCat in-app purchases (replaces Whop) ---------- */
 
-// True only inside the real Android app (Capacitor webview), never in a browser.
+// True only inside a real native app (Android or iOS Capacitor webview), never in a browser.
 const isNativeApp = () => {
   const cap = (window as any).Capacitor;
   return !!cap && typeof cap.isNativePlatform === "function" && cap.isNativePlatform();
@@ -836,6 +843,9 @@ const ensureRC = async (userId: string): Promise<boolean> => {
   if (!isNativeApp()) return false;
   try {
     if (!rcConfigured) {
+      // No key for this platform yet (iOS before its RevenueCat app exists):
+      // leave purchases off rather than configuring with an empty key.
+      if (!REVENUECAT_API_KEY) return false;
       await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
       rcConfigured = true;
     }
@@ -926,6 +936,12 @@ function usePremiumPurchase(onUnlocked: () => void) {
     if (!supabase) return;
     setBusy(true);
     setErr("");
+    // iOS before its App Store product exists: don't call an unconfigured SDK.
+    if (isNativeApp() && Capacitor.getPlatform() === "ios" && !REVENUECAT_API_KEY) {
+      setErr("Premium purchases on iPhone are coming soon — the App Store subscription isn't connected yet.");
+      setBusy(false);
+      return;
+    }
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const { customerInfo } = await Purchases.restorePurchases();
@@ -1237,7 +1253,7 @@ function PremiumFeaturesModal({
           Not now
         </button>
         <p className="text-center text-[10px] text-zinc-600 mt-1 leading-relaxed">
-          Billed through Google Play. Cancel anytime in the Play Store app.
+          Billed through your app store. Cancel anytime in your app store's subscription settings.
         </p>
       </div>
     </div>
@@ -1254,6 +1270,7 @@ function PremiumBuyButton({
   onRequireSignup: () => void;
 }) {
   const [showFeatures, setShowFeatures] = useState(false);
+  const [iosNote, setIosNote] = useState("");
   const wrappedUnlocked = () => {
     setShowFeatures(false);
     onUnlocked();
@@ -1262,6 +1279,13 @@ function PremiumBuyButton({
 
   const handleContinue = () => {
     if (!pkg) {
+      // iOS: never send App Store users to an external web checkout —
+      // Apple rejects that (Guideline 3.1.1). Show a plain note instead.
+      if (isNativeApp() && Capacitor.getPlatform() === "ios") {
+        setShowFeatures(false);
+        setIosNote("Premium purchases on iPhone are coming soon — the App Store subscription isn't connected yet.");
+        return;
+      }
       // Play products aren't configured yet — Whop checkout stays working meanwhile.
       // Web: require an account first so the purchase can be tied to the user.
       if (!isNativeApp() && !signedIn) {
@@ -1285,6 +1309,7 @@ function PremiumBuyButton({
         {busy ? "Processing…" : price ? `Upgrade to Premium — ${price}` : "Upgrade to Premium"}
       </button>
       {err ? <p className="text-[11px] text-red-400 mt-2 leading-relaxed">{err}</p> : null}
+      {iosNote ? <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">{iosNote}</p> : null}
       <button
         onClick={restore}
         disabled={busy}
@@ -1314,6 +1339,7 @@ function PremiumBanner({
   onRequireSignup: () => void;
 }) {
   const [showFeatures, setShowFeatures] = useState(false);
+  const [iosNote, setIosNote] = useState("");
   const wrappedUnlocked = () => {
     setShowFeatures(false);
     onUnlocked();
@@ -1322,6 +1348,13 @@ function PremiumBanner({
 
   const handleContinue = () => {
     if (!pkg) {
+      // iOS: never send App Store users to an external web checkout —
+      // Apple rejects that (Guideline 3.1.1). Show a plain note instead.
+      if (isNativeApp() && Capacitor.getPlatform() === "ios") {
+        setShowFeatures(false);
+        setIosNote("Premium purchases on iPhone are coming soon — the App Store subscription isn't connected yet.");
+        return;
+      }
       // Web: require an account first so the purchase can be tied to the user.
       if (!isNativeApp() && !signedIn) {
         setShowFeatures(false);
@@ -1365,6 +1398,7 @@ function PremiumBanner({
         <button onClick={() => setShowFeatures(true)} className="block w-full relative group text-left">
           {inner}
         </button>
+        {iosNote ? <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">{iosNote}</p> : null}
         {showFeatures && (
           <PremiumFeaturesModal
             price={price}
@@ -4191,7 +4225,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     finally { setSettingsBusy(false); }
   };
   const shareApp = async () => {
-    const url = "https://play.google.com/store/apps/details?id=com.routemax.pro";
+    // TODO(iOS launch): swap the iOS branch to the App Store link once the listing exists.
+    const url = Capacitor.getPlatform() === "ios" ? "https://routemaxpro.netlify.app/" : "https://play.google.com/store/apps/details?id=com.routemax.pro";
     const text = `${appName} — know your real earnings before every trip.`;
     try {
       if (navigator.share) { await navigator.share({ title: appName, text, url }); }
@@ -4495,8 +4530,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         fetchProfile(newSession.user.id);
         fetchHistory();
         // Web premium flow: user signed up via the Upgrade button — now send them to Whop.
+        // Web only — never bounce a native app user to an external checkout.
         try {
-          if (sessionStorage.getItem("rm_pending_whop") === "1") {
+          if (!isNativeApp() && sessionStorage.getItem("rm_pending_whop") === "1") {
             sessionStorage.removeItem("rm_pending_whop");
             setAuthOpen(false);
             window.open(WHOP_URL, "_blank", "noopener,noreferrer");
@@ -5539,6 +5575,13 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   // screenshots, AI reads them, and a notification tap loads the offer.
   const toggleWatching = async () => {
     if (!isPremium || !isAiConfigured) return;
+    if (Capacitor.getPlatform() !== "android") {
+      // The watcher is a native Android foreground service — on iOS there is
+      // no implementation, so say so plainly instead of leaking a raw
+      // "plugin not implemented" error to the user.
+      setWatchMsg("Auto-scan is only in the Android app for now — it isn't available on iPhone yet.");
+      return;
+    }
     setWatchMsg("");
     try {
       if (watching) {
@@ -5566,6 +5609,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     let notifHandle: PluginListenerHandle | null = null;
     // A new screenshot landed while the watcher runs: read it with AI and
     // pop a notification the driver can tap to load the offer.
+    // Android only: the watcher has no iOS implementation, so don't even
+    // register the listener on iPhone (its promise would just reject).
+    if (Capacitor.getPlatform() === "android") {
     ScreenshotWatcher.addListener("screenshotDetected", async ({ imageBase64 }) => {
       const notifId = Math.floor(Date.now() / 1000) % 100000;
       try {
@@ -5621,6 +5667,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         shotHandle = h;
       })
       .catch(() => {});
+    }
     // Driver tapped the "offer scanned" notification: fill the calculator.
     LocalNotifications.addListener(
       "localNotificationActionPerformed",
@@ -9268,10 +9315,12 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                         <MessageSquare className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">{tr("feedback")}</span>
                       </a>
+                      {Capacitor.getPlatform() !== "ios" && (
                       <button onClick={() => window.open("https://play.google.com/store/apps/details?id=com.routemax.pro", "_blank", "noopener")} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
                         <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">{tr("rateuson")}</span>
                       </button>
+                      )}
                       <button onClick={() => { setSettingsOpen(false); window.open(vehicle?.fuel === "electric" ? "https://www.plugshare.com/" : "https://upside.app.link/0rj3FSeI86b", "_blank", "noopener"); }} className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 border-b border-zinc-800/40 last:border-0">
                         <Fuel className="w-4 h-4 text-amber-400 flex-shrink-0" />
                         <span className="text-sm font-semibold text-zinc-200">{vehicle?.fuel === "electric" ? "Find chargers near me" : "Earn cashback on gas"}</span>
