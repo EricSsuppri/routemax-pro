@@ -83,6 +83,15 @@ workflows:
           # BUILD_NUMBER is unique per build.
           cd ios/App
           agvtool new-version -all "$BUILD_NUMBER"
+      - name: Set up keychain to be used for code signing
+        script: |
+          # MUST run BEFORE fetch-signing-files: the fetch step saves the
+          # new distribution certificate's private key into this keychain.
+          # (2026-10-27: keychain used to be initialized after the fetch,
+          # and the build failed with "Cannot save Signing Certificates
+          # without certificate private key" because there was no keychain
+          # yet to save the key into.)
+          keychain initialize
       - name: Fetch Apple signing files (automatic code signing)
         script: |
           # Uses the APP_STORE_CONNECT_* variables from the encrypted group.
@@ -93,7 +102,9 @@ workflows:
             --create
       - name: Add the certificates to the keychain
         script: |
-          keychain initialize
+          # NOTE: no second `keychain initialize` here — re-initializing
+          # would wipe the keychain the fetch step just saved the new
+          # private key into.
           keychain add-certificates
       - name: Apply the provisioning profiles to the project
         script: xcode-project use-profiles
