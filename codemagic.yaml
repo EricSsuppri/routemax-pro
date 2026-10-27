@@ -99,6 +99,7 @@ workflows:
           # App Store provisioning profile on first run.
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY \
             --create
       - name: Add the certificates to the keychain
         script: |
