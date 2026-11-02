@@ -112,7 +112,7 @@ const SUPPORT_EMAIL = "routemaxprosupport@gmail.com";
 // Apps -> the iOS app -> "Public API key". While it is empty, purchases
 // quietly stay off on iPhone (ensureRC bails out) instead of throwing.
 const REVENUECAT_API_KEY_ANDROID = "goog_WODgDSEDIGlvUNuwUFozlRENGRt";
-const REVENUECAT_API_KEY_IOS = ""; // TODO(iOS launch): paste the RevenueCat iOS public SDK key
+const REVENUECAT_API_KEY_IOS = "appl_ipbsyEwmnfYwgbLYPxWMyiXhRmz"; // TODO(iOS launch): paste the RevenueCat iOS public SDK key
 const REVENUECAT_API_KEY =
   Capacitor.getPlatform() === "ios" ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
 const PREMIUM_ENTITLEMENT = "premium";
