@@ -3764,14 +3764,18 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const calcRouteMilesMins = async (
     from: string,
     to: string,
-    mode: RouteModeKey
+    mode: RouteModeKey,
+    coords?: { from?: GeoSugg | null; to?: GeoSugg | null }
   ): Promise<{ miles: number; mins: number } | null> => {
     const geo = async (q: string) => {
       const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`);
       const j = await r.json();
       return j && j[0] ? { lat: j[0].lat, lon: j[0].lon } : null;
     };
-    const a = await geo(from), b = await geo(to);
+    // Coords picked from a suggestion / current location win over re-geocoding
+    // the display text (same rule as the Calculator's fromCoord/toCoord).
+    const a = coords?.from ? { lat: coords.from.lat, lon: coords.from.lon } : await geo(from);
+    const b = coords?.to ? { lat: coords.to.lat, lon: coords.to.lon } : await geo(to);
     if (!a || !b) return null;
     const cacheKey = `${a.lat},${a.lon}|${b.lat},${b.lon}`;
     const cached = routeCacheRef.current.get(cacheKey);
@@ -4596,7 +4600,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     setCmpRouteBusy((p) => ({ ...p, [key]: true }));
     setCmpRouteError((p) => ({ ...p, [key]: "" }));
     try {
-      const r = await calcRouteMilesMins(from, to, offer.routeMode);
+      const r = await calcRouteMilesMins(from, to, offer.routeMode, {
+        from: cmpCoord[cmpAddrKey(key, "from")] || null,
+        to: cmpCoord[cmpAddrKey(key, "to")] || null,
+      });
       if (!r) { setCmpRouteError((p) => ({ ...p, [key]: "Couldn't find one of those places — check spelling." })); return; }
       setOffer({ ...offer, miles: String(r.miles), tripMin: r.mins });
     } catch {
@@ -4605,6 +4612,136 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       setCmpRouteBusy((p) => ({ ...p, [key]: false }));
     }
   };
+
+  // Compare address fields — same behaviour as the Calculator route modal:
+  // current-location button, debounced autocomplete, swap. All state is
+  // keyed "A-from" / "A-to" / "B-from" / "B-to" so the offers never leak
+  // into each other. (Suggestion fetch is a duplicate of the Calculator's
+  // effect, kept identical on purpose: extracting a shared helper would
+  // have changed the Calculator's two-stage Nominatim-then-POI timing.)
+  type CmpAddrKey = "A" | "B";
+  type CmpAddrField = "from" | "to";
+  const cmpAddrKey = (key: CmpAddrKey, which: CmpAddrField) => `${key}-${which}` as const;
+  const [cmpSugg, setCmpSugg] = useState<Record<string, GeoSugg[]>>({});
+  const [cmpCoord, setCmpCoord] = useState<Record<string, GeoSugg | null>>({});
+  const [cmpSuggLoading, setCmpSuggLoading] = useState<string | null>(null);
+  const [cmpLocLoading, setCmpLocLoading] = useState<string | null>(null);
+  const cmpNomRef = useRef<Record<string, GeoSugg[]>>({});
+  const pickCmpSugg = (key: CmpAddrKey, which: CmpAddrField, g: GeoSugg) => {
+    const setOffer = key === "A" ? setOfferA : setOfferB;
+    const offer = key === "A" ? offerA : offerB;
+    const fk = cmpAddrKey(key, which);
+    if (which === "from") setOffer({ ...offer, from: g.name.split(",").slice(0, 3).join(","), tripMin: null });
+    else setOffer({ ...offer, to: g.name.split(",").slice(0, 3).join(","), tripMin: null });
+    setCmpCoord((p) => ({ ...p, [fk]: g }));
+    setCmpSugg((p) => ({ ...p, [fk]: [] }));
+  };
+  const useCmpCurrentLocation = (key: CmpAddrKey, which: CmpAddrField) => {
+    const fk = cmpAddrKey(key, which);
+    if (!navigator.geolocation) {
+      setCmpRouteError((p) => ({ ...p, [key]: "Location isn't available on this device." }));
+      return;
+    }
+    setCmpLocLoading(fk);
+    setCmpRouteError((p) => ({ ...p, [key]: "" }));
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const j = await r.json();
+          const g: GeoSugg = {
+            name: j.display_name || "Current location",
+            lat: String(latitude), lon: String(longitude),
+          };
+          pickCmpSugg(key, which, g);
+        } catch {
+          setCmpRouteError((p) => ({ ...p, [key]: "Couldn't read your location — try typing it." }));
+        } finally { setCmpLocLoading(null); }
+      },
+      () => {
+        setCmpLocLoading(null);
+        setCmpRouteError((p) => ({ ...p, [key]: "Location permission denied — type the address instead." }));
+      },
+      { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }
+    );
+  };
+  // Debounced Compare autocomplete — same search as the Calculator: Nominatim
+  // US, viewbox-biased to the user's location, strictly local first with a
+  // global fallback, nearest-first, capped at 5, plus Overpass POI merge.
+  useEffect(() => {
+    const fields: { key: CmpAddrKey; which: CmpAddrField; q: string; on: boolean }[] = [
+      { key: "A", which: "from", q: offerA.from, on: offerA.addrOn },
+      { key: "A", which: "to", q: offerA.to, on: offerA.addrOn },
+      { key: "B", which: "from", q: offerB.from, on: offerB.addrOn },
+      { key: "B", which: "to", q: offerB.to, on: offerB.addrOn },
+    ];
+    const cleanups: Array<() => void> = [];
+    for (const f of fields) {
+      const fk = cmpAddrKey(f.key, f.which);
+      if (!f.on) { continue; }
+      if (f.q.trim().length < 3) {
+        setCmpSugg((p) => ({ ...p, [fk]: [] }));
+        continue;
+      }
+      const t = setTimeout(async () => {
+        setCmpSuggLoading(fk);
+        try {
+          const b = geoBiasRef.current;
+          const vb = b ? `&viewbox=${(b.lon - 0.6).toFixed(3)},${(b.lat + 0.6).toFixed(3)},${(b.lon + 0.6).toFixed(3)},${(b.lat - 0.6).toFixed(3)}` : "";
+          const qEsc = f.q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const nomUrl = (bounded: boolean) => `https://nominatim.openstreetmap.org/search?format=json&limit=10&addressdetails=0&countrycodes=us${vb}${bounded && b ? "&bounded=1" : ""}&q=${encodeURIComponent(f.q.trim())}`;
+          const sortNear = (list: GeoSugg[]) => {
+            if (!b) return list;
+            return list
+              .map((g) => ({ g, d: havMi(b.lat, b.lon, parseFloat(g.lat), parseFloat(g.lon)) }))
+              .sort((x, y) => x.d - y.d)
+              .map((x) => x.g);
+          };
+          const nomP = (async () => {
+            if (!b) return fetch(nomUrl(false)).then((r) => r.json()).catch(() => null);
+            const local = await fetch(nomUrl(true)).then((r) => r.json()).catch(() => null);
+            if (Array.isArray(local) && local.length > 0) return local;
+            return fetch(nomUrl(false)).then((r) => r.json()).catch(() => null);
+          })();
+          nomP.then((nomR) => {
+            const list: GeoSugg[] = (Array.isArray(nomR) ? nomR : []).slice(0, 10).map((p: any) => ({ name: p.display_name, lat: String(p.lat), lon: String(p.lon) }));
+            cmpNomRef.current[fk] = list;
+            setCmpSugg((p) => ({ ...p, [fk]: sortNear(list).slice(0, 5) }));
+          });
+          if (b) {
+            const poiBody = `data=${encodeURIComponent(`[out:json][timeout:10];(node["name"~"${qEsc}",i](around:25000,${b.lat},${b.lon});way["name"~"${qEsc}",i](around:25000,${b.lat},${b.lon});node["shop"="supermarket"]["name"~"${qEsc}",i](around:25000,${b.lat},${b.lon});way["shop"="supermarket"]["name"~"${qEsc}",i](around:25000,${b.lat},${b.lon}););out center 12;`)}`;
+            const poiP = Promise.race([
+              fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: poiBody }).then((r) => r.json()),
+              new Promise((_, rej) => setTimeout(() => rej(new Error("poi-timeout")), 8000)),
+            ]).catch(() => null);
+            poiP.then((poiR: any) => {
+              try {
+                const els = Array.isArray(poiR?.elements) ? poiR.elements : [];
+                if (!els.length) return;
+                const list: GeoSugg[] = [...(cmpNomRef.current[fk] || [])];
+                for (const e of els.slice(0, 12)) {
+                  const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon;
+                  const nm = e.tags?.name;
+                  if (lat == null || lon == null || !nm) continue;
+                  const addr = [e.tags?.["addr:housenumber"], e.tags?.["addr:street"], e.tags?.["addr:city"]].filter(Boolean).join(" ");
+                  const name = addr ? `${nm}, ${addr}` : nm;
+                  if (list.some((g) => havMi(parseFloat(g.lat), parseFloat(g.lon), lat, lon) < 0.06)) continue;
+                  list.push({ name, lat: String(lat), lon: String(lon) });
+                }
+                setCmpSugg((p) => ({ ...p, [fk]: sortNear(list).slice(0, 5) }));
+              } catch {}
+            });
+          }
+        } catch {
+          setCmpSugg((p) => ({ ...p, [fk]: [] }));
+        } finally { setCmpSuggLoading(null); }
+      }, 500);
+      cleanups.push(() => clearTimeout(t));
+    }
+    return () => { cleanups.forEach((c) => c()); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offerA.from, offerA.to, offerA.addrOn, offerB.from, offerB.to, offerB.addrOn]);
 
   // Tax tab state (persisted on this device)
   const [taxRate, setTaxRate] = useState(() => readLocal("rm_tax_rate", DEFAULT_TAX_RATE));
@@ -6207,22 +6344,120 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         </button>
         {offer.addrOn && (
           <div className="space-y-2 animate-fade-in">
-            <input
-              type="text"
-              placeholder="From — pickup address"
-              autoComplete="off"
-              value={offer.from}
-              onChange={(e) => setOffer({ ...offer, from: e.target.value })}
-              className="w-full bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm font-semibold text-white placeholder-zinc-600 outline-none"
-            />
-            <input
-              type="text"
-              placeholder="To — dropoff address"
-              autoComplete="off"
-              value={offer.to}
-              onChange={(e) => setOffer({ ...offer, to: e.target.value })}
-              className="w-full bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm font-semibold text-white placeholder-zinc-600 outline-none"
-            />
+            {((which: "from" | "to") => {
+              const fk = cmpAddrKey(key, which);
+              const sugg = cmpSugg[fk] || [];
+              const ref = which === "from"
+                ? geoBiasRef.current
+                : (cmpCoord[cmpAddrKey(key, "from")] ? { lat: parseFloat(cmpCoord[cmpAddrKey(key, "from")]!.lat), lon: parseFloat(cmpCoord[cmpAddrKey(key, "from")]!.lon) } : geoBiasRef.current);
+              return (
+                <div className="relative" key={which}>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={which === "from" ? "From — pickup address" : "To — dropoff address"}
+                      autoComplete="off"
+                      value={which === "from" ? offer.from : offer.to}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setOffer(which === "from" ? { ...offer, from: v, tripMin: null } : { ...offer, to: v, tripMin: null });
+                        setCmpCoord((p) => ({ ...p, [fk]: null }));
+                      }}
+                      className="flex-1 min-w-0 w-0 bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm font-semibold text-white placeholder-zinc-600 outline-none"
+                    />
+                    <button
+                      onClick={() => useCmpCurrentLocation(key, which)}
+                      disabled={cmpLocLoading != null}
+                      title="Use my current location"
+                      aria-label="Use my current location"
+                      className="flex-shrink-0 w-[52px] rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center active:scale-95 disabled:opacity-50"
+                    >
+                      {cmpLocLoading === fk ? <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" /> : <LocateFixed className="w-5 h-5 text-amber-300" />}
+                    </button>
+                  </div>
+                  {sugg.length > 0 && (
+                    <div className="mt-1.5 bg-[#1c1c22] border border-zinc-700/60 rounded-xl overflow-hidden shadow-xl max-h-48 overflow-y-auto">
+                      {sugg.map((g, i) => {
+                        const mi = ref ? havMi(ref.lat, ref.lon, parseFloat(g.lat), parseFloat(g.lon)) : null;
+                        return (
+                          <button key={i} onClick={() => pickCmpSugg(key, which, g)} className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-zinc-300 active:bg-zinc-800 border-b border-zinc-800/50 last:border-0 flex items-center gap-1.5">
+                            <MapPin className="w-3 h-3 flex-shrink-0 text-amber-400" />
+                            <span className="flex-1 min-w-0 leading-snug">{g.name}</span>
+                            {mi != null && <span className="flex-shrink-0 text-[10px] font-bold text-amber-300 bg-amber-500/10 rounded-md px-1.5 py-0.5">{mi.toFixed(1)} mi{which === "to" ? " away" : ""}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })("from")}
+            <div className="flex justify-center -my-1 relative z-10">
+              <button
+                onClick={() => {
+                  setOffer({ ...offer, from: offer.to, to: offer.from, tripMin: null });
+                  setCmpCoord((p) => ({
+                    ...p,
+                    [cmpAddrKey(key, "from")]: p[cmpAddrKey(key, "to")] || null,
+                    [cmpAddrKey(key, "to")]: p[cmpAddrKey(key, "from")] || null,
+                  }));
+                  setCmpSugg((p) => ({ ...p, [cmpAddrKey(key, "from")]: [], [cmpAddrKey(key, "to")]: [] }));
+                }}
+                aria-label="Swap origin and destination"
+                title="Swap origin and destination"
+                className="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center active:scale-95 active:rotate-180 transition-transform"
+              >
+                <ArrowUpDown className="w-4 h-4 text-amber-300" />
+              </button>
+            </div>
+            {((which: "from" | "to") => {
+              const fk = cmpAddrKey(key, which);
+              const sugg = cmpSugg[fk] || [];
+              const ref = which === "from"
+                ? geoBiasRef.current
+                : (cmpCoord[cmpAddrKey(key, "from")] ? { lat: parseFloat(cmpCoord[cmpAddrKey(key, "from")]!.lat), lon: parseFloat(cmpCoord[cmpAddrKey(key, "from")]!.lon) } : geoBiasRef.current);
+              return (
+                <div className="relative" key={which}>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={which === "from" ? "From — pickup address" : "To — dropoff address"}
+                      autoComplete="off"
+                      value={which === "from" ? offer.from : offer.to}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setOffer(which === "from" ? { ...offer, from: v, tripMin: null } : { ...offer, to: v, tripMin: null });
+                        setCmpCoord((p) => ({ ...p, [fk]: null }));
+                      }}
+                      className="flex-1 min-w-0 w-0 bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm font-semibold text-white placeholder-zinc-600 outline-none"
+                    />
+                    <button
+                      onClick={() => useCmpCurrentLocation(key, which)}
+                      disabled={cmpLocLoading != null}
+                      title="Use my current location"
+                      aria-label="Use my current location"
+                      className="flex-shrink-0 w-[52px] rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center active:scale-95 disabled:opacity-50"
+                    >
+                      {cmpLocLoading === fk ? <span className="w-4 h-4 border-2 border-teal-300/40 border-t-teal-300 rounded-full animate-spin" /> : <LocateFixed className="w-5 h-5 text-amber-300" />}
+                    </button>
+                  </div>
+                  {sugg.length > 0 && (
+                    <div className="mt-1.5 bg-[#1c1c22] border border-zinc-700/60 rounded-xl overflow-hidden shadow-xl max-h-48 overflow-y-auto">
+                      {sugg.map((g, i) => {
+                        const mi = ref ? havMi(ref.lat, ref.lon, parseFloat(g.lat), parseFloat(g.lon)) : null;
+                        return (
+                          <button key={i} onClick={() => pickCmpSugg(key, which, g)} className="w-full text-left px-3.5 py-2.5 text-xs font-medium text-zinc-300 active:bg-zinc-800 border-b border-zinc-800/50 last:border-0 flex items-center gap-1.5">
+                            <MapPin className="w-3 h-3 flex-shrink-0 text-amber-400" />
+                            <span className="flex-1 min-w-0 leading-snug">{g.name}</span>
+                            {mi != null && <span className="flex-shrink-0 text-[10px] font-bold text-amber-300 bg-amber-500/10 rounded-md px-1.5 py-0.5">{mi.toFixed(1)} mi{which === "to" ? " away" : ""}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })("to")}
             <div className="flex gap-1.5">
               {(["drive", "bike", "walk"] as const).map((m) => (
                 <button
