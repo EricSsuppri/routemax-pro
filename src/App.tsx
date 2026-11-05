@@ -112,7 +112,7 @@ const SUPPORT_EMAIL = "routemaxprosupport@gmail.com";
 // Apps -> the iOS app -> "Public API key". While it is empty, purchases
 // quietly stay off on iPhone (ensureRC bails out) instead of throwing.
 const REVENUECAT_API_KEY_ANDROID = "goog_WODgDSEDIGlvUNuwUFozlRENGRt";
-const REVENUECAT_API_KEY_IOS = "appl_ipbsyEwmnfYwgbLYPxWMyiXhRmz"; // TODO(iOS launch): paste the RevenueCat iOS public SDK key
+const REVENUECAT_API_KEY_IOS = ""; // TODO(iOS launch): paste the RevenueCat iOS public SDK key
 const REVENUECAT_API_KEY =
   Capacitor.getPlatform() === "ios" ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
 const PREMIUM_ENTITLEMENT = "premium";
@@ -691,6 +691,7 @@ type Results = {
   returnWearCost: number;
   returnCost: number;
   effectiveMileage: number;
+  waitMinutes: number;
 };
 
 type RouteHistoryRow = {
@@ -795,14 +796,17 @@ function formatShortDate(iso: string): string {
 }
 
 /** Net-profit math for one offer (used by the Compare tab). */
-function calcOfferNet(payout: number, miles: number, gas: number, mpg: number, retMiles = 0, wearRate = WEAR_COST_PER_MILE, speedMph = AVG_SPEED_MPH) {
+function calcOfferNet(payout: number, miles: number, gas: number, mpg: number, retMiles = 0, wearRate = WEAR_COST_PER_MILE, speedMph = AVG_SPEED_MPH, waitMin = 0) {
   const totalMi = miles + retMiles;
   const fuel = totalMi > 0 && mpg > 0 ? (totalMi / mpg) * gas : 0;
   const wear = totalMi * wearRate;
   const total = fuel + wear;
   const net = payout - total;
-  const hours = speedMph > 0 ? totalMi / speedMph : 0;
-  return { fuel, wear, total, net, hours, hourly: hours > 0 ? net / hours : 0, totalMi };
+  // Time = driving time + pickup/wait time. Wait time earns nothing, so it
+  // lowers $/hr — a far, slow offer can no longer win on payout alone.
+  const waitHours = Math.max(0, waitMin) / 60;
+  const hours = (speedMph > 0 ? totalMi / speedMph : 0) + waitHours;
+  return { fuel, wear, total, net, hours, hourly: hours > 0 ? net / hours : 0, totalMi, waitMin: Math.max(0, waitMin) };
 }
 
 /** Monday (local) of the week containing d, as YYYY-MM-DD. */
@@ -2045,6 +2049,7 @@ function AppInner() {
   const [presetMemory, setPresetMemory] = useState<Record<string, { payout: string; mileage: string }>>({});
   const [returnTripEnabled, setReturnTripEnabled] = useState(false);
   const [returnMileage, setReturnMileage] = useState("");
+  const [waitMinutes, setWaitMinutes] = useState("");
   const [results, setResults] = useState<Results | null>(null);
   const [error, setError] = useState("");
 
@@ -4458,8 +4463,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   // Compare tab state
   const [cmpGas, setCmpGas] = useState("3.50");
   const [cmpMpg, setCmpMpg] = useState("22");
-  const [offerA, setOfferA] = useState({ payout: "", miles: "", retOn: false, retMiles: "" });
-  const [offerB, setOfferB] = useState({ payout: "", miles: "", retOn: false, retMiles: "" });
+  const [offerA, setOfferA] = useState({ payout: "", miles: "", retOn: false, retMiles: "", waitMin: "" });
+  const [offerB, setOfferB] = useState({ payout: "", miles: "", retOn: false, retMiles: "", waitMin: "" });
 
   // Tax tab state (persisted on this device)
   const [taxRate, setTaxRate] = useState(() => readLocal("rm_tax_rate", DEFAULT_TAX_RATE));
@@ -4903,7 +4908,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   };
 
   const handleAuth = async () => {
-    if (!supabase) return;
+    if (!supabase) {
+      setAuthError("Sign-in isn't connected in this build — it was built without its login keys. Use a build made with the keys baked in.");
+      return;
+    }
     const email = authEmail.trim();
     if (!email || !authPassword) {
       setAuthError("Enter your email and password.");
@@ -5017,7 +5025,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   };
 
   const handleGoogleSignIn = async () => {
-    if (!supabase) return;
+    if (!supabase) {
+      setAuthError("Sign-in isn't connected in this build — it was built without its login keys. Use a build made with the keys baked in.");
+      return;
+    }
     setGoogleBusy(true);
     setAuthError("");
     setAuthInfo("");
@@ -5457,7 +5468,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         ? `30-day averages from ${avg.trips} accepted trips: $${avg.avgHourly.toFixed(2)}/hr, $${avg.avgNet.toFixed(2)} net per trip.`
         : "No accepted-trip history yet — judge the offer on its own merits.";
       const reply = await askGemini(
-        `You are a gig-work coach. Offer: payout $${results.payout}, ${results.mileage} miles, true net profit $${results.netProfit.toFixed(2)}, $${results.hourlyEarnings.toFixed(2)}/hour after costs. ${baseline} Reply ONLY valid JSON like {"verdict": "TAKE", "reasons": ["...", "...", "..."]}. verdict must be TAKE or SKIP. reasons: exactly 3 short punchy strings any gig worker would understand.`
+        `You are a gig-work coach. Offer: payout $${results.payout}, ${results.mileage} miles, ${fmtTripTime(results.hours * 60)} total time${results.waitMinutes > 0 ? ` including ${results.waitMinutes} min pickup/wait` : ""}, true net profit $${results.netProfit.toFixed(2)}, $${results.hourlyEarnings.toFixed(2)}/hour after costs. ${baseline} Reply ONLY valid JSON like {"verdict": "TAKE", "reasons": ["...", "...", "..."]}. verdict must be TAKE or SKIP. reasons: exactly 3 short punchy strings any gig worker would understand.`
       );
       const data = parseAiJson<{ verdict: string; reasons: string[] }>(reply);
       const v = String(data.verdict || "").toUpperCase();
@@ -5702,6 +5713,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const mpgNum = parseFloat(mpg);
     const wearNum = parseFloat(wearRate);
     const returnNum = returnTripEnabled ? parseFloat(returnMileage) : 0;
+    const waitNum = Math.max(0, parseFloat(waitMinutes) || 0);
 
     if (tripPurpose === "work" && (!payoutNum || payoutNum <= 0)) {
       setError("Enter a valid order payout");
@@ -5752,16 +5764,16 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const returnCost = returnWearCost + returnFuelCost;
     const totalCost = wearCost + fuelCost + returnCost;
     const netProfit = payoutNum - totalCost;
-    const hours = (tripSecs != null && tripSecs > 0)
+    const hours = ((tripSecs != null && tripSecs > 0)
       ? tripSecs / 3600 + (returnNum > 0 ? returnNum / speedMph : 0) // real route duration + return estimate
-      : effectiveMileage / speedMph;
+      : effectiveMileage / speedMph) + waitNum / 60; // + pickup/wait time
     const hourlyEarnings = netProfit / hours;
 
     setResults({
       netProfit, fuelCost, wearCost, totalCost, hours, hourlyEarnings,
       payout: payoutNum, mileage: mileageNum, gasPrice: gasNum, mpg: mpgNum, wearRate: wearNum,
       returnMileage: returnNum, returnFuelCost, returnWearCost, returnCost,
-      effectiveMileage,
+      effectiveMileage, waitMinutes: waitNum,
     });
     setVerdict(null);
     setVerdictError("");
@@ -5880,35 +5892,40 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const aPay = parseFloat(offerA.payout);
   const aMi = parseFloat(offerA.miles);
   const aRet = offerA.retOn ? parseFloat(offerA.retMiles) : 0;
+  const aWait = Math.max(0, parseFloat(offerA.waitMin) || 0);
   const bPay = parseFloat(offerB.payout);
   const bMi = parseFloat(offerB.miles);
   const bRet = offerB.retOn ? parseFloat(offerB.retMiles) : 0;
+  const bWait = Math.max(0, parseFloat(offerB.waitMin) || 0);
   const cmpReady =
     aPay > 0 && aMi > 0 && bPay > 0 && bMi > 0 && cmpGasNum > 0 && cmpMpgNum > 0 &&
     (!offerA.retOn || aRet > 0) && (!offerB.retOn || bRet > 0);
   const cmpSpeed = activeSpeed;
   const cmpIsEV = vehicle?.fuel === "electric";
   const cmpGasEff = cmpIsEV ? cmpGasNum * 33.7 : cmpGasNum;
-  const cmpA = cmpReady ? calcOfferNet(aPay, aMi, cmpGasEff, cmpMpgNum, aRet, cmpWearNum, cmpSpeed) : null;
-  const cmpB = cmpReady ? calcOfferNet(bPay, bMi, cmpGasEff, cmpMpgNum, bRet, cmpWearNum, cmpSpeed) : null;
+  const cmpA = cmpReady ? calcOfferNet(aPay, aMi, cmpGasEff, cmpMpgNum, aRet, cmpWearNum, cmpSpeed, aWait) : null;
+  const cmpB = cmpReady ? calcOfferNet(bPay, bMi, cmpGasEff, cmpMpgNum, bRet, cmpWearNum, cmpSpeed, bWait) : null;
+  // Winner = highest $/hr, NOT highest total net. A $20 offer that takes
+  // twice as long loses to a fast $12 offer, because in the slow offer's
+  // time the driver could finish the fast one again. Net is only the tie-break.
   const cmpWinner =
     cmpA && cmpB
-      ? cmpA.net !== cmpB.net
-        ? cmpA.net > cmpB.net ? "A" : "B"
-        : cmpA.hourly >= cmpB.hourly ? "A" : "B"
+      ? cmpA.hourly !== cmpB.hourly
+        ? cmpA.hourly > cmpB.hourly ? "A" : "B"
+        : cmpA.net >= cmpB.net ? "A" : "B"
       : null;
 
   const renderCompareTab = () => {
     if (!isPremium) {
       return renderPremiumLock(
         "Offer Comparison",
-        "Stack two offers side by side and see which one actually pays more after fuel and wear."
+        "Stack two offers side by side and see which one actually pays more per hour, after fuel, wear and waiting time."
       );
     }
     const offerCard = (
       key: "A" | "B",
-      offer: { payout: string; miles: string; retOn: boolean; retMiles: string },
-      setOffer: (v: { payout: string; miles: string; retOn: boolean; retMiles: string }) => void,
+      offer: { payout: string; miles: string; retOn: boolean; retMiles: string; waitMin: string },
+      setOffer: (v: { payout: string; miles: string; retOn: boolean; retMiles: string; waitMin: string }) => void,
       result: ReturnType<typeof calcOfferNet> | null,
       isWinner: boolean
     ) => (
@@ -5990,6 +6007,21 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             </div>
           </div>
         )}
+        <div>
+          <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Pickup + wait</label>
+          <div className="glass-input rounded-xl flex items-center px-3 py-2.5 mt-1">
+            <input
+              type="number"
+              inputMode="decimal"
+              placeholder="0"
+              value={offer.waitMin}
+              onChange={(e) => setOffer({ ...offer, waitMin: e.target.value })}
+              className="flex-1 min-w-0 w-0 bg-transparent text-base font-bold text-white placeholder-zinc-600 outline-none"
+            />
+            <span className="text-zinc-500 text-xs font-semibold pl-2">min</span>
+          </div>
+          <p className="text-[10px] text-zinc-600 mt-1 leading-relaxed">Waiting at pickup, the restaurant, or dropoff. It counts against your $/hr.</p>
+        </div>
         {result && (
           <div className="pt-2 border-t border-zinc-800/60 space-y-1.5">
             <div className="flex justify-between text-xs">
@@ -6003,6 +6035,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               <span className="font-bold text-zinc-200">{formatCurrency(result.hourly)}/hr</span>
             </div>
             <div className="flex justify-between text-xs">
+              <span className="text-zinc-500">Trip time</span>
+              <span className="font-bold text-zinc-200">{fmtTripTime(result.hours * 60)}{result.waitMin > 0 ? ` · incl. ${result.waitMin} min wait` : ""}</span>
+            </div>
+            <div className="flex justify-between text-xs">
               <span className="text-zinc-500">Trip cost{offer.retOn ? " (incl. return)" : ""}</span>
               <span className="font-bold text-zinc-400">−{formatCurrency(result.total)}</span>
             </div>
@@ -6011,11 +6047,23 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       </div>
     );
 
+    // Same-time math for the verdict: in the slower offer's time, how many
+    // times could the driver finish the faster one, and what would that pay?
+    const cmpWinnerRes = cmpWinner === "A" ? cmpA : cmpB;
+    const cmpLoserRes = cmpWinner === "A" ? cmpB : cmpA;
+    const cmpFasterRes = cmpA && cmpB ? (cmpA.hours <= cmpB.hours ? cmpA : cmpB) : null;
+    const cmpSlowerRes = cmpA && cmpB ? (cmpA.hours > cmpB.hours ? cmpA : cmpB) : null;
+    const cmpRepeats = cmpFasterRes && cmpSlowerRes && cmpFasterRes.hours > 0 ? Math.floor(cmpSlowerRes.hours / cmpFasterRes.hours) : 0;
+    const cmpSameTimePay = cmpFasterRes ? cmpRepeats * cmpFasterRes.net : 0;
+    const cmpSameTimeText = cmpFasterRes && cmpSlowerRes && cmpRepeats >= 2 && cmpSameTimePay > cmpSlowerRes.net
+      ? `In the slower offer's ${fmtTripTime(cmpSlowerRes.hours * 60)}, you could finish the faster one ${cmpRepeats}× and earn ${formatCurrency(cmpSameTimePay)} instead of ${formatCurrency(cmpSlowerRes.net)}.`
+      : null;
+
     return (
       <div className="space-y-4 animate-fade-in-up">
         <TabHero
           title="Which offer wins?"
-          subtitle={vehicle?.fuel === "electric" ? "Enter two offers. We subtract charging and wear from each so you compare true profit, not sticker payout." : "Enter two offers. We subtract fuel and wear from each so you compare true profit, not sticker payout."}
+          subtitle={vehicle?.fuel === "electric" ? "Enter two offers. We subtract charging and wear, and count driving + waiting time, so you compare true profit per hour, not sticker payout." : "Enter two offers. We subtract fuel and wear, and count driving + waiting time, so you compare true profit per hour, not sticker payout."}
         />
 
         {/* Shared vehicle inputs */}
@@ -6069,8 +6117,13 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                   Take Offer {cmpWinner}
                 </div>
                 <div className="text-xs text-zinc-500 mt-0.5">
-                  Worth <AnimatedNumber value={Math.abs(cmpA.net - cmpB.net)} format={formatCurrency} /> more in true profit.
+                  {cmpWinnerRes && cmpLoserRes ? `${formatCurrency(cmpWinnerRes.hourly)}/hr vs ${formatCurrency(cmpLoserRes.hourly)}/hr — the winner is picked by $/hr, not by the bigger payout.` : ""}
                 </div>
+                {cmpSameTimeText && (
+                  <div className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    {cmpSameTimeText}
+                  </div>
+                )}
               </div>
             </div>
             {isAiConfigured && (
@@ -6078,7 +6131,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                 <AiChat
                   chatId="compare"
                   accent="bg-amber-500/20"
-                  context={`Comparing two gig offers. Offer A: payout $${aPay}, ${aMi} miles${aRet ? ` plus ${aRet} unpaid return miles` : ""} — true net ${formatCurrency(cmpA.net)}, ${formatCurrency(cmpA.hourly)}/hr. Offer B: payout $${bPay}, ${bMi} miles${bRet ? ` plus ${bRet} unpaid return miles` : ""} — true net ${formatCurrency(cmpB.net)}, ${formatCurrency(cmpB.hourly)}/hr. Winner: Offer ${cmpWinner}.`}
+                  context={`Comparing two gig offers. Offer A: payout $${aPay}, ${aMi} miles${aRet ? ` plus ${aRet} unpaid return miles` : ""}${aWait ? `, ${aWait} min pickup/wait` : ""} — trip ${fmtTripTime(cmpA.hours * 60)}, true net ${formatCurrency(cmpA.net)}, ${formatCurrency(cmpA.hourly)}/hr. Offer B: payout $${bPay}, ${bMi} miles${bRet ? ` plus ${bRet} unpaid return miles` : ""}${bWait ? `, ${bWait} min pickup/wait` : ""} — trip ${fmtTripTime(cmpB.hours * 60)}, true net ${formatCurrency(cmpB.net)}, ${formatCurrency(cmpB.hourly)}/hr. Winner by $/hr: Offer ${cmpWinner}.`}
                   onNavigate={(t) => setActiveTab(t)}
                   onAction={handleEricAction}
                 />
@@ -8057,6 +8110,31 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 )}
               </div>
 
+              {/* Pickup + wait time — counts against $/hr everywhere: Calculator,
+                  Eric's TAKE/SKIP verdict, and saved History/Reports hours */}
+              <div>
+                <label className="flex items-center gap-2 text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                  Pickup + wait
+                </label>
+                <GumRow value={waitMinutes}>
+                <div className="glass-input rounded-xl sm:rounded-2xl flex items-center px-3 sm:px-4 py-3 sm:py-3.5">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={waitMinutes}
+                    onChange={(e) => setWaitMinutes(e.target.value)}
+                    className="flex-1 min-w-0 w-0 bg-transparent text-base sm:text-lg font-bold text-white placeholder-zinc-600 outline-none"
+                  />
+                  <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">min</span>
+                </div>
+                </GumRow>
+                <p className="text-[10px] text-zinc-600 mt-1.5 leading-relaxed">
+                  Time waiting at pickup, the restaurant, or dropoff — not driving. Leave it at 0 if there was no wait. It lowers your $/hr, so a far offer with a long wait can no longer look better than a fast one.
+                </p>
+              </div>
+
               {/* Error */}
               {error && (
                 <div className="text-sm text-red-400 font-medium bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5 animate-fade-in">
@@ -8356,6 +8434,9 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                           Projected Hourly Earnings
                         </div>
                         )}
+                        <div className="text-[11px] text-zinc-500 mt-1">
+                          Trip time {fmtTripTime(results.hours * 60)}{results.waitMinutes > 0 ? ` · incl. ${results.waitMinutes} min wait` : ""}
+                        </div>
                         <div
                           className={`text-xl sm:text-2xl font-extrabold mt-0.5 ${
                             results.hourlyEarnings >= 0 ? "text-white" : "text-red-400"
@@ -8941,12 +9022,10 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
       {/* Auth modal */}
       {authOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
-          onClick={dismissAuthModal}
+          className="fixed inset-0 z-50 bg-[#0d0d0f] overflow-y-auto"
         >
           <div
-            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 animate-fade-in-up border border-[var(--synth-purple-light)]/25" style={{ background: "linear-gradient(165deg, #3d2a1a 0%, #2c1c10 60%, #241a08 100%)" }}
-            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm mx-auto p-5 sm:p-6 pt-8"
           >
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-lg font-extrabold text-white">
