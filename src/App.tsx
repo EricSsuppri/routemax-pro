@@ -692,6 +692,7 @@ type Results = {
   returnCost: number;
   effectiveMileage: number;
   waitMinutes: number;
+  routeMode: string | null;
 };
 
 type RouteHistoryRow = {
@@ -795,8 +796,11 @@ function formatShortDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-/** Net-profit math for one offer (used by the Compare tab). */
-function calcOfferNet(payout: number, miles: number, gas: number, mpg: number, retMiles = 0, wearRate = WEAR_COST_PER_MILE, speedMph = AVG_SPEED_MPH, waitMin = 0) {
+/** Net-profit math for one offer (used by the Compare tab).
+    tripMin (optional): outbound trip minutes from an address lookup for the
+    chosen transport mode. When present it replaces miles/speed for the
+    outbound leg — the return leg is still estimated from return miles. */
+function calcOfferNet(payout: number, miles: number, gas: number, mpg: number, retMiles = 0, wearRate = WEAR_COST_PER_MILE, speedMph = AVG_SPEED_MPH, waitMin = 0, tripMin: number | null = null) {
   const totalMi = miles + retMiles;
   const fuel = totalMi > 0 && mpg > 0 ? (totalMi / mpg) * gas : 0;
   const wear = totalMi * wearRate;
@@ -805,8 +809,15 @@ function calcOfferNet(payout: number, miles: number, gas: number, mpg: number, r
   // Time = driving time + pickup/wait time. Wait time earns nothing, so it
   // lowers $/hr — a far, slow offer can no longer win on payout alone.
   const waitHours = Math.max(0, waitMin) / 60;
-  const hours = (speedMph > 0 ? totalMi / speedMph : 0) + waitHours;
-  return { fuel, wear, total, net, hours, hourly: hours > 0 ? net / hours : 0, totalMi, waitMin: Math.max(0, waitMin) };
+  const outboundHours = tripMin != null && tripMin > 0
+    ? tripMin / 60
+    : (speedMph > 0 ? totalMi / speedMph : 0);
+  // With an address route, tripMin already covers the outbound leg, so only
+  // the return miles still need a speed estimate.
+  const hours = tripMin != null && tripMin > 0
+    ? tripMin / 60 + (retMiles > 0 && speedMph > 0 ? retMiles / speedMph : 0) + waitHours
+    : outboundHours + waitHours;
+  return { fuel, wear, total, net, hours, hourly: hours > 0 ? net / hours : 0, totalMi, waitMin: Math.max(0, waitMin), tripMin: tripMin != null && tripMin > 0 ? tripMin : 0 };
 }
 
 /** Monday (local) of the week containing d, as YYYY-MM-DD. */
@@ -1186,6 +1197,45 @@ const fmtTripTime = (mins: number | null | undefined): string => {
   if (hrs < 24) return `~${hrs.toFixed(1)} hrs`;
   const days = hrs / 24;
   return `~${days.toFixed(1)} days`;
+};
+
+/* Transport mode for an address-based route. Driving time comes from OSRM;
+   the other modes are estimated from distance at realistic speeds (OSRM's
+   public server has no bike/foot profiles). */
+type RouteModeKey = "drive" | "bike" | "walk" | "flight" | "boat";
+const ROUTE_MODE_LABELS: Record<RouteModeKey, string> = {
+  drive: "Driving",
+  bike: "Cycling",
+  walk: "Walking",
+  flight: "Flying",
+  boat: "By water",
+};
+const routeModeLabel = (m: RouteModeKey | string | null | undefined): string =>
+  (m && ROUTE_MODE_LABELS[m as RouteModeKey]) || "Driving";
+/** Estimated minutes for a mode from distance alone (drive is null — it
+    comes from the live route, not from miles). */
+const modeMinsFromMiles = (miles: number, mode: RouteModeKey): number | null => {
+  if (!(miles > 0)) return null;
+  if (mode === "bike") return Math.max(1, Math.round((miles / 12) * 60));
+  if (mode === "walk") return Math.max(1, Math.round((miles / 3) * 60));
+  if (mode === "flight") return Math.max(1, Math.round((miles / 500) * 60) + 60); // ~500 mph + 1hr airport time
+  if (mode === "boat") return Math.max(1, Math.round((miles / 25) * 60)); // ~25 mph cruising
+  return null;
+};
+
+/* One Compare offer — wait + addresses are optional per offer. */
+type CompareOffer = {
+  payout: string;
+  miles: string;
+  retOn: boolean;
+  retMiles: string;
+  waitMin: string;
+  waitOn: boolean;
+  addrOn: boolean;
+  from: string;
+  to: string;
+  routeMode: RouteModeKey;
+  tripMin: number | null;
 };
 
 function PremiumFeaturesModal({
@@ -2049,6 +2099,9 @@ function AppInner() {
   const [presetMemory, setPresetMemory] = useState<Record<string, { payout: string; mileage: string }>>({});
   const [returnTripEnabled, setReturnTripEnabled] = useState(false);
   const [returnMileage, setReturnMileage] = useState("");
+  // Pickup + wait is OPTIONAL — off by default, so a blank wait never
+  // drags $/hr down. Turn it on only when there really was a wait.
+  const [waitOn, setWaitOn] = useState(false);
   const [waitMinutes, setWaitMinutes] = useState("");
   const [results, setResults] = useState<Results | null>(null);
   const [error, setError] = useState("");
@@ -2293,6 +2346,9 @@ function AppInner() {
   const [tripHwyMi, setTripHwyMi] = useState<number | null>(null);
   const [tripSecs, setTripSecs] = useState<number | null>(null);
   const [tripModes, setTripModes] = useState<{ drive: number | null; bike: number | null; walk: number | null; flight: number | null; boat: number | null } | null>(null);
+  // Transport mode for the address route — the trip time / $/hr use THIS
+  // mode's minutes, not always driving.
+  const [routeMode, setRouteMode] = useState<RouteModeKey>("drive");
   const [routeDetailsOpen, setRouteDetailsOpen] = useState(true);
   const [spotlightIdx, setSpotlightIdx] = useState(0);
   useEffect(() => {
@@ -3637,16 +3693,20 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       setTripSpeed(mph > 0 ? mph : null);
       setTripCityMi(Math.round(cityM * 10) / 10);
       setTripHwyMi(Math.round(hwyM * 10) / 10);
-      setTripSecs(route && route.duration > 0 ? route.duration : mins * 60);
-      // Other transport modes — estimated from distance at realistic speeds
-      // (OSRM's public server has no bike/foot profiles, so we estimate).
-      setTripModes({
+      // Transport modes — driving time comes from the live route; the others
+      // are estimated from distance at realistic speeds (OSRM's public
+      // server has no bike/foot profiles, so we estimate).
+      const modes = {
         drive: mins > 0 ? mins : null,
-        bike: miles > 0 ? Math.max(1, Math.round((miles / 12) * 60)) : null,
-        walk: miles > 0 ? Math.max(1, Math.round((miles / 3) * 60)) : null,
-        flight: miles > 0 ? Math.max(1, Math.round((miles / 500) * 60) + 60) : null, // ~500 mph + 1hr airport time
-        boat: miles > 0 ? Math.max(1, Math.round((miles / 25) * 60)) : null, // ~25 mph cruising
-      });
+        bike: modeMinsFromMiles(miles, "bike"),
+        walk: modeMinsFromMiles(miles, "walk"),
+        flight: modeMinsFromMiles(miles, "flight"),
+        boat: modeMinsFromMiles(miles, "boat"),
+      };
+      setTripModes(modes);
+      // The trip time / $/hr use the SELECTED mode's minutes, not driving.
+      const selMins = modes[routeMode];
+      setTripSecs(selMins != null && selMins > 0 ? selMins * 60 : (route && route.duration > 0 ? route.duration : mins * 60));
       try {
         const wr = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${b.lat}&longitude=${b.lon}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`);
         const wj = await wr.json();
@@ -3657,7 +3717,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         } else { setTripWeather(null); setTripWmo(null); }
       } catch { setTripWeather(null); setTripWmo(null); }
       if (parseFloat(payout) > 0) { autoCalcRef.current = { save: false }; setCalcTick((t) => t + 1); }
-      setRouteInfo(`${miles.toFixed(1)} mi (${(Math.round(cityM*10)/10).toFixed(1)} city · ${(Math.round(hwyM*10)/10).toFixed(1)} hwy) · ~${mins} min`);
+      setRouteInfo(`${miles.toFixed(1)} mi (${(Math.round(cityM*10)/10).toFixed(1)} city · ${(Math.round(hwyM*10)/10).toFixed(1)} hwy) · ${routeModeLabel(routeMode)} ~${selMins != null && selMins > 0 ? selMins : mins} min`);
       setRouteOpen(false);
     } catch (e) {
       // Last resort: if we have coordinates, always show an estimate — never a dead error.
@@ -3673,13 +3733,17 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           setTripSpeed(avgSpeed);
           setTripCityMi(Math.round(miles * 0.6 * 10) / 10);
           setTripHwyMi(Math.round(miles * 0.4 * 10) / 10);
-          setTripSecs(mins * 60);
-          setTripModes({
+          const estModes = {
             drive: mins,
-            bike: miles > 0 ? Math.max(1, Math.round((miles / 12) * 60)) : null,
-            walk: miles > 0 ? Math.max(1, Math.round((miles / 3) * 60)) : null,
-          });
-          setRouteInfo(`${miles.toFixed(1)} mi (est.) · ~${mins} min`);
+            bike: modeMinsFromMiles(miles, "bike"),
+            walk: modeMinsFromMiles(miles, "walk"),
+            flight: modeMinsFromMiles(miles, "flight"),
+            boat: modeMinsFromMiles(miles, "boat"),
+          };
+          const estSel = estModes[routeMode];
+          setTripSecs(estSel != null && estSel > 0 ? estSel * 60 : mins * 60);
+          setTripModes(estModes);
+          setRouteInfo(`${miles.toFixed(1)} mi (est.) · ${routeModeLabel(routeMode)} ~${estSel != null && estSel > 0 ? estSel : mins} min`);
           setRouteError("");
           setRouteOpen(false);
           if (parseFloat(payout) > 0) { autoCalcRef.current = { save: false }; setCalcTick((t) => t + 1); }
@@ -3692,6 +3756,59 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     } finally {
       setRouteLoading(false);
     }
+  };
+  /* Shared address lookup for Compare offers — same free sources as the
+     Calculator route planner (Nominatim geocode + OSRM driving route, 15s
+     timeout + 1 retry, straight-line fallback). Returns driving miles plus
+     the minutes for the chosen transport mode. */
+  const calcRouteMilesMins = async (
+    from: string,
+    to: string,
+    mode: RouteModeKey
+  ): Promise<{ miles: number; mins: number } | null> => {
+    const geo = async (q: string) => {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`);
+      const j = await r.json();
+      return j && j[0] ? { lat: j[0].lat, lon: j[0].lon } : null;
+    };
+    const a = await geo(from), b = await geo(to);
+    if (!a || !b) return null;
+    const cacheKey = `${a.lat},${a.lon}|${b.lat},${b.lon}`;
+    const cached = routeCacheRef.current.get(cacheKey);
+    let miles: number, driveMins: number;
+    if (cached) {
+      miles = cached.miles; driveMins = cached.mins;
+    } else {
+      let route: any = null;
+      for (let attempt = 0; attempt < 2 && !route; attempt++) {
+        try {
+          const rr = await Promise.race([
+            fetch(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false`),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("osrm-timeout")), 15000)),
+          ]) as Response;
+          const rj = await rr.json();
+          route = rj?.routes?.[0];
+        } catch {}
+        if (!route && attempt === 0) await new Promise((r) => setTimeout(r, 1000));
+      }
+      if (route) {
+        miles = route.distance / 1609.344;
+        driveMins = Math.round(route.duration / 60);
+      } else {
+        const straight = havMi(parseFloat(a.lat), parseFloat(a.lon), parseFloat(b.lat), parseFloat(b.lon));
+        const factor = straight < 50 ? 1.4 : straight < 500 ? 1.3 : 1.2;
+        miles = Math.round(straight * factor * 10) / 10;
+        const avgSpeed = straight < 50 ? 30 : straight < 500 ? 50 : 65;
+        driveMins = Math.round((miles / avgSpeed) * 60);
+      }
+      routeCacheRef.current.set(cacheKey, { miles, mins: driveMins });
+      if (routeCacheRef.current.size > 50) {
+        const k = routeCacheRef.current.keys().next().value;
+        if (k) routeCacheRef.current.delete(k);
+      }
+    }
+    const mins = mode === "drive" ? driveMins : modeMinsFromMiles(miles, mode);
+    return { miles: Math.round(miles * 10) / 10, mins: mins != null && mins > 0 ? mins : driveMins };
   };
   const [vehicleQuery, setVehicleQuery] = useState("");
   const genCoversYear = (y: string, year: string): boolean => {
@@ -4463,8 +4580,31 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   // Compare tab state
   const [cmpGas, setCmpGas] = useState("3.50");
   const [cmpMpg, setCmpMpg] = useState("22");
-  const [offerA, setOfferA] = useState({ payout: "", miles: "", retOn: false, retMiles: "", waitMin: "" });
-  const [offerB, setOfferB] = useState({ payout: "", miles: "", retOn: false, retMiles: "", waitMin: "" });
+  const emptyOffer = (): CompareOffer => ({ payout: "", miles: "", retOn: false, retMiles: "", waitMin: "", waitOn: false, addrOn: false, from: "", to: "", routeMode: "drive", tripMin: null });
+  const [offerA, setOfferA] = useState<CompareOffer>(emptyOffer());
+  const [offerB, setOfferB] = useState<CompareOffer>(emptyOffer());
+  // Per-offer address lookup status (keyed "A" / "B")
+  const [cmpRouteBusy, setCmpRouteBusy] = useState<Record<string, boolean>>({});
+  const [cmpRouteError, setCmpRouteError] = useState<Record<string, string>>({});
+  // Fill one Compare offer from two addresses: miles + trip time for the
+  // chosen transport mode, using the same free lookup as the Calculator.
+  const calcOfferRoute = async (key: "A" | "B") => {
+    const offer = key === "A" ? offerA : offerB;
+    const setOffer = key === "A" ? setOfferA : setOfferB;
+    const from = offer.from.trim(), to = offer.to.trim();
+    if (!from || !to) { setCmpRouteError((p) => ({ ...p, [key]: "Enter both addresses." })); return; }
+    setCmpRouteBusy((p) => ({ ...p, [key]: true }));
+    setCmpRouteError((p) => ({ ...p, [key]: "" }));
+    try {
+      const r = await calcRouteMilesMins(from, to, offer.routeMode);
+      if (!r) { setCmpRouteError((p) => ({ ...p, [key]: "Couldn't find one of those places — check spelling." })); return; }
+      setOffer({ ...offer, miles: String(r.miles), tripMin: r.mins });
+    } catch {
+      setCmpRouteError((p) => ({ ...p, [key]: "Couldn't calculate — check your connection and try again." }));
+    } finally {
+      setCmpRouteBusy((p) => ({ ...p, [key]: false }));
+    }
+  };
 
   // Tax tab state (persisted on this device)
   const [taxRate, setTaxRate] = useState(() => readLocal("rm_tax_rate", DEFAULT_TAX_RATE));
@@ -5132,7 +5272,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     setter(value);
     // The active preset stays selected while typing — its payout/mileage memory
     // is still saved when switching to another provider.
-    if (setter === setMileage) { setTripSpeed(null); setTripCityMi(null); setTripHwyMi(null); setTripSecs(null); setTripModes(null); setTripWeather(null); setTripWmo(null); setNavFrom(null); setNavTo(null); } // typed miles ≠ the looked-up route
+    if (setter === setMileage) { setTripSpeed(null); setTripCityMi(null); setTripHwyMi(null); setTripSecs(null); setTripModes(null); setTripWeather(null); setTripWmo(null); setNavFrom(null); setNavTo(null); setRouteMode("drive"); } // typed miles ≠ the looked-up route
   };
 
   // One automatic calculation after a programmatic fill lands.
@@ -5378,7 +5518,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
               </div>
             </div>
             <div className="text-[10px] text-zinc-500 mt-0.5 truncate pl-5">
-              {formatShortDate(row.created_at)} · {formatCurrency(row.payout)} payout · {formatNumber(row.hourly_earnings)}/hr
+              {formatShortDate(row.created_at)} · {formatCurrency(row.payout)} payout · Trip time {fmtTripTime(row.hours * 60)} · {formatNumber(row.hourly_earnings)}/hr
             </div>
             <div className="pl-5">{platformBadge(row.platform)}</div>
           </div>
@@ -5468,7 +5608,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         ? `30-day averages from ${avg.trips} accepted trips: $${avg.avgHourly.toFixed(2)}/hr, $${avg.avgNet.toFixed(2)} net per trip.`
         : "No accepted-trip history yet — judge the offer on its own merits.";
       const reply = await askGemini(
-        `You are a gig-work coach. Offer: payout $${results.payout}, ${results.mileage} miles, ${fmtTripTime(results.hours * 60)} total time${results.waitMinutes > 0 ? ` including ${results.waitMinutes} min pickup/wait` : ""}, true net profit $${results.netProfit.toFixed(2)}, $${results.hourlyEarnings.toFixed(2)}/hour after costs. ${baseline} Reply ONLY valid JSON like {"verdict": "TAKE", "reasons": ["...", "...", "..."]}. verdict must be TAKE or SKIP. reasons: exactly 3 short punchy strings any gig worker would understand.`
+        `You are a gig-work coach. Offer: payout $${results.payout}, ${results.mileage} miles, ${fmtTripTime(results.hours * 60)} total time${results.routeMode ? ` by ${results.routeMode} from addresses` : ""}${results.waitMinutes > 0 ? ` including ${results.waitMinutes} min pickup/wait` : ""}, true net profit $${results.netProfit.toFixed(2)}, $${results.hourlyEarnings.toFixed(2)}/hour after costs. ${baseline} Reply ONLY valid JSON like {"verdict": "TAKE", "reasons": ["...", "...", "..."]}. verdict must be TAKE or SKIP. reasons: exactly 3 short punchy strings any gig worker would understand.`
       );
       const data = parseAiJson<{ verdict: string; reasons: string[] }>(reply);
       const v = String(data.verdict || "").toUpperCase();
@@ -5713,7 +5853,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const mpgNum = parseFloat(mpg);
     const wearNum = parseFloat(wearRate);
     const returnNum = returnTripEnabled ? parseFloat(returnMileage) : 0;
-    const waitNum = Math.max(0, parseFloat(waitMinutes) || 0);
+    const waitNum = waitOn ? Math.max(0, parseFloat(waitMinutes) || 0) : 0;
 
     if (tripPurpose === "work" && (!payoutNum || payoutNum <= 0)) {
       setError("Enter a valid order payout");
@@ -5774,6 +5914,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       payout: payoutNum, mileage: mileageNum, gasPrice: gasNum, mpg: mpgNum, wearRate: wearNum,
       returnMileage: returnNum, returnFuelCost, returnWearCost, returnCost,
       effectiveMileage, waitMinutes: waitNum,
+      routeMode: tripSecs != null && tripSecs > 0 ? routeModeLabel(routeMode) : null,
     });
     setVerdict(null);
     setVerdictError("");
@@ -5892,19 +6033,21 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const aPay = parseFloat(offerA.payout);
   const aMi = parseFloat(offerA.miles);
   const aRet = offerA.retOn ? parseFloat(offerA.retMiles) : 0;
-  const aWait = Math.max(0, parseFloat(offerA.waitMin) || 0);
+  const aWait = offerA.waitOn ? Math.max(0, parseFloat(offerA.waitMin) || 0) : 0;
+  const aTripMin = offerA.tripMin != null && offerA.tripMin > 0 ? offerA.tripMin : null;
   const bPay = parseFloat(offerB.payout);
   const bMi = parseFloat(offerB.miles);
   const bRet = offerB.retOn ? parseFloat(offerB.retMiles) : 0;
-  const bWait = Math.max(0, parseFloat(offerB.waitMin) || 0);
+  const bWait = offerB.waitOn ? Math.max(0, parseFloat(offerB.waitMin) || 0) : 0;
+  const bTripMin = offerB.tripMin != null && offerB.tripMin > 0 ? offerB.tripMin : null;
   const cmpReady =
     aPay > 0 && aMi > 0 && bPay > 0 && bMi > 0 && cmpGasNum > 0 && cmpMpgNum > 0 &&
     (!offerA.retOn || aRet > 0) && (!offerB.retOn || bRet > 0);
   const cmpSpeed = activeSpeed;
   const cmpIsEV = vehicle?.fuel === "electric";
   const cmpGasEff = cmpIsEV ? cmpGasNum * 33.7 : cmpGasNum;
-  const cmpA = cmpReady ? calcOfferNet(aPay, aMi, cmpGasEff, cmpMpgNum, aRet, cmpWearNum, cmpSpeed, aWait) : null;
-  const cmpB = cmpReady ? calcOfferNet(bPay, bMi, cmpGasEff, cmpMpgNum, bRet, cmpWearNum, cmpSpeed, bWait) : null;
+  const cmpA = cmpReady ? calcOfferNet(aPay, aMi, cmpGasEff, cmpMpgNum, aRet, cmpWearNum, cmpSpeed, aWait, aTripMin) : null;
+  const cmpB = cmpReady ? calcOfferNet(bPay, bMi, cmpGasEff, cmpMpgNum, bRet, cmpWearNum, cmpSpeed, bWait, bTripMin) : null;
   // Winner = highest $/hr, NOT highest total net. A $20 offer that takes
   // twice as long loses to a fast $12 offer, because in the slow offer's
   // time the driver could finish the fast one again. Net is only the tie-break.
@@ -5924,8 +6067,8 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     }
     const offerCard = (
       key: "A" | "B",
-      offer: { payout: string; miles: string; retOn: boolean; retMiles: string; waitMin: string },
-      setOffer: (v: { payout: string; miles: string; retOn: boolean; retMiles: string; waitMin: string }) => void,
+      offer: CompareOffer,
+      setOffer: (v: CompareOffer) => void,
       result: ReturnType<typeof calcOfferNet> | null,
       isWinner: boolean
     ) => (
@@ -5966,7 +6109,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                 inputMode="decimal"
                 placeholder="0"
                 value={offer.miles}
-                onChange={(e) => setOffer({ ...offer, miles: e.target.value })}
+                onChange={(e) => setOffer({ ...offer, miles: e.target.value, tripMin: null })}
                 className="flex-1 min-w-0 w-0 bg-transparent text-base font-bold text-white placeholder-zinc-600 outline-none"
               />
               <span className="text-zinc-500 text-xs font-semibold pl-2">{DIST}</span>
@@ -6007,21 +6150,106 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             </div>
           </div>
         )}
-        <div>
-          <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Pickup + wait</label>
-          <div className="glass-input rounded-xl flex items-center px-3 py-2.5 mt-1">
-            <input
-              type="number"
-              inputMode="decimal"
-              placeholder="0"
-              value={offer.waitMin}
-              onChange={(e) => setOffer({ ...offer, waitMin: e.target.value })}
-              className="flex-1 min-w-0 w-0 bg-transparent text-base font-bold text-white placeholder-zinc-600 outline-none"
-            />
-            <span className="text-zinc-500 text-xs font-semibold pl-2">min</span>
+        {/* Pickup + wait — OPTIONAL: off by default, so a blank wait never
+            drags this offer's $/hr down. Turn it on only for a real wait. */}
+        <button
+          onClick={() => setOffer({ ...offer, waitOn: !offer.waitOn, waitMin: offer.waitOn ? "" : offer.waitMin })}
+          className={`w-full flex items-center justify-between rounded-xl border px-3 py-2.5 transition-all active:scale-[0.98] ${
+            offer.waitOn ? "bg-amber-500/10 border-amber-500/30" : "glass-input border-zinc-800/60"
+          }`}
+        >
+          <span className={`text-xs font-bold ${offer.waitOn ? "text-amber-300" : "text-zinc-400"}`}>
+            Add pickup + wait time (optional)
+          </span>
+          <span className={`w-9 h-5 rounded-full flex items-center transition-colors flex-shrink-0 ${
+            offer.waitOn ? "bg-amber-500/40" : "bg-zinc-700"
+          }`}>
+            <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
+              offer.waitOn ? "translate-x-[18px]" : "translate-x-0.5"
+            }`} />
+          </span>
+        </button>
+        {offer.waitOn && (
+          <div className="animate-fade-in">
+            <label className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Pickup + wait</label>
+            <div className="glass-input rounded-xl flex items-center px-3 py-2.5 mt-1">
+              <input
+                type="number"
+                inputMode="decimal"
+                placeholder="0"
+                value={offer.waitMin}
+                onChange={(e) => setOffer({ ...offer, waitMin: e.target.value })}
+                className="flex-1 min-w-0 w-0 bg-transparent text-base font-bold text-white placeholder-zinc-600 outline-none"
+              />
+              <span className="text-zinc-500 text-xs font-semibold pl-2">min</span>
+            </div>
+            <p className="text-[10px] text-zinc-600 mt-1 leading-relaxed">Waiting at pickup, the restaurant, or dropoff. It counts against your $/hr.</p>
           </div>
-          <p className="text-[10px] text-zinc-600 mt-1 leading-relaxed">Waiting at pickup, the restaurant, or dropoff. It counts against your $/hr.</p>
-        </div>
+        )}
+        {/* Addresses — OPTIONAL: fills miles + trip time for this offer from
+            two addresses, for the transport mode you pick. */}
+        <button
+          onClick={() => setOffer({ ...offer, addrOn: !offer.addrOn })}
+          className={`w-full flex items-center justify-between rounded-xl border px-3 py-2.5 transition-all active:scale-[0.98] ${
+            offer.addrOn ? "bg-teal-500/10 border-teal-500/30" : "glass-input border-zinc-800/60"
+          }`}
+        >
+          <span className={`text-xs font-bold ${offer.addrOn ? "text-teal-300" : "text-zinc-400"}`}>
+            Use addresses
+          </span>
+          <span className={`w-9 h-5 rounded-full flex items-center transition-colors flex-shrink-0 ${
+            offer.addrOn ? "bg-teal-500/40" : "bg-zinc-700"
+          }`}>
+            <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
+              offer.addrOn ? "translate-x-[18px]" : "translate-x-0.5"
+            }`} />
+          </span>
+        </button>
+        {offer.addrOn && (
+          <div className="space-y-2 animate-fade-in">
+            <input
+              type="text"
+              placeholder="From — pickup address"
+              autoComplete="off"
+              value={offer.from}
+              onChange={(e) => setOffer({ ...offer, from: e.target.value })}
+              className="w-full bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm font-semibold text-white placeholder-zinc-600 outline-none"
+            />
+            <input
+              type="text"
+              placeholder="To — dropoff address"
+              autoComplete="off"
+              value={offer.to}
+              onChange={(e) => setOffer({ ...offer, to: e.target.value })}
+              className="w-full bg-zinc-800/70 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm font-semibold text-white placeholder-zinc-600 outline-none"
+            />
+            <div className="flex gap-1.5">
+              {(["drive", "bike", "walk"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setOffer({ ...offer, routeMode: m })}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold border active:scale-95 ${
+                    offer.routeMode === m ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"
+                  }`}
+                >
+                  {routeModeLabel(m)}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => calcOfferRoute(key)}
+              disabled={!!cmpRouteBusy[key]}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform disabled:opacity-50"
+            >
+              {cmpRouteBusy[key] ? "Calculating…" : "Calculate miles & trip time"}
+            </button>
+            {cmpRouteError[key] ? <p className="text-xs text-red-400">{cmpRouteError[key]}</p> : null}
+            {offer.tripMin != null && offer.tripMin > 0 ? (
+              <p className="text-[11px] text-teal-300 font-semibold">Filled from addresses · {routeModeLabel(offer.routeMode)} · Trip time {fmtTripTime(offer.tripMin)}</p>
+            ) : null}
+            <p className="text-[10px] text-zinc-600 leading-relaxed">Free routing by OpenStreetMap contributors &amp; OSRM.</p>
+          </div>
+        )}
         {result && (
           <div className="pt-2 border-t border-zinc-800/60 space-y-1.5">
             <div className="flex justify-between text-xs">
@@ -6036,7 +6264,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-zinc-500">Trip time</span>
-              <span className="font-bold text-zinc-200">{fmtTripTime(result.hours * 60)}{result.waitMin > 0 ? ` · incl. ${result.waitMin} min wait` : ""}</span>
+              <span className="font-bold text-zinc-200">{fmtTripTime(result.hours * 60)}{result.waitMin > 0 ? ` · incl. ${result.waitMin} min wait` : ""}{result.tripMin > 0 ? ` · ${routeModeLabel(offer.routeMode)} · from addresses` : ""}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-zinc-500">Trip cost{offer.retOn ? " (incl. return)" : ""}</span>
@@ -6131,7 +6359,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                 <AiChat
                   chatId="compare"
                   accent="bg-amber-500/20"
-                  context={`Comparing two gig offers. Offer A: payout $${aPay}, ${aMi} miles${aRet ? ` plus ${aRet} unpaid return miles` : ""}${aWait ? `, ${aWait} min pickup/wait` : ""} — trip ${fmtTripTime(cmpA.hours * 60)}, true net ${formatCurrency(cmpA.net)}, ${formatCurrency(cmpA.hourly)}/hr. Offer B: payout $${bPay}, ${bMi} miles${bRet ? ` plus ${bRet} unpaid return miles` : ""}${bWait ? `, ${bWait} min pickup/wait` : ""} — trip ${fmtTripTime(cmpB.hours * 60)}, true net ${formatCurrency(cmpB.net)}, ${formatCurrency(cmpB.hourly)}/hr. Winner by $/hr: Offer ${cmpWinner}.`}
+                  context={`Comparing two gig offers. Offer A: payout $${aPay}, ${aMi} miles${aRet ? ` plus ${aRet} unpaid return miles` : ""}${aWait ? `, ${aWait} min pickup/wait` : ""}${aTripMin ? `, ${routeModeLabel(offerA.routeMode)} trip ${fmtTripTime(aTripMin)} from addresses` : ""} — trip ${fmtTripTime(cmpA.hours * 60)}, true net ${formatCurrency(cmpA.net)}, ${formatCurrency(cmpA.hourly)}/hr. Offer B: payout $${bPay}, ${bMi} miles${bRet ? ` plus ${bRet} unpaid return miles` : ""}${bWait ? `, ${bWait} min pickup/wait` : ""}${bTripMin ? `, ${routeModeLabel(offerB.routeMode)} trip ${fmtTripTime(bTripMin)} from addresses` : ""} — trip ${fmtTripTime(cmpB.hours * 60)}, true net ${formatCurrency(cmpB.net)}, ${formatCurrency(cmpB.hourly)}/hr. Winner by $/hr: Offer ${cmpWinner}.`}
                   onNavigate={(t) => setActiveTab(t)}
                   onAction={handleEricAction}
                 />
@@ -6184,7 +6412,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-white truncate">{platformLabel(key)}</div>
                     <div className="text-[11px] text-zinc-500 mt-0.5">
-                      {rows.length} trip{rows.length === 1 ? "" : "s"} · {formatCurrency(net)} net · {formatNumber(miles, 0)} mi
+                      {rows.length} trip{rows.length === 1 ? "" : "s"} · {formatCurrency(net)} net · {formatNumber(miles, 0)} mi · Trip time {fmtTripTime(hours * 60)} · {formatCurrency(hourly)}/hr
                     </div>
                     {dateRange ? <div className="text-[10px] text-zinc-600 mt-0.5">{dateRange}</div> : null}
                   </div>
@@ -8110,29 +8338,48 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 )}
               </div>
 
-              {/* Pickup + wait time — counts against $/hr everywhere: Calculator,
-                  Eric's TAKE/SKIP verdict, and saved History/Reports hours */}
+              {/* Pickup + wait time — OPTIONAL, off by default. Counts against
+                  $/hr everywhere when on: Calculator, Eric's TAKE/SKIP
+                  verdict, and saved History/Reports hours. */}
               <div>
-                <label className="flex items-center gap-2 text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
-                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                  Pickup + wait
-                </label>
-                <GumRow value={waitMinutes}>
-                <div className="glass-input rounded-xl sm:rounded-2xl flex items-center px-3 sm:px-4 py-3 sm:py-3.5">
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={waitMinutes}
-                    onChange={(e) => setWaitMinutes(e.target.value)}
-                    className="flex-1 min-w-0 w-0 bg-transparent text-base sm:text-lg font-bold text-white placeholder-zinc-600 outline-none"
-                  />
-                  <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">min</span>
-                </div>
-                </GumRow>
-                <p className="text-[10px] text-zinc-600 mt-1.5 leading-relaxed">
-                  Time waiting at pickup, the restaurant, or dropoff — not driving. Leave it at 0 if there was no wait. It lowers your $/hr, so a far offer with a long wait can no longer look better than a fast one.
-                </p>
+                <button
+                  onClick={() => { setWaitOn((v) => !v); if (waitOn) setWaitMinutes(""); }}
+                  className={`w-full flex items-center justify-between rounded-xl sm:rounded-2xl border px-3 sm:px-4 py-3 sm:py-3.5 transition-all active:scale-[0.98] ${
+                    waitOn ? "bg-amber-500/10 border-amber-500/30" : "glass-input border-zinc-800/60"
+                  }`}
+                >
+                  <span className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                    <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className={waitOn ? "text-amber-300" : ""}>Add pickup + wait time (optional)</span>
+                  </span>
+                  <span className={`w-9 h-5 rounded-full flex items-center transition-colors flex-shrink-0 ${
+                    waitOn ? "bg-amber-500/40" : "bg-zinc-700"
+                  }`}>
+                    <span className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                      waitOn ? "translate-x-[18px]" : "translate-x-0.5"
+                    }`} />
+                  </span>
+                </button>
+                {waitOn && (
+                  <div className="mt-3 animate-fade-in">
+                    <GumRow value={waitMinutes}>
+                    <div className="glass-input rounded-xl sm:rounded-2xl flex items-center px-3 sm:px-4 py-3 sm:py-3.5">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={waitMinutes}
+                        onChange={(e) => setWaitMinutes(e.target.value)}
+                        className="flex-1 min-w-0 w-0 bg-transparent text-base sm:text-lg font-bold text-white placeholder-zinc-600 outline-none"
+                      />
+                      <span className="text-zinc-500 font-semibold text-sm flex-shrink-0 pl-2">min</span>
+                    </div>
+                    </GumRow>
+                    <p className="text-[10px] text-zinc-600 mt-1.5 leading-relaxed">
+                      Time waiting at pickup, the restaurant, or dropoff — not driving. It lowers your $/hr, so a far offer with a long wait can no longer look better than a fast one.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Error */}
@@ -8435,7 +8682,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                         </div>
                         )}
                         <div className="text-[11px] text-zinc-500 mt-1">
-                          Trip time {fmtTripTime(results.hours * 60)}{results.waitMinutes > 0 ? ` · incl. ${results.waitMinutes} min wait` : ""}
+                          Trip time {fmtTripTime(results.hours * 60)}{results.routeMode ? ` · ${results.routeMode}` : ""}{results.waitMinutes > 0 ? ` · incl. ${results.waitMinutes} min wait` : ""}
                         </div>
                         <div
                           className={`text-xl sm:text-2xl font-extrabold mt-0.5 ${
@@ -8482,7 +8729,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                         <div className="flex items-center gap-2 text-xs mb-2.5 pb-2.5 border-b border-teal-500/10">
                           <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                           <span className="text-zinc-300 font-semibold">
-                            Using your route{tripCityMi != null && tripHwyMi != null ? ` · ${tripCityMi.toFixed(1)} city / ${tripHwyMi.toFixed(1)} hwy mi` : ""} · {tripSpeed} {useKm ? "km/h" : "mph"} avg
+                            Using your route · {routeModeLabel(routeMode)}{tripCityMi != null && tripHwyMi != null ? ` · ${tripCityMi.toFixed(1)} city / ${tripHwyMi.toFixed(1)} hwy mi` : ""} · {tripSpeed} {useKm ? "km/h" : "mph"} avg
                           </span>
                         </div>
                       ) : null}
@@ -8499,6 +8746,21 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                               <span className="flex items-center gap-2 text-zinc-300 font-semibold"><m.Icon className="w-3.5 h-3.5 text-amber-400" /> {m.label}</span>
                               <span className="flex items-center gap-2">
                                 <span className="font-bold text-white">{fmtTripTime(m.mins)}</span>
+                                <button
+                                  onClick={() => {
+                                    if (m.mins == null) return;
+                                    setRouteMode(m.key as RouteModeKey);
+                                    setTripSecs(m.mins * 60);
+                                    if (parseFloat(payout) > 0) { autoCalcRef.current = { save: false }; setCalcTick((t) => t + 1); }
+                                  }}
+                                  aria-label={`Use ${m.label} for trip time`}
+                                  title={`Use ${m.label} for trip time`}
+                                  className={`px-2 h-7 rounded-lg text-[10px] font-bold border active:scale-95 transition-transform ${
+                                    routeMode === m.key ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"
+                                  }`}
+                                >
+                                  {routeMode === m.key ? "Using" : "Use"}
+                                </button>
                                 <button
                                   onClick={() => {
                                     const d = navTo ? `${navTo.lat},${navTo.lon}` : "";
@@ -11269,6 +11531,23 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                     })}
                   </div>
                 )}
+              </div>
+              <div>
+                <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">How are you getting there?</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {(["drive", "bike", "walk", "flight", "boat"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setRouteMode(m)}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold border active:scale-95 ${
+                        routeMode === m ? "bg-teal-500/20 border-teal-500/50 text-teal-200" : "bg-zinc-800/60 border-zinc-700/50 text-zinc-400"
+                      }`}
+                    >
+                      {routeModeLabel(m)}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-zinc-600 mt-1.5 leading-relaxed">Trip time and $/hr use this mode — Cycling and Walking take longer, so they lower $/hr.</p>
               </div>
               <button onClick={fetchRoute} disabled={routeLoading} className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform disabled:opacity-50">
                 {routeLoading ? "Calculating…" : "Calculate miles & speed"}
