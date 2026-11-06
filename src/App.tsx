@@ -6564,7 +6564,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             </button>
             {cmpRouteError[key] ? <p className="text-xs text-red-400">{cmpRouteError[key]}</p> : null}
             {offer.tripMin != null && offer.tripMin > 0 ? (
-              <p className="text-[11px] text-teal-300 font-semibold">Filled from addresses · {routeModeLabel(offer.routeMode)} · Trip time {fmtTripTime(offer.tripMin)}</p>
+              <p className="text-[11px] text-teal-300 font-semibold">Filled from addresses · {routeModeLabel(offer.routeMode)}{parseFloat(offer.miles) > 0 ? ` · ${offer.miles} mi` : ""} · Trip time {fmtTripTime(offer.tripMin)}</p>
             ) : null}
             <p className="text-[10px] text-zinc-600 leading-relaxed">Pick both addresses and miles fill in by themselves. Free routing by OpenStreetMap contributors &amp; OSRM.</p>
           </div>
@@ -6583,7 +6583,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-zinc-500">Trip time</span>
-              <span className="font-bold text-zinc-200">{fmtTripTime(result.hours * 60)}{result.waitMin > 0 ? ` · incl. ${result.waitMin} min wait` : ""}{result.tripMin > 0 ? ` · ${routeModeLabel(offer.routeMode)} · from addresses` : ""}</span>
+              <span className="font-bold text-zinc-200">{fmtTripTime(result.hours * 60)}{result.waitMin > 0 ? ` · incl. ${result.waitMin} min wait` : ""}{result.tripMin > 0 ? ` · ${routeModeLabel(offer.routeMode)}${parseFloat(offer.miles) > 0 ? ` · ${offer.miles} mi` : ""} · from addresses` : ""}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-zinc-500">Trip cost{offer.retOn ? " (incl. return)" : ""}</span>
