@@ -2428,9 +2428,25 @@ function AppInner() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const basecampScrollRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number | null>(null);
+  // Basecamp fullscreen scroll fix (2026-11-05): the expanded card used to
+  // force the whole list to scrollTop 0 on open, so closing it always
+  // landed the user back at the top, and the card itself scrolled away
+  // with the list (it was position:absolute inside the scrolling sheet),
+  // taking the X button with it. Now we save the list position, lock the
+  // list while a card is open, and restore the position on close.
+  const bcSavedScrollRef = useRef<number>(0);
+  const bcPrevExpandedRef = useRef<string | null>(null);
+  const bcInnerStartScrollRef = useRef<number>(0);
   const handleBcTouchStart = (e: React.TouchEvent) => {
-    // Only track swipe from near the top of the modal
-    if (basecampScrollRef.current && basecampScrollRef.current.scrollTop < 30) {
+    // When a card is fullscreen, track the swipe from the card itself —
+    // its own scroll position decides whether a swipe-down closes it.
+    // Otherwise only track a swipe from near the top of the modal.
+    const target = e.target as HTMLElement | null;
+    const inner = target?.closest?.(".bc-fullscreen") as HTMLElement | null;
+    if (expandedCard && inner) {
+      bcInnerStartScrollRef.current = inner.scrollTop;
+      touchStartY.current = e.touches[0].clientY;
+    } else if (basecampScrollRef.current && basecampScrollRef.current.scrollTop < 30) {
       touchStartY.current = e.touches[0].clientY;
     }
   };
@@ -2438,17 +2454,31 @@ function AppInner() {
     if (touchStartY.current !== null) {
       const deltaY = e.changedTouches[0].clientY - touchStartY.current;
       if (deltaY > 120) {
-        if (expandedCard) setExpandedCard(null); // close fullscreen first
-        else setBuddyOpen(false); // then close Basecamp
+        // Only close the fullscreen card on swipe-down when its own
+        // content is already at the top — otherwise the swipe is just
+        // scrolling back up inside the card.
+        if (expandedCard) {
+          if (bcInnerStartScrollRef.current < 30) setExpandedCard(null);
+        } else setBuddyOpen(false); // then close Basecamp
       }
       touchStartY.current = null;
     }
   };
-  // When a card expands, scroll Basecamp to top so fullscreen opens in front of user
+  // When a card expands, save where the list was and lock the list so
+  // scrolling stays inside the fullscreen card. On close, unlock and
+  // put the list back exactly where it was.
   useEffect(() => {
-    if (expandedCard && basecampScrollRef.current) {
-      basecampScrollRef.current.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    const el = basecampScrollRef.current;
+    if (!el) { bcPrevExpandedRef.current = expandedCard; return; }
+    if (expandedCard) {
+      if (!bcPrevExpandedRef.current) bcSavedScrollRef.current = el.scrollTop;
+      el.style.overflow = "hidden";
+    } else if (bcPrevExpandedRef.current) {
+      el.style.overflow = "";
+      const y = bcSavedScrollRef.current;
+      requestAnimationFrame(() => { el.scrollTo({ top: y, behavior: "instant" as ScrollBehavior }); });
     }
+    bcPrevExpandedRef.current = expandedCard;
   }, [expandedCard]);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [irsDetails, setIrsDetails] = useState<Record<string, { dest: string; purpose: string }>>(() => {
@@ -3617,7 +3647,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       setAlarmMsg(`"${f.name}" loaded — full song ready.`);
     } catch { setAlarmMsg("Couldn't save it — try a smaller file."); }
   };
-  const fetchRoute = async () => {
+  // keepOpen: autofill calls fill miles/time but leave the modal open so
+  // the user can still change transport mode; the manual Calculate button
+  // closes it, as before.
+  const fetchRoute = async (opts?: { keepOpen?: boolean }) => {
     const from = routeFrom.trim(), to = routeTo.trim();
     if (!from || !to) { setRouteError("Enter both locations."); return; }
     setRouteLoading(true); setRouteError(""); setRouteInfo(null);
@@ -3718,7 +3751,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       } catch { setTripWeather(null); setTripWmo(null); }
       if (parseFloat(payout) > 0) { autoCalcRef.current = { save: false }; setCalcTick((t) => t + 1); }
       setRouteInfo(`${miles.toFixed(1)} mi (${(Math.round(cityM*10)/10).toFixed(1)} city · ${(Math.round(hwyM*10)/10).toFixed(1)} hwy) · ${routeModeLabel(routeMode)} ~${selMins != null && selMins > 0 ? selMins : mins} min`);
-      setRouteOpen(false);
+      if (!opts?.keepOpen) setRouteOpen(false);
     } catch (e) {
       // Last resort: if we have coordinates, always show an estimate — never a dead error.
       try {
@@ -3745,7 +3778,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           setTripModes(estModes);
           setRouteInfo(`${miles.toFixed(1)} mi (est.) · ${routeModeLabel(routeMode)} ~${estSel != null && estSel > 0 ? estSel : mins} min`);
           setRouteError("");
-          setRouteOpen(false);
+          if (!opts?.keepOpen) setRouteOpen(false);
           if (parseFloat(payout) > 0) { autoCalcRef.current = { save: false }; setCalcTick((t) => t + 1); }
         } else {
           setRouteError("Couldn't reach the routing server — using straight-line estimate. Try again for precise routing.");
@@ -3814,6 +3847,27 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const mins = mode === "drive" ? driveMins : modeMinsFromMiles(miles, mode);
     return { miles: Math.round(miles * 10) / 10, mins: mins != null && mins > 0 ? mins : driveMins };
   };
+
+  // Calculator autofill (2026-11-05): same rule as Compare — once both
+  // addresses are picked (coordinates present) the route calculates
+  // itself and fills miles + trip time, no Calculate tap needed. The
+  // autofill call keeps the modal open so the transport mode can still
+  // be changed (changing mode re-runs it for the new mode's minutes);
+  // the manual Calculate button still closes the modal, as before.
+  // Typing an address without picking a suggestion still needs the
+  // Calculate button (no coordinates to route from yet).
+  const calcAutoRouteRef = useRef<string>("");
+  useEffect(() => {
+    if (!routeOpen) return;
+    if (!routeFrom.trim() || !routeTo.trim()) { calcAutoRouteRef.current = ""; return; }
+    if (!fromCoord || !toCoord) { calcAutoRouteRef.current = ""; return; }
+    if (routeLoading) return;
+    const sig = `${routeFrom}|${routeTo}|${routeMode}|${fromCoord.lat},${fromCoord.lon}|${toCoord.lat},${toCoord.lon}`;
+    if (calcAutoRouteRef.current === sig) return;
+    calcAutoRouteRef.current = sig;
+    void fetchRoute({ keepOpen: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeFrom, routeTo, fromCoord, toCoord, routeMode, routeOpen]);
   const [vehicleQuery, setVehicleQuery] = useState("");
   const genCoversYear = (y: string, year: string): boolean => {
     const m = y.match(/(\d{4})\D+(\d{4})/);
@@ -4742,6 +4796,36 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     return () => { cleanups.forEach((c) => c()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offerA.from, offerA.to, offerA.addrOn, offerB.from, offerB.to, offerB.addrOn]);
+
+  // Compare autofill (2026-11-05): picking both addresses used to only
+  // fill the text + coordinates — miles stayed blank until the user found
+  // and tapped "Calculate miles & trip time". Now, once both addresses
+  // are picked (coordinates present) the route calculates itself and
+  // fills miles + trip time for that offer. Guarded by a signature ref
+  // so it runs once per address pair / transport mode and never
+  // overwrites a miles value the user typed in afterwards. Typing an
+  // address without picking a suggestion still needs the Calculate
+  // button (no coordinates to route from yet).
+  const cmpAutoRouteRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    const offers = [
+      { key: "A" as const, offer: offerA },
+      { key: "B" as const, offer: offerB },
+    ];
+    for (const { key, offer } of offers) {
+      if (!offer.addrOn) continue;
+      if (!offer.from.trim() || !offer.to.trim()) continue;
+      const fromC = cmpCoord[cmpAddrKey(key, "from")];
+      const toC = cmpCoord[cmpAddrKey(key, "to")];
+      if (!fromC || !toC) continue;
+      if (cmpRouteBusy[key]) continue;
+      const sig = `${key}|${offer.from}|${offer.to}|${offer.routeMode}|${fromC.lat},${fromC.lon}|${toC.lat},${toC.lon}`;
+      if (cmpAutoRouteRef.current[key] === sig) continue;
+      cmpAutoRouteRef.current[key] = sig;
+      void calcOfferRoute(key);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offerA.from, offerA.to, offerA.addrOn, offerA.routeMode, offerB.from, offerB.to, offerB.addrOn, offerB.routeMode, cmpCoord]);
 
   // Tax tab state (persisted on this device)
   const [taxRate, setTaxRate] = useState(() => readLocal("rm_tax_rate", DEFAULT_TAX_RATE));
@@ -6482,7 +6566,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             {offer.tripMin != null && offer.tripMin > 0 ? (
               <p className="text-[11px] text-teal-300 font-semibold">Filled from addresses · {routeModeLabel(offer.routeMode)} · Trip time {fmtTripTime(offer.tripMin)}</p>
             ) : null}
-            <p className="text-[10px] text-zinc-600 leading-relaxed">Free routing by OpenStreetMap contributors &amp; OSRM.</p>
+            <p className="text-[10px] text-zinc-600 leading-relaxed">Pick both addresses and miles fill in by themselves. Free routing by OpenStreetMap contributors &amp; OSRM.</p>
           </div>
         )}
         {result && (
@@ -11782,9 +11866,9 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                     </button>
                   ))}
                 </div>
-                <p className="text-[10px] text-zinc-600 mt-1.5 leading-relaxed">Trip time and $/hr use this mode — Cycling and Walking take longer, so they lower $/hr.</p>
+                <p className="text-[10px] text-zinc-600 mt-1.5 leading-relaxed">Pick both addresses and miles fill in by themselves. Trip time and $/hr use this mode — Cycling and Walking take longer, so they lower $/hr.</p>
               </div>
-              <button onClick={fetchRoute} disabled={routeLoading} className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform disabled:opacity-50">
+              <button onClick={() => fetchRoute()} disabled={routeLoading} className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform disabled:opacity-50">
                 {routeLoading ? "Calculating…" : "Calculate miles & speed"}
               </button>
               {routeInfo ? <div className="text-xs text-amber-400 font-bold px-1">{routeInfo} — filled in above.</div> : null}
