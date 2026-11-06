@@ -206,7 +206,9 @@ input[type="number"] {
 
 /* Bottom-sheet entrance */
 @keyframes sheetup { from { transform: translateY(64px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.animate-sheetup { animation: sheetup 0.32s cubic-bezier(0.32, 0.72, 0, 1); }
+/* 0.22s, was 0.32s (2026-11-05): sheets felt like they slid up slowly
+   and hung half off-screen on a busy phone — snappier slide everywhere. */
+.animate-sheetup { animation: sheetup 0.22s cubic-bezier(0.32, 0.72, 0, 1); }
 
 /* Steel menu drawer */
 .steel-chapter {
@@ -451,8 +453,12 @@ input[type="number"] {
   background:
     radial-gradient(120% 55% at 50% 0%, rgba(212, 169, 78, 0.18), transparent 62%),
     linear-gradient(165deg, rgba(61, 42, 26, 0.98), rgba(44, 28, 16, 0.97) 52%, rgba(36, 26, 8, 0.98));
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
+  /* No backdrop blur here (2026-11-05): the sheet's own background is
+     97–98% opaque, so a 24px blur of the page behind was invisible —
+     but the phone still had to repaint that blur on every frame while
+     the sheet slid up and while scrolling, which is what made opening
+     and scrolling feel heavy and slow. Dropping it costs nothing
+     visually and unloads the animation. */
   border-color: rgba(212, 169, 78, 0.25);
   box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.35);
   /* Smooth scroll (2026-11-05): momentum-friendly scrolling that stops
@@ -469,13 +475,16 @@ input[type="number"] {
   border: 1px solid rgba(20, 184, 166, 0.20);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-/* Card spacing (2026-11-05): the cards sat 12px apart and felt cramped.
-   Direct card children of the sheet now get 20px between them and a
-   little more air inside (20px padding). Nested glass panels inside a
-   card are untouched — only the top-level cards breathe. */
-.basecamp-light > .glass {
-  margin-top: 0 !important;
+/* Card spacing (2026-11-05, fixed 20:24): the first attempt targeted
+   only .glass cards — but "Your best move" is NOT a .glass card, so it
+   got no spacing and sat flush against the Water card. Now EVERY
+   top-level section of the sheet gets 20px below it, glass or not.
+   Nested panels inside a card are untouched — only the top-level
+   sections breathe. Glass cards also get a little more air inside. */
+.basecamp-light > div {
   margin-bottom: 1.25rem !important;
+}
+.basecamp-light > .glass {
   padding: 1.25rem !important;
 }
 .basecamp-light .glass-input {
