@@ -482,14 +482,22 @@ input[type="number"] {
   pointer-events: none;
 }
 
-/* Full-screen Basecamp card expansion — immersive and personalized */
+/* Full-screen Basecamp card expansion — immersive and personalized.
+   Fixed (not absolute) so the card stays put over the sheet instead of
+   scrolling away with the list underneath it. Top 8dvh / bottom 0 matches
+   the 92dvh sheet exactly; max-width matches the sheet (max-w-lg). */
 .bc-fullscreen {
-  position: absolute !important;
-  inset: 0 !important;
+  position: fixed !important;
+  top: 8dvh !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 32rem !important;
   z-index: 30 !important;
   overflow-y: auto !important;
-  margin: 0 !important;
-  border-radius: 1.5rem !important;
+  border-radius: 1.5rem 1.5rem 0 0 !important;
   padding: 1.5rem !important;
   padding-top: 3rem !important;
   animation: bc-expand 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
