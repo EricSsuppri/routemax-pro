@@ -455,12 +455,28 @@ input[type="number"] {
   backdrop-filter: blur(24px);
   border-color: rgba(212, 169, 78, 0.25);
   box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.35);
+  /* Smooth scroll (2026-11-05): momentum-friendly scrolling that stops
+     chaining into the page behind. NOTE: no transform / will-change /
+     contain here — any of those would make the fixed .bc-fullscreen card
+     position itself against this sheet instead of the screen. */
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 /* cards become light teal glass */
 .basecamp-light .glass {
   background: linear-gradient(165deg, rgba(94, 234, 212, 0.14), rgba(94, 234, 212, 0.05));
   border: 1px solid rgba(20, 184, 166, 0.20);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+/* Card spacing (2026-11-05): the cards sat 12px apart and felt cramped.
+   Direct card children of the sheet now get 20px between them and a
+   little more air inside (20px padding). Nested glass panels inside a
+   card are untouched — only the top-level cards breathe. */
+.basecamp-light > .glass {
+  margin-top: 0 !important;
+  margin-bottom: 1.25rem !important;
+  padding: 1.25rem !important;
 }
 .basecamp-light .glass-input {
   background: rgba(255, 255, 255, 0.06);
@@ -497,6 +513,9 @@ input[type="number"] {
   max-width: 32rem !important;
   z-index: 30 !important;
   overflow-y: auto !important;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border-radius: 1.5rem 1.5rem 0 0 !important;
   padding: 1.5rem !important;
   padding-top: 3rem !important;
