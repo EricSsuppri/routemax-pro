@@ -10163,16 +10163,6 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
         <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="Basecamp">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setBuddyOpen(false)} />
           <div ref={basecampScrollRef} onTouchStart={handleBcTouchStart} onTouchEnd={handleBcTouchEnd} className="basecamp-light relative w-full max-w-lg border rounded-t-3xl p-5 pb-8 h-[92dvh] overflow-y-auto animate-sheetup">
-            {/* Fullscreen close — lives inside modal so it can't orphan */}
-            {expandedCard && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setExpandedCard(null); }}
-                className="absolute top-3 right-3 z-40 w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl"
-                aria-label="Close full screen"
-              >
-                <X className="w-5 h-5 text-white" />
-              </button>
-            )}
             <div className="w-10 h-1 rounded-full bg-zinc-700 mx-auto mb-4" />
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -10291,6 +10281,15 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </div>
 
             <div className={`relative glass rounded-2xl p-4 mb-3 ${expandedCard === "water" ? "bc-fullscreen" : ""}`}>
+              {/* Close button — one in every expanded card, sticks to the
+                  top of the card while you scroll inside it. */}
+              {expandedCard === "water" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center justify-between mb-2 gap-2">
                 <button onClick={() => setWaterExp(!waterExp)} className="flex items-center gap-1.5 active:opacity-70 min-w-0">
@@ -10453,6 +10452,13 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </div>
 
             <div ref={scanCardRef} className={`relative glass rounded-2xl p-4 mt-3${expandedCard === "scanner" ? " bc-fullscreen" : ""}`}>
+              {expandedCard === "scanner" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2 min-w-0">
                   <ScanLine className="w-4 h-4 text-amber-300 flex-shrink-0" />
@@ -10635,6 +10641,13 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </div>
             {/* Sleep tracking */}
             <div className={`relative glass rounded-2xl p-4 mb-3 ${expandedCard === "sleep" ? "bc-fullscreen" : ""}`}>
+              {expandedCard === "sleep" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center justify-between mb-2">
                 <button onClick={() => setSleepExp(!sleepExp)} className="flex items-center gap-1.5 active:opacity-70 flex-1 min-w-0">
@@ -10738,6 +10751,13 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
 
             {/* Mood & energy check-in */}
             <div className={`relative glass rounded-2xl p-4 mb-3${expandedCard === "mood" ? " bc-fullscreen" : ""}`}>
+              {expandedCard === "mood" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-3 gap-2">
                 <div className="min-w-0"><div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{tr("howareyou")}</div><div className="text-[10px] text-zinc-500">Daily check-in — AI coaches you back up</div></div>
                 {expandedCard !== "mood" && (
@@ -10829,6 +10849,13 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
 
 
             <div className={`relative glass rounded-2xl p-4 mb-3${expandedCard === "break" ? " bc-fullscreen" : ""}`}>
+              {expandedCard === "break" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-2 gap-2">
                 <button onClick={() => setBreakExp(!breakExp)} className="flex items-center gap-1.5 active:opacity-70 min-w-0 flex-1">
                   <div className="text-left min-w-0"><div className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{tr("restbreak")}</div><div className="text-[10px] text-zinc-500 truncate">{tr("timedbreakswith")}</div><div className="text-[11px] font-bold text-amber-300 mt-0.5">🕐 {liveTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })}</div></div>
@@ -11119,6 +11146,13 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </div>
 
             <div className={`relative glass rounded-2xl p-4 mb-3${expandedCard === "mover" ? " bc-fullscreen" : ""}`}>
+              {expandedCard === "mover" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center justify-between mb-2 gap-2">
                 <button onClick={() => setMoverExp(!moverExp)} className="flex items-center gap-1.5 active:opacity-70 min-w-0">
@@ -11222,6 +11256,13 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </div>
 
             <div className={`relative glass rounded-2xl p-4 mb-3${expandedCard === "history" ? " bc-fullscreen" : ""}`}>
+              {expandedCard === "history" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2">
                 <button onClick={() => setBcHistOpen(!bcHistOpen)} className="flex-1 flex items-center justify-between active:opacity-70 min-w-0">
                   <span className="flex items-center gap-2 text-xs font-bold text-zinc-300 uppercase tracking-wider">
@@ -11376,6 +11417,13 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </div>
 
             <div className={`relative glass rounded-2xl p-4 mb-3${expandedCard === "expenses" ? " bc-fullscreen" : ""}`}>
+              {expandedCard === "expenses" && (
+                <div className="sticky top-0 z-20 flex justify-end pointer-events-none mb-2">
+                  <button onClick={() => setExpandedCard(null)} aria-label="Close" className="pointer-events-auto w-10 h-10 rounded-full bg-zinc-800/95 border border-zinc-600 flex items-center justify-center active:scale-95 shadow-xl">
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-2 gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Receipt className="w-4 h-4 text-amber-300 flex-shrink-0" />
