@@ -10186,7 +10186,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               </button>
             </div>
 
-            <div className="mb-3 rounded-2xl bg-gradient-to-r from-teal-500/10 to-transparent border border-amber-500/20 p-3 flex items-center gap-3">
+            <div className="mb-5 rounded-2xl bg-gradient-to-r from-teal-500/10 to-transparent border border-amber-500/20 p-3 flex items-center gap-3">
               <WeatherArt code={bcWmo ?? tripWmo} />
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
@@ -10206,7 +10206,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
 
             <button
               onClick={() => { setBuddyOpen(false); setParkingOpen(true); }}
-              className="mb-3 w-full rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/20 p-3 flex items-center gap-3 active:scale-[0.99]"
+              className="mb-5 w-full rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/20 p-3 flex items-center gap-3 active:scale-[0.99]"
             >
               <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center flex-shrink-0">
                 <Car className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
@@ -10217,7 +10217,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               </div>
             </button>
 
-            <div className="mb-4">
+            <div className="mb-5">
               <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 px-0.5">Crew in action — tap to join in</div>
               <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-5 px-5 crew-strip">
                 <button onClick={() => { bumpWater(1); setExpandedCard("water"); }} className="flex-shrink-0 w-28 text-left active:scale-[0.97]">
