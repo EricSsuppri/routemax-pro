@@ -1,0 +1,18 @@
+# RouteMax Pro
+
+> RouteMax Pro is a free Android app for delivery and rideshare drivers. Type in the payout and the miles on any offer, and it shows your fuel cost, true hourly rate, and real net profit — including the unpaid return trip — before you accept it.
+
+- [About RouteMax Pro](https://routemaxpro.netlify.app/learn/)
+- [RouteMax Pro home](https://routemaxpro.netlify.app/)
+- [RouteMax Pro on Google Play](https://play.google.com/store/apps/details?id=com.routemax.pro)
+
+## Key facts
+
+- Free route calculator. Premium is $4.99 per month with a 1-week free trial, and it unlocks Compare, Route History, Reports, Tax Tools, and Basecamp.
+- Worked example: a $12 offer for 8 miles keeps $8.33 after $1.27 of fuel and $2.40 of wear and tear. With an unpaid 4-mile ride back, it keeps $6.49.
+- Compare puts two offers side by side, including unpaid return miles, and shows which one actually pays better.
+- Tax Tools turn logged trips into mileage and expense summaries for tax time.
+- Offers are entered by hand — type in the payout and miles from DoorDash, Uber Eats, Instacart, Grubhub, Amazon Flex, Walmart Spark, or any other app.
+- No ads. Your data stays yours — export it or delete it anytime.
+- Available now on Google Play for Android. An iPhone version is coming.
+- Support: routemaxprosupport@gmail.com
