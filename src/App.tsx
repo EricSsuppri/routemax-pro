@@ -1194,11 +1194,14 @@ const extractVideoFrame = (file: File): Promise<string> => new Promise((resolve,
 /* Format minutes as hrs when large */
 const fmtTripTime = (mins: number | null | undefined): string => {
   if (mins == null) return "—";
-  if (mins < 60) return `~${Math.round(mins)} min`;
-  const hrs = mins / 60;
-  if (hrs < 24) return `~${hrs.toFixed(1)} hrs`;
-  const days = hrs / 24;
-  return `~${days.toFixed(1)} days`;
+  const total = Math.round(mins);
+  if (total < 60) return `~${total} min`;
+  const hrs = Math.floor(total / 60);
+  const rem = total % 60;
+  if (total < 1440) return rem === 0 ? `~${hrs} hr${hrs === 1 ? "" : "s"}` : `~${hrs} hr${hrs === 1 ? "" : "s"} ${rem} min`;
+  const days = Math.floor(hrs / 24);
+  const dayHrs = hrs % 24;
+  return dayHrs === 0 ? `~${days} day${days === 1 ? "" : "s"}` : `~${days} day${days === 1 ? "" : "s"} ${dayHrs} hr${dayHrs === 1 ? "" : "s"}`;
 };
 
 /* Transport mode for an address-based route. Driving time comes from OSRM;
@@ -3755,7 +3758,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         } else { setTripWeather(null); setTripWmo(null); }
       } catch { setTripWeather(null); setTripWmo(null); }
       if (parseFloat(payout) > 0) { autoCalcRef.current = { save: false }; setCalcTick((t) => t + 1); }
-      setRouteInfo(`${miles.toFixed(1)} mi (${(Math.round(cityM*10)/10).toFixed(1)} city · ${(Math.round(hwyM*10)/10).toFixed(1)} hwy) · ${routeModeLabel(routeMode)} ~${selMins != null && selMins > 0 ? selMins : mins} min`);
+      setRouteInfo(`${miles.toFixed(1)} mi (${(Math.round(cityM*10)/10).toFixed(1)} city · ${(Math.round(hwyM*10)/10).toFixed(1)} hwy) · ${routeModeLabel(routeMode)} ${fmtTripTime(selMins != null && selMins > 0 ? selMins : mins)}`);
       if (!opts?.keepOpen) setRouteOpen(false);
     } catch (e) {
       // Last resort: if we have coordinates, always show an estimate — never a dead error.
@@ -3781,7 +3784,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           const estSel = estModes[routeMode];
           setTripSecs(estSel != null && estSel > 0 ? estSel * 60 : mins * 60);
           setTripModes(estModes);
-          setRouteInfo(`${miles.toFixed(1)} mi (est.) · ${routeModeLabel(routeMode)} ~${estSel != null && estSel > 0 ? estSel : mins} min`);
+          setRouteInfo(`${miles.toFixed(1)} mi (est.) · ${routeModeLabel(routeMode)} ${fmtTripTime(estSel != null && estSel > 0 ? estSel : mins)}`);
           setRouteError("");
           if (!opts?.keepOpen) setRouteOpen(false);
           if (parseFloat(payout) > 0) { autoCalcRef.current = { save: false }; setCalcTick((t) => t + 1); }
