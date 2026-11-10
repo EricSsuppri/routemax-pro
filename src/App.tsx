@@ -75,8 +75,10 @@ import {
   Info,
   BookOpen,
   Upload,
+  Ghost,
+  Music,
 } from "lucide-react";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, Provider } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { askGemini, parseAiJson, isAiConfigured } from "@/lib/ai";
 
@@ -1267,7 +1269,7 @@ function PremiumFeaturesModal({
           <div className="min-w-0">
             <h2 className="text-lg font-extrabold text-white leading-tight">RouteMax Pro</h2>
             <p className="text-[11px] text-zinc-500 font-medium">
-              Everything below, one subscription{price ? ` — ${price}` : ""}
+              Try free for 7 days, then{price ? ` ${price}/mo` : " $4.99/mo"} — cancel anytime
             </p>
           </div>
         </div>
@@ -1298,7 +1300,7 @@ function PremiumFeaturesModal({
           disabled={busy}
           className="mt-5 block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ffecd0] to-[#ffecd0] text-sm font-extrabold text-[#0f0f16] active:scale-[0.98] transition-transform disabled:opacity-60"
         >
-          {busy ? "Processing…" : price ? `Continue — ${price}` : "Continue"}
+          {busy ? "Processing…" : "Start my 7-day free trial"}
         </button>
         <button
           onClick={onClose}
@@ -1307,7 +1309,7 @@ function PremiumFeaturesModal({
           Not now
         </button>
         <p className="text-center text-[10px] text-zinc-600 mt-1 leading-relaxed">
-          Billed through your app store. Cancel anytime in your app store's subscription settings.
+          7 days free for new subscribers, then billed through your app store. Cancel anytime in your app store's subscription settings.
         </p>
       </div>
     </div>
@@ -1360,8 +1362,11 @@ function PremiumBuyButton({
         disabled={busy}
         className="block w-full py-3 rounded-xl bg-gradient-to-r from-[#ffecd0] to-[#ffecd0] text-sm font-extrabold text-[#0f0f16] active:scale-[0.98] transition-transform disabled:opacity-60"
       >
-        {busy ? "Processing…" : price ? `Upgrade to Premium — ${price}` : "Upgrade to Premium"}
+        {busy ? "Processing…" : "Start 7-day free trial"}
       </button>
+      <p className="text-center text-[11px] text-zinc-400 mt-2 leading-relaxed">
+        Free for 7 days for new subscribers{price ? ` — then ${price}/mo` : " — then $4.99/mo"}. Cancel anytime.
+      </p>
       {err ? <p className="text-[11px] text-red-400 mt-2 leading-relaxed">{err}</p> : null}
       {iosNote ? <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">{iosNote}</p> : null}
       <button
@@ -1432,10 +1437,10 @@ function PremiumBanner({
             </div>
             <div className="text-left min-w-0">
               <div className="text-sm font-extrabold text-white">
-                {busy ? "Processing…" : price ? `Upgrade to Premium — ${price}` : "Upgrade to Premium"}
+                {busy ? "Processing…" : "Try Premium free for 7 days"}
               </div>
               <div className="text-[11px] text-zinc-500 font-medium">
-                History, compare, reports, tax tracking & more
+                {price ? `Then ${price}/mo — history, compare, reports, tax & more` : "History, compare, reports, tax tracking & more"}
               </div>
             </div>
           </div>
@@ -4425,6 +4430,17 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const [authBusy, setAuthBusy] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState<string | null>(null);
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
+  const [phone, setPhone] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [phoneReset, setPhoneReset] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState("");
+  const [showResetChoice, setShowResetChoice] = useState(false);
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "busy" | "done">("idle");
   const [deleteError, setDeleteError] = useState("");
 
@@ -5376,26 +5392,86 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     if (access_token && refresh_token) {
       const { error } = await supabase.auth.setSession({ access_token, refresh_token });
       if (!error) {
-        setAuthInfo("Signed in with Google!");
+        setAuthInfo("Signed in!");
         setAuthOpen(false);
       } else {
-        setAuthError("Google sign-in didn't complete. Try again.");
+        setAuthError("Sign-in didn't complete. Try again.");
         setAuthOpen(true);
       }
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  // Social sign-in options (Google + the six below). The button is the easy half:
+  // each provider must also be switched on in Supabase (Auth → Providers) with
+  // that company's keys, or tapping it says the provider isn't enabled.
+  // Snapchat, TikTok and Instagram aren't in this older Supabase client's types,
+  // so they go through as a cast — the server accepts them fine.
+  const OAUTH_PROVIDERS: { id: string; label: string }[] = [
+    { id: "facebook", label: "Facebook" },
+    { id: "twitter", label: "X" },
+    { id: "snapchat", label: "Snapchat" },
+    { id: "tiktok", label: "TikTok" },
+    { id: "instagram", label: "Instagram" },
+    { id: "apple", label: "Apple" },
+  ];
+
+  // Brand-real icons: each sign-in button shows the logo in its real colors.
+  const oauthIcon = (id: string) => {
+    const cls = "w-[18px] h-[18px] flex-shrink-0";
+    if (id === "facebook")
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
+          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+        </svg>
+      );
+    if (id === "instagram")
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="ig-grad" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stopColor="#feda75" />
+              <stop offset="25%" stopColor="#fa7e1e" />
+              <stop offset="50%" stopColor="#d62976" />
+              <stop offset="75%" stopColor="#962fbf" />
+              <stop offset="100%" stopColor="#4f5bd5" />
+            </linearGradient>
+          </defs>
+          <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="url(#ig-grad)" strokeWidth="2" />
+          <circle cx="12" cy="12" r="4.2" stroke="url(#ig-grad)" strokeWidth="2" />
+          <circle cx="17.4" cy="6.6" r="1.3" fill="url(#ig-grad)" />
+        </svg>
+      );
+    if (id === "snapchat") return <Ghost className={`${cls} text-[#FFFC00]`} />;
+    if (id === "tiktok")
+      return (
+        <Music
+          className={`${cls} text-white`}
+          style={{ filter: "drop-shadow(1.2px 0 0 #FE2C55) drop-shadow(-1.2px 0 0 #25F4EE)" }}
+        />
+      );
+    if (id === "apple")
+      return (
+        <svg className={`${cls} text-white`} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.03 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2.07-.187-3.475 1.2-4.61 1.2zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.702" />
+        </svg>
+      );
+    return (
+      <span className="w-[18px] h-[18px] flex items-center justify-center text-[15px] font-black leading-none text-white">X</span>
+    );
+  };
+
+  const handleOAuthSignIn = async (provider: string, label: string) => {
     if (!supabase) {
       setAuthError("Sign-in isn't connected in this build — it was built without its login keys. Use a build made with the keys baked in.");
       return;
     }
-    setGoogleBusy(true);
+    if (provider === "google") setGoogleBusy(true);
+    else setOauthBusy(provider);
     setAuthError("");
     setAuthInfo("");
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: provider as Provider,
         options: isNativeApp()
           ? { redirectTo: GOOGLE_OAUTH_REDIRECT, skipBrowserRedirect: true }
           : { redirectTo: window.location.origin },
@@ -5405,12 +5481,110 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       if (data?.url) {
         await Browser.open({ url: data.url });
       } else {
-        throw new Error("Couldn't start Google sign-in.");
+        throw new Error(`Couldn't start ${label} sign-in.`);
       }
     } catch (e) {
-      setAuthError(e instanceof Error ? e.message : "Google sign-in failed. Try again.");
-      setGoogleBusy(false);
+      setAuthError(e instanceof Error ? e.message : `${label} sign-in failed. Try again.`);
+      if (provider === "google") setGoogleBusy(false);
+      else setOauthBusy(null);
     }
+  };
+
+  const handleGoogleSignIn = () => handleOAuthSignIn("google", "Google");
+
+  // ---- Phone sign-in + password reset by text code ----
+  const resetPhoneFlow = () => {
+    setOtpSent(false);
+    setOtpVerified(false);
+    setPhoneReset(false);
+    setPhoneCode("");
+    setResetPassword("");
+    setResetPasswordConfirm("");
+  };
+
+  const normalizePhone = (raw: string) => {
+    const digits = raw.replace(/[^\d+]/g, "");
+    if (digits.startsWith("+")) return digits;
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+    return digits;
+  };
+
+  const handleSendPhoneOtp = async () => {
+    if (!supabase) {
+      setAuthError("Sign-in isn't connected in this build — it was built without its login keys. Use a build made with the keys baked in.");
+      return;
+    }
+    const to = normalizePhone(phone);
+    if (!/^\+\d{10,15}$/.test(to)) {
+      setAuthError("Enter your full phone number, starting with +1.");
+      return;
+    }
+    setOtpBusy(true);
+    setAuthError("");
+    setAuthInfo("");
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ phone: to });
+      if (error) throw error;
+      setOtpSent(true);
+      setAuthInfo(`Text code sent to ${to}. It expires in 10 minutes.`);
+    } catch (e) {
+      setAuthError(e instanceof Error ? e.message : "Couldn't send the text code. Try again.");
+    }
+    setOtpBusy(false);
+  };
+
+  const handleVerifyPhoneOtp = async () => {
+    if (!supabase) return;
+    const to = normalizePhone(phone);
+    const code = phoneCode.replace(/\D/g, "");
+    if (code.length < 6) {
+      setAuthError("Enter the 6-digit code from the text.");
+      return;
+    }
+    setOtpBusy(true);
+    setAuthError("");
+    setAuthInfo("");
+    try {
+      const { error } = await supabase.auth.verifyOtp({ phone: to, token: code, type: "sms" });
+      if (error) throw error;
+      if (phoneReset) {
+        setOtpVerified(true);
+        setAuthInfo("Code confirmed. Set your new password below.");
+      } else {
+        setAuthInfo("Signed in!");
+        setAuthOpen(false);
+        resetPhoneFlow();
+      }
+    } catch (e) {
+      setAuthError(e instanceof Error ? e.message : "That code didn't work. Try again.");
+    }
+    setOtpBusy(false);
+  };
+
+  const handlePhonePasswordReset = async () => {
+    if (!supabase) return;
+    if (resetPassword.length < 6) {
+      setAuthError("Pick a password with at least 6 characters.");
+      return;
+    }
+    if (resetPassword !== resetPasswordConfirm) {
+      setAuthError("The two passwords don't match.");
+      return;
+    }
+    setOtpBusy(true);
+    setAuthError("");
+    setAuthInfo("");
+    try {
+      const { error } = await supabase.auth.updateUser({ password: resetPassword });
+      if (error) throw error;
+      setAuthInfo("Password changed! Sign in with your new password.");
+      setAuthOpen(false);
+      resetPhoneFlow();
+    } catch (e) {
+      setAuthError(e instanceof Error ? e.message : "Couldn't change the password. Try again.");
+    }
+    setOtpBusy(false);
   };
 
   // Listen for the OAuth deep link while the app is running + on cold start.
@@ -5419,6 +5593,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     let sub: { remove: () => void } | null = null;
     CapApp.addListener("appUrlOpen", ({ url }) => {
       setGoogleBusy(false);
+      setOauthBusy(null);
       handleOAuthUrl(url);
     }).then((s) => {
       sub = s;
@@ -8202,6 +8377,14 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <p className="text-sm text-zinc-400 mt-2.5 leading-relaxed max-w-[290px]">
                   {tr("herosub")}
                 </p>
+                {!isPremium && (
+                  <button
+                    onClick={() => setBuddyPaywall(true)}
+                    className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f7dc8f]/15 border border-[#f7dc8f]/40 active:scale-[0.97] transition-transform"
+                  >
+                    <span className="text-[11px] font-extrabold text-[#f7dc8f]">✦ Try Premium free for 7 days — cancel anytime</span>
+                  </button>
+                )}
                 <div className="relative mt-4 h-10" aria-hidden="true">
                   <svg viewBox="0 0 320 40" className="w-full h-10" preserveAspectRatio="none">
                     <rect x="0" y="14" width="320" height="12" rx="6" fill="rgba(255,255,255,0.06)" />
@@ -9424,7 +9607,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                     </div>
                     <p className="text-sm font-bold text-white">{tr("routehistoryis")}</p>
                     <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">
-                      Upgrade to auto-save every route, see your tax mileage log and see earnings reports.
+                      Try free for 7 days — auto-save every route, see your tax mileage log and earnings reports. Cancel anytime, then $4.99/mo.
                     </p>
                     <div className="mt-3.5">
                       <FreeVsPremium compact />
@@ -9627,12 +9810,12 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </p>
 
             {/* Mode toggle */}
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#0d0d0f]/60 border border-[var(--synth-purple-light)]/20 mb-4">
+            <div className="grid grid-cols-2 gap-1 p-0.5 rounded-full bg-[#0d0d0f]/60 border border-[var(--synth-purple-light)]/20 mb-3">
               {(["signin", "signup"] as const).map((m) => (
                 <button
                   key={m}
-                  onClick={() => { setAuthMode(m); setAuthError(""); setAuthInfo(""); }}
-                  className={`py-2 rounded-lg text-sm font-bold transition-all ${
+                  onClick={() => { setAuthMode(m); resetPhoneFlow(); setShowResetChoice(false); setAuthError(""); setAuthInfo(""); }}
+                  className={`py-1.5 rounded-full text-xs font-bold transition-all ${
                     authMode === m
                       ? "bg-[var(--synth-purple-light)]/15 text-[var(--synth-purple-light)] border border-[var(--synth-purple-light)]/30"
                       : "text-zinc-500 border border-transparent"
@@ -9643,26 +9826,26 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               ))}
             </div>
 
-            {/* Google sign-in */}
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={googleBusy || authBusy}
-              className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl bg-white text-sm font-bold text-zinc-800 active:scale-[0.98] transition-transform disabled:opacity-60 mb-4"
-            >
-              <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.3h6.5c-.1 1.1-.8 2.7-2.4 3.8l-.1.1 3.5 2.7.2.1c2.2-2 3.8-5 3.8-8.7z"/>
-                <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.1 1.2-3.1 0-5.8-2.1-6.8-5l-.1.1-3.7 2.9v.1C3.4 21.5 7.4 24 12 24z"/>
-                <path fill="#FBBC05" d="M5.2 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.7.4-2.4l-.1-.1-3.7-2.9-.1.1C.5 8.3 0 10.1 0 12s.5 3.7 1.3 5.3l3.9-2.9z"/>
-                <path fill="#EA4335" d="M12 4.7c1.8 0 3 .8 3.7 1.4l3.3-3.2C17.9 1.1 15.2 0 12 0 7.4 0 3.4 2.5 1.3 6.7l3.9 3c1-2.9 3.7-5 6.8-5z"/>
-              </svg>
-              {googleBusy ? "Opening Google…" : "Continue with Google"}
-            </button>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-[var(--synth-purple-light)]/20" />
-              <span className="text-[11px] font-semibold text-zinc-600">or</span>
-              <div className="flex-1 h-px bg-[var(--synth-purple-light)]/20" />
+
+            {/* Email or phone number — white cushion card, clearly different from the dark Sign In / Sign Up pill above */}
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white mb-3 shadow-lg">
+              {(["email", "phone"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => { setAuthMethod(m); resetPhoneFlow(); setShowResetChoice(false); setAuthError(""); setAuthInfo(""); }}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    authMethod === m
+                      ? "bg-zinc-900 text-white shadow"
+                      : "text-zinc-500"
+                  }`}
+                >
+                  {m === "email" ? "Email" : "Phone number"}
+                </button>
+              ))}
             </div>
 
+            {authMethod === "email" && (
+              <>
             {/* Email */}
             <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
               Email
@@ -9694,6 +9877,109 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 className="flex-1 min-w-0 w-0 bg-transparent text-base font-semibold text-white placeholder-zinc-600 outline-none"
               />
             </div>
+              </>
+            )}
+
+            {/* Phone number */}
+            {authMethod === "phone" && (
+              <>
+                <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                  Phone number
+                </label>
+                <div className="glass-input rounded-xl flex items-center px-4 py-3 mb-3">
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="+1 555 123 4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="flex-1 min-w-0 w-0 bg-transparent text-base font-semibold text-white placeholder-zinc-600 outline-none"
+                  />
+                </div>
+                {!otpSent ? (
+                  <>
+                    <button
+                      onClick={handleSendPhoneOtp}
+                      disabled={otpBusy}
+                      className="w-full bg-gradient-to-r from-teal-400 to-teal-500 text-[#0a0a0f] font-bold text-base py-3.5 rounded-xl active:scale-[0.98] transition-transform disabled:opacity-50"
+                    >
+                      {otpBusy ? "Sending code…" : phoneReset ? "Text me a reset code" : "Text me a sign-in code"}
+                    </button>
+                    <p className="text-[11px] text-zinc-500 mt-2 text-center leading-relaxed">
+                      {phoneReset
+                        ? "We'll text a code to this number, then you set a new password."
+                        : "We'll text a 6-digit code to sign you in. New numbers create an account."}
+                    </p>
+                  </>
+                ) : !otpVerified ? (
+                  <>
+                    <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                      Text code
+                    </label>
+                    <div className="glass-input rounded-xl flex items-center px-4 py-3 mb-3">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        placeholder="6-digit code"
+                        maxLength={6}
+                        value={phoneCode}
+                        onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, ""))}
+                        className="flex-1 min-w-0 w-0 bg-transparent text-base font-semibold text-white placeholder-zinc-600 outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={handleVerifyPhoneOtp}
+                      disabled={otpBusy}
+                      className="w-full bg-gradient-to-r from-teal-400 to-teal-500 text-[#0a0a0f] font-bold text-base py-3.5 rounded-xl active:scale-[0.98] transition-transform disabled:opacity-50"
+                    >
+                      {otpBusy ? "Checking code…" : phoneReset ? "Confirm code" : "Verify & sign in"}
+                    </button>
+                    <button
+                      onClick={() => { setOtpSent(false); setPhoneCode(""); setAuthError(""); setAuthInfo(""); }}
+                      className="w-full mt-2 py-2 text-xs font-semibold text-zinc-500 active:opacity-70"
+                    >
+                      Wrong number? Change it
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                      New password
+                    </label>
+                    <div className="glass-input rounded-xl flex items-center px-4 py-3 mb-3">
+                      <input
+                        type="password"
+                        placeholder="New password (6+ characters)"
+                        value={resetPassword}
+                        onChange={(e) => setResetPassword(e.target.value)}
+                        className="flex-1 min-w-0 w-0 bg-transparent text-base font-semibold text-white placeholder-zinc-600 outline-none"
+                      />
+                    </div>
+                    <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                      Confirm new password
+                    </label>
+                    <div className="glass-input rounded-xl flex items-center px-4 py-3 mb-3">
+                      <input
+                        type="password"
+                        placeholder="Type it again"
+                        value={resetPasswordConfirm}
+                        onChange={(e) => setResetPasswordConfirm(e.target.value)}
+                        className="flex-1 min-w-0 w-0 bg-transparent text-base font-semibold text-white placeholder-zinc-600 outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={handlePhonePasswordReset}
+                      disabled={otpBusy}
+                      className="w-full bg-gradient-to-r from-teal-400 to-teal-500 text-[#0a0a0f] font-bold text-base py-3.5 rounded-xl active:scale-[0.98] transition-transform disabled:opacity-50"
+                    >
+                      {otpBusy ? "Saving…" : "Set new password"}
+                    </button>
+                  </>
+                )}
+              </>
+            )}
 
             {authError && (
               <div className="text-sm text-red-400 font-medium bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5 mb-3 animate-fade-in">
@@ -9706,6 +9992,8 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               </div>
             )}
 
+            {authMethod === "email" && (
+              <>
             <button
               onClick={handleAuth}
               disabled={authBusy}
@@ -9715,14 +10003,73 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </button>
 
             {authMode === "signin" && (
-              <button
-                onClick={handlePasswordReset}
-                disabled={resetBusy}
-                className="w-full mt-2 py-2.5 text-sm font-semibold text-zinc-400 active:scale-[0.98] transition-transform disabled:opacity-50"
-              >
-                {resetBusy ? "Sending reset link…" : "Forgot password?"}
-              </button>
+              <>
+              {showResetChoice ? (
+                <div className="mt-2 rounded-xl border border-zinc-700/60 bg-zinc-900/60 p-3">
+                  <p className="text-xs font-bold text-zinc-300 mb-2">How do you want to reset it?</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => { setShowResetChoice(false); handlePasswordReset(); }}
+                      disabled={resetBusy}
+                      className="py-2.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-200 active:scale-[0.98] transition-transform disabled:opacity-50"
+                    >
+                      {resetBusy ? "Sending…" : "Email me a link"}
+                    </button>
+                    <button
+                      onClick={() => { setAuthMethod("phone"); resetPhoneFlow(); setPhoneReset(true); setShowResetChoice(false); setAuthError(""); setAuthInfo(""); }}
+                      className="py-2.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-200 active:scale-[0.98] transition-transform"
+                    >
+                      Text me a code
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowResetChoice(true)}
+                  className="w-full mt-2 py-2.5 text-sm font-semibold text-zinc-400 active:scale-[0.98] transition-transform"
+                >
+                  Forgot password?
+                </button>
+              )}
+              </>
             )}
+              </>
+            )}
+            <div className="flex items-center gap-3 mt-5 mb-4">
+              <div className="flex-1 h-px bg-[var(--synth-purple-light)]/20" />
+              <span className="text-[11px] font-semibold text-zinc-600">or continue with</span>
+              <div className="flex-1 h-px bg-[var(--synth-purple-light)]/20" />
+            </div>
+
+            {/* Google sign-in */}
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={googleBusy || authBusy}
+              className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl bg-white text-sm font-bold text-zinc-800 active:scale-[0.98] transition-transform disabled:opacity-60 mb-3"
+            >
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.3h6.5c-.1 1.1-.8 2.7-2.4 3.8l-.1.1 3.5 2.7.2.1c2.2-2 3.8-5 3.8-8.7z"/>
+                <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.1 1.2-3.1 0-5.8-2.1-6.8-5l-.1.1-3.7 2.9v.1C3.4 21.5 7.4 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.2 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.7.4-2.4l-.1-.1-3.7-2.9-.1.1C.5 8.3 0 10.1 0 12s.5 3.7 1.3 5.3l3.9-2.9z"/>
+                <path fill="#EA4335" d="M12 4.7c1.8 0 3 .8 3.7 1.4l3.3-3.2C17.9 1.1 15.2 0 12 0 7.4 0 3.4 2.5 1.3 6.7l3.9 3c1-2.9 3.7-5 6.8-5z"/>
+              </svg>
+              {googleBusy ? "Opening Google…" : "Google"}
+            </button>
+
+            {/* More sign-in options */}
+            <div className="grid grid-cols-3 gap-2">
+              {OAUTH_PROVIDERS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => handleOAuthSignIn(p.id, p.label)}
+                  disabled={oauthBusy !== null || googleBusy || authBusy}
+                  className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-zinc-900/70 border border-zinc-700/60 text-[12px] font-bold text-zinc-200 active:scale-[0.97] transition-transform disabled:opacity-50"
+                >
+                  {oauthIcon(p.id)}
+                  {oauthBusy === p.id ? "Opening…" : p.id === "twitter" ? null : p.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -9949,7 +10296,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                               onClick={() => { setSettingsOpen(false); setBuddyPaywall(true); }}
                               className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left active:opacity-70 border-b border-zinc-800/40"
                             >
-                              <span className="text-[11px] font-semibold text-amber-400">Upgrade to Premium</span>
+                              <span className="text-[11px] font-semibold text-amber-400">Try Premium free for 7 days</span>
                             </button>
                           )}
                           <button
@@ -11722,7 +12069,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <Crown className="w-5 h-5 text-[#ffecd0]" strokeWidth={2.5} />
               </div>
               <p className="text-sm font-bold text-white">{tr("basecampispremium")}</p>
-              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">Your wellness crew, expense vault, meal scanner and AI coach — everything that keeps you sharp on the road.</p>
+              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">Try free for 7 days — your wellness crew, expense vault, meal scanner and AI coach, everything that keeps you sharp on the road. Cancel anytime, then $4.99/mo.</p>
             </div>
             <FreeVsPremium compact />
             <div className="mt-4">
