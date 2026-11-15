@@ -1248,11 +1248,15 @@ function PremiumFeaturesModal({
   busy,
   onClose,
   onContinue,
+  onStartTrial,
+  trialUsed,
 }: {
   price: string;
   busy: boolean;
   onClose: () => void;
   onContinue: () => void;
+  onStartTrial: () => void;
+  trialUsed: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
@@ -1272,7 +1276,9 @@ function PremiumFeaturesModal({
           <div className="min-w-0">
             <h2 className="text-lg font-extrabold text-white leading-tight">RouteMax Pro</h2>
             <p className="text-[11px] text-zinc-500 font-medium">
-              Try free for 7 days, then{price ? ` ${price}/mo` : " $4.99/mo"} — cancel anytime
+              {trialUsed
+                ? "Your free trial ended — subscribe to keep Premium."
+                : "Free for 7 days, no card needed — then $4.99/mo if you keep it. Cancel anytime."}
             </p>
           </div>
         </div>
@@ -1299,12 +1305,21 @@ function PremiumFeaturesModal({
           })}
         </div>
         <button
-          onClick={onContinue}
+          onClick={trialUsed ? onContinue : onStartTrial}
           disabled={busy}
           className="mt-5 block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#ffecd0] to-[#ffecd0] text-sm font-extrabold text-[#0f0f16] active:scale-[0.98] transition-transform disabled:opacity-60"
         >
-          {busy ? "Processing…" : "Start my 7-day free trial"}
+          {busy ? "Processing…" : trialUsed ? (price ? `Subscribe now — ${price}/mo` : "Subscribe now — $4.99/mo") : "Start free trial — no card needed"}
         </button>
+        {!trialUsed && (
+          <button
+            onClick={onContinue}
+            disabled={busy}
+            className="mt-2 block w-full py-2 text-[12px] font-semibold text-zinc-400 underline underline-offset-2 disabled:opacity-60"
+          >
+            Subscribe now instead — {price || "$4.99"}/mo
+          </button>
+        )}
         <button
           onClick={onClose}
           className="mt-2 block w-full py-2 text-[12px] font-semibold text-zinc-500"
@@ -1312,7 +1327,9 @@ function PremiumFeaturesModal({
           Not now
         </button>
         <p className="text-center text-[10px] text-zinc-600 mt-1 leading-relaxed">
-          7 days free for new subscribers, then billed through your app store. Cancel anytime in your app store's subscription settings.
+          {trialUsed
+            ? "Billed through your app store. Cancel anytime in your app store's subscription settings."
+            : "No card, no checkout — Premium unlocks instantly for 7 days. After that, subscribe through your app store to keep it."}
         </p>
       </div>
     </div>
@@ -1323,10 +1340,14 @@ function PremiumBuyButton({
   onUnlocked,
   signedIn,
   onRequireSignup,
+  onStartTrial,
+  trialUsed,
 }: {
   onUnlocked: () => void;
   signedIn: boolean;
   onRequireSignup: () => void;
+  onStartTrial: () => Promise<boolean>;
+  trialUsed: boolean;
 }) {
   const [showFeatures, setShowFeatures] = useState(false);
   const [iosNote, setIosNote] = useState("");
@@ -1358,6 +1379,25 @@ function PremiumBuyButton({
     buy();
   };
 
+  // No-card trial: unlocks Premium for 7 days with no checkout. One per account.
+  const handleStartTrial = async () => {
+    if (!signedIn) {
+      // No account yet — send them to sign up; the trial starts itself after.
+      try { sessionStorage.setItem("rm_pending_trial", "1"); } catch { /* ignore */ }
+      setShowFeatures(false);
+      onRequireSignup();
+      return;
+    }
+    const ok = await onStartTrial();
+    if (ok) {
+      setShowFeatures(false);
+      onUnlocked();
+    } else {
+      // Trial already used — fall through to the paid subscribe flow.
+      handleContinue();
+    }
+  };
+
   return (
     <div>
       <button
@@ -1368,7 +1408,9 @@ function PremiumBuyButton({
         {busy ? "Processing…" : "Start 7-day free trial"}
       </button>
       <p className="text-center text-[11px] text-zinc-400 mt-2 leading-relaxed">
-        Free for 7 days for new subscribers{price ? ` — then ${price}/mo` : " — then $4.99/mo"}. Cancel anytime.
+        {trialUsed
+          ? `Your free trial ended — subscribe to keep Premium (${price || "$4.99"}/mo).`
+          : "Free for 7 days, no card needed — then $4.99/mo. Cancel anytime."}
       </p>
       {err ? <p className="text-[11px] text-red-400 mt-2 leading-relaxed">{err}</p> : null}
       {iosNote ? <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">{iosNote}</p> : null}
@@ -1385,6 +1427,8 @@ function PremiumBuyButton({
           busy={busy}
           onClose={() => setShowFeatures(false)}
           onContinue={handleContinue}
+          onStartTrial={handleStartTrial}
+          trialUsed={trialUsed}
         />
       )}
     </div>
@@ -1395,10 +1439,14 @@ function PremiumBanner({
   onUnlocked,
   signedIn,
   onRequireSignup,
+  onStartTrial,
+  trialUsed,
 }: {
   onUnlocked: () => void;
   signedIn: boolean;
   onRequireSignup: () => void;
+  onStartTrial: () => Promise<boolean>;
+  trialUsed: boolean;
 }) {
   const [showFeatures, setShowFeatures] = useState(false);
   const [iosNote, setIosNote] = useState("");
@@ -1429,6 +1477,25 @@ function PremiumBanner({
     buy();
   };
 
+  // No-card trial: unlocks Premium for 7 days with no checkout. One per account.
+  const handleStartTrial = async () => {
+    if (!signedIn) {
+      // No account yet — send them to sign up; the trial starts itself after.
+      try { sessionStorage.setItem("rm_pending_trial", "1"); } catch { /* ignore */ }
+      setShowFeatures(false);
+      onRequireSignup();
+      return;
+    }
+    const ok = await onStartTrial();
+    if (ok) {
+      setShowFeatures(false);
+      onUnlocked();
+    } else {
+      // Trial already used — fall through to the paid subscribe flow.
+      handleContinue();
+    }
+  };
+
   const inner = (
     <>
       <div className="absolute inset-0 bg-gradient-to-r from-[#ffecd0] via-[#ffecd0] to-[#ffecd0] rounded-2xl blur-md opacity-40 group-hover:opacity-70 transition-opacity" />
@@ -1443,7 +1510,7 @@ function PremiumBanner({
                 {busy ? "Processing…" : "Try Premium free for 7 days"}
               </div>
               <div className="text-[11px] text-zinc-500 font-medium">
-                {price ? `Then ${price}/mo — compare, reports, tax & more` : "Compare, reports, tax tracking & more"}
+                {trialUsed ? "Your free trial ended — subscribe to keep Premium" : price ? `Free 7 days, no card needed — then ${price}/mo` : "Free for 7 days, no card needed"}
               </div>
             </div>
           </div>
@@ -1467,6 +1534,8 @@ function PremiumBanner({
             busy={busy}
             onClose={() => setShowFeatures(false)}
             onContinue={handleContinue}
+            onStartTrial={handleStartTrial}
+            trialUsed={trialUsed}
           />
         )}
       </>
@@ -1483,6 +1552,8 @@ function PremiumBanner({
           busy={busy}
           onClose={() => setShowFeatures(false)}
           onContinue={handleContinue}
+          onStartTrial={handleStartTrial}
+          trialUsed={trialUsed}
         />
       )}
     </>
@@ -4422,6 +4493,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     } catch { /* dismissed */ }
   };
   const [isPremium, setIsPremium] = useState(false);
+  // No-card trial end (epoch ms). One trial per account — the date lives on
+  // the profile (trial_ends_at) with a device-local copy as fallback.
+  const [trialEndsAt, setTrialEndsAt] = useState<number | null>(null);
   const appName = isPremium ? "RouteMax Pro" : "RouteMax";
   const [authOpen, setAuthOpen] = useState(false);
   const [askAiOpen, setAskAiOpen] = useState(false);
@@ -4876,6 +4950,42 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     setHistoryLoading(false);
   };
 
+  // ---- No-card 7-day trial (Play Store trials demand a card, so the app grants its own) ----
+  const TRIAL_DAYS = 7;
+  const TRIAL_KEY = "rm_trial_ends_at";
+  const readTrialEndsAt = async (userId: string): Promise<number | null> => {
+    // Account-level record first (survives reinstall); device copy as fallback
+    // until the trial_ends_at column exists on profiles.
+    try {
+      if (supabase) {
+        const { data } = await supabase.from("profiles").select("trial_ends_at").eq("id", userId).maybeSingle();
+        const v = (data as any)?.trial_ends_at;
+        if (v) return new Date(v).getTime();
+      }
+    } catch { /* column not added yet */ }
+    try {
+      const raw = localStorage.getItem(TRIAL_KEY);
+      return raw ? Number(raw) : null;
+    } catch { return null; }
+  };
+  const startFreeTrial = async (): Promise<boolean> => {
+    if (!supabase) return false;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      // One trial per account — if an end date exists (active or expired), no second trial.
+      if (await readTrialEndsAt(user.id)) return false;
+      const endsAt = Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000;
+      try { localStorage.setItem(TRIAL_KEY, String(endsAt)); } catch { /* ignore */ }
+      try {
+        await supabase.from("profiles").upsert({ id: user.id, trial_ends_at: new Date(endsAt).toISOString() }, { onConflict: "id" });
+      } catch { /* column not added yet — device copy still holds the trial */ }
+      setTrialEndsAt(endsAt);
+      setIsPremium(true);
+      return true;
+    } catch { return false; }
+  };
+
   const fetchProfile = async (userId: string) => {
     if (!supabase) return;
     try {
@@ -4902,6 +5012,14 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       } catch {
         /* keep the database value */
       }
+      // No-card trial: while the trial is still running, premium stays on.
+      try {
+        const endsAt = await readTrialEndsAt(userId);
+        if (endsAt) {
+          setTrialEndsAt(endsAt);
+          if (endsAt > Date.now()) setIsPremium(true);
+        }
+      } catch { /* trial unavailable — premium stays as resolved above */ }
     } catch {
       setIsPremium(false);
     }
@@ -4929,6 +5047,13 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
             sessionStorage.removeItem("rm_pending_whop");
             setAuthOpen(false);
             window.open(WHOP_URL, "_blank", "noopener,noreferrer");
+          }
+        } catch { /* private mode */ }
+        // No-card trial requested before sign-up — grant it now there's an account.
+        try {
+          if (sessionStorage.getItem("rm_pending_trial") === "1") {
+            sessionStorage.removeItem("rm_pending_trial");
+            if (newSession?.user) startFreeTrial();
           }
         } catch { /* private mode */ }
       } else {
@@ -6432,7 +6557,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
           <FreeVsPremium compact />
         </div>
         <div className="mt-4">
-          <PremiumBuyButton onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
+          <PremiumBuyButton onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} onStartTrial={startFreeTrial} trialUsed={trialEndsAt !== null} />
         </div>
       </div>
     );
@@ -7808,7 +7933,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             <FreeVsPremium compact />
           </div>
           <div className="mt-4">
-            <PremiumBuyButton onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
+            <PremiumBuyButton onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} onStartTrial={startFreeTrial} trialUsed={trialEndsAt !== null} />
           </div>
         </div>
       );
@@ -9706,7 +9831,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
         {/* Premium upgrade button */}
         {!isPremium && (
           <div className="mt-6 sm:mt-8 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-            <PremiumBanner onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
+            <PremiumBanner onUnlocked={() => setIsPremium(true)} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} onStartTrial={startFreeTrial} trialUsed={trialEndsAt !== null} />
           </div>
         )}
 
@@ -12085,7 +12210,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <Crown className="w-5 h-5 text-[#ffecd0]" strokeWidth={2.5} />
               </div>
               <p className="text-sm font-bold text-white">{tr("basecampispremium")}</p>
-              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">Try free for 7 days — your wellness crew, expense vault, meal scanner and AI coach, everything that keeps you sharp on the road. Cancel anytime, then $4.99/mo.</p>
+              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">Try free for 7 days, no card needed — your wellness crew, expense vault, meal scanner and AI coach, everything that keeps you sharp on the road. Cancel anytime, then $4.99/mo.</p>
             </div>
             <FreeVsPremium compact />
             <div className="mt-4">
@@ -12095,7 +12220,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                   <button onClick={() => { setBuddyPaywall(false); openAuth("signup"); }} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-teal-500 text-sm font-bold text-[#0a0a0f] active:scale-[0.98] transition-transform btn-sheen">{tr("createaccount")}</button>
                 </div>
               ) : (
-                <PremiumBuyButton onUnlocked={() => { setIsPremium(true); setBuddyPaywall(false); setBuddyOpen(true); }} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} />
+                <PremiumBuyButton onUnlocked={() => { setIsPremium(true); setBuddyPaywall(false); setBuddyOpen(true); }} signedIn={!!session?.user} onRequireSignup={openSignupForWhop} onStartTrial={startFreeTrial} trialUsed={trialEndsAt !== null} />
               )}
             </div>
           </div>
