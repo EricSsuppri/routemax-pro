@@ -8520,10 +8520,28 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 </p>
                 {!isPremium && (
                   <button
-                    onClick={() => setBuddyPaywall(true)}
+                    onClick={async () => {
+                      if (!session?.user) {
+                        try { sessionStorage.setItem("rm_pending_trial", "1"); } catch { /* ignore */ }
+                        openSignupForWhop();
+                        return;
+                      }
+                      if (trialEndsAt !== null) {
+                        // Trial already used — show the subscribe options.
+                        setBuddyPaywall(true);
+                        return;
+                      }
+                      const ok = await startFreeTrial();
+                      if (ok) {
+                        setDlToast("Premium unlocked — free for 7 days, no card needed ✓");
+                        setTimeout(() => setDlToast(""), 3500);
+                      } else {
+                        setBuddyPaywall(true);
+                      }
+                    }}
                     className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f7dc8f]/15 border border-[#f7dc8f]/40 active:scale-[0.97] transition-transform"
                   >
-                    <span className="text-[11px] font-extrabold text-[#f7dc8f]">✦ Try Premium free for 7 days — cancel anytime</span>
+                    <span className="text-[11px] font-extrabold text-[#f7dc8f]">{trialEndsAt !== null ? "Subscribe to Premium — $4.99/mo" : "✦ Try Premium free for 7 days — no card needed"}</span>
                   </button>
                 )}
                 <div className="relative mt-4 h-10" aria-hidden="true">
