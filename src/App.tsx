@@ -1405,7 +1405,7 @@ function PremiumBuyButton({
         disabled={busy}
         className="block w-full py-3 rounded-xl bg-gradient-to-r from-[#ffecd0] to-[#ffecd0] text-sm font-extrabold text-[#0f0f16] active:scale-[0.98] transition-transform disabled:opacity-60"
       >
-        {busy ? "Processing…" : "Start 7-day free trial"}
+        {busy ? "Processing…" : trialUsed ? (price ? `Subscribe now — ${price}/mo` : "Subscribe now — $4.99/mo") : "Start free trial — no card needed"}
       </button>
       <p className="text-center text-[11px] text-zinc-400 mt-2 leading-relaxed">
         {trialUsed
