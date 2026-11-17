@@ -5165,8 +5165,11 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     }
   };
 
-  // Parking finder — uses Google Maps deep links (100% reliable).
-  // Each vehicle category opens Maps with a tailored parking search near the user.
+  // Parking finder — opens Google Maps with a tailored parking search near the user.
+  // Uses the Capacitor Browser plugin, NOT window.open: window.open fired from
+  // the async geolocation callback (outside the tap gesture) is silently blocked
+  // on iOS, so Maps never opened and the sheet just sat there. Browser.open
+  // works from any context.
   const PARKING_CATS: Record<string, { label: string; search: string; icon: string }> = {
     car: { label: "Cars", search: "parking", icon: "Car" },
     truck: { label: "Trucks", search: "truck+parking", icon: "Truck" },
@@ -5180,7 +5183,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     const cat = PARKING_CATS[parkingCategory] || PARKING_CATS.car;
     if (!navigator.geolocation) {
       // No location — just open Maps with the search
-      window.open(`https://www.google.com/maps/search/${cat.search}`, "_blank", "noopener");
+      void Browser.open({ url: `https://www.google.com/maps/search/${cat.search}` });
       return;
     }
     setParkingBusy(true);
@@ -5193,7 +5196,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       if (parkingDone) return;
       parkingDone = true;
       setParkingBusy(false);
-      window.open(`https://www.google.com/maps/search/${cat.search}`, "_blank", "noopener");
+      void Browser.open({ url: `https://www.google.com/maps/search/${cat.search}` });
     }, 12000);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -5201,11 +5204,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         parkingDone = true;
         clearTimeout(parkingWatchdog);
         const { latitude, longitude } = pos.coords;
-        window.open(
-          `https://www.google.com/maps/search/${cat.search}/@${latitude},${longitude},14z`,
-          "_blank",
-          "noopener"
-        );
+        void Browser.open({
+          url: `https://www.google.com/maps/search/${cat.search}/@${latitude},${longitude},14z`,
+        });
         setParkingBusy(false);
         // AI tip after opening Maps
         getParkingAiTip(cat.label, 0);
@@ -5214,7 +5215,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         if (parkingDone) return;
         parkingDone = true;
         clearTimeout(parkingWatchdog);
-        window.open(`https://www.google.com/maps/search/${cat.search}`, "_blank", "noopener");
+        void Browser.open({ url: `https://www.google.com/maps/search/${cat.search}` });
         setParkingBusy(false);
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
