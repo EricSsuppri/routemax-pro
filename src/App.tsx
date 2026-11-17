@@ -5182,11 +5182,15 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     }
   };
 
-  // Parking finder — opens Google Maps with a tailored parking search near the user.
+  // Parking finder — opens a maps app with a tailored parking search near the user.
   // Uses the Capacitor Browser plugin, NOT window.open: window.open fired from
   // the async geolocation callback (outside the tap gesture) is silently blocked
   // on iOS, so Maps never opened and the sheet just sat there. Browser.open
   // works from any context.
+  // 2026-11-16: iOS opens Apple Maps, everywhere else Google Maps. On iOS the
+  // link goes through CapApp.openUrl, which hands maps.apple.com to the system
+  // so the native Maps app opens directly — Browser.open would only show the
+  // Apple Maps web page inside a browser sheet.
   const PARKING_CATS: Record<string, { label: string; search: string; icon: string }> = {
     car: { label: "Cars", search: "parking", icon: "Car" },
     truck: { label: "Trucks", search: "truck+parking", icon: "Truck" },
@@ -5196,11 +5200,32 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     bike: { label: "Bikes & Scooters", search: "bike+parking", icon: "Bike" },
     motorcycle: { label: "Motorcycles", search: "motorcycle+parking", icon: "Bike" },
   };
+  // Maps URL per platform: Apple Maps link on iOS, Google Maps everywhere else.
+  const parkingMapsUrl = (search: string, lat?: number, lon?: number) => {
+    if (Capacitor.getPlatform() === "ios") {
+      const q = encodeURIComponent(search.replace(/\+/g, " "));
+      return lat != null && lon != null
+        ? `https://maps.apple.com/?q=${q}&ll=${lat},${lon}`
+        : `https://maps.apple.com/?q=${q}`;
+    }
+    return lat != null && lon != null
+      ? `https://www.google.com/maps/search/${search}/@${lat},${lon},14z`
+      : `https://www.google.com/maps/search/${search}`;
+  };
+  // Open a maps link: native Maps app on iOS, browser everywhere else.
+  // Falls back to the browser on iOS if the Maps app can't open the link.
+  const openMapsUrl = (url: string) => {
+    if (Capacitor.getPlatform() === "ios") {
+      CapApp.openUrl({ url }).catch(() => { void Browser.open({ url }); });
+    } else {
+      void Browser.open({ url });
+    }
+  };
   const openParkingInMaps = () => {
     const cat = PARKING_CATS[parkingCategory] || PARKING_CATS.car;
     if (!navigator.geolocation) {
       // No location — just open Maps with the search
-      void Browser.open({ url: `https://www.google.com/maps/search/${cat.search}` });
+      openMapsUrl(parkingMapsUrl(cat.search));
       return;
     }
     setParkingBusy(true);
@@ -5213,7 +5238,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       if (parkingDone) return;
       parkingDone = true;
       setParkingBusy(false);
-      void Browser.open({ url: `https://www.google.com/maps/search/${cat.search}` });
+      openMapsUrl(parkingMapsUrl(cat.search));
     }, 12000);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -5221,9 +5246,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         parkingDone = true;
         clearTimeout(parkingWatchdog);
         const { latitude, longitude } = pos.coords;
-        void Browser.open({
-          url: `https://www.google.com/maps/search/${cat.search}/@${latitude},${longitude},14z`,
-        });
+        openMapsUrl(parkingMapsUrl(cat.search, latitude, longitude));
         setParkingBusy(false);
         // AI tip after opening Maps
         getParkingAiTip(cat.label, 0);
@@ -5232,7 +5255,7 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         if (parkingDone) return;
         parkingDone = true;
         clearTimeout(parkingWatchdog);
-        void Browser.open({ url: `https://www.google.com/maps/search/${cat.search}` });
+        openMapsUrl(parkingMapsUrl(cat.search));
         setParkingBusy(false);
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
@@ -10825,7 +10848,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                 <><Navigation className="w-4 h-4" /> Find parking near me</>
               )}
             </button>
-            <p className="mt-2 text-center text-[10px] text-zinc-500">Opens Google Maps with {PARKING_CATS[parkingCategory]?.label.toLowerCase() || "car"} parking near you</p>
+            <p className="mt-2 text-center text-[10px] text-zinc-500">Opens {Capacitor.getPlatform() === "ios" ? "Apple Maps" : "Google Maps"} with {PARKING_CATS[parkingCategory]?.label.toLowerCase() || "car"} parking near you</p>
 
             {parkingAiBusy ? (
               <div className="mt-3 flex items-center justify-center gap-2 text-xs text-amber-300/70">
@@ -10847,7 +10870,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             )}
 
             <div className="mt-4 text-center text-[10px] text-zinc-600">
-              Powered by Google Maps
+              Powered by {Capacitor.getPlatform() === "ios" ? "Apple Maps" : "Google Maps"}
             </div>
           </div>
         </div>
