@@ -69,6 +69,28 @@ jobs:
               print('camera permission already present')
           EOF
 
+      # 2026-11-16: the Play build never declared location permissions (the
+      # debug APK workflow already had this step, the release workflow did
+      # not) — so Weather and Parking could never get a location on Android
+      # either and sat on "Locating…" forever. Same step as android.yml.
+      - name: Add Location permission to AndroidManifest
+        run: |
+          python3 - <<'EOF'
+          import re
+          p = 'android/app/src/main/AndroidManifest.xml'
+          s = open(p).read()
+          for perm_name in ['android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION']:
+              if perm_name not in s:
+                  m = re.search(r'<manifest[^>]*>', s)
+                  assert m, 'manifest tag not found'
+                  perm = chr(10) + '    <uses-permission android:name="%s" />' % perm_name
+                  s = s[:m.end()] + perm + s[m.end():]
+                  print('location permission added:', perm_name)
+              else:
+                  print('location permission already present:', perm_name)
+          open(p, 'w').write(s)
+          EOF
+
       - name: Add Screenshot Watcher native plugin
         run: |
           python3 - <<'EOF'
