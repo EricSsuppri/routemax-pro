@@ -9120,7 +9120,10 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               )}
 
               {/* v2 Phase 4: auto-scan screenshots - FREE for everyone */}
-              {isAiConfigured && isNativeApp() && (
+              {/* 2026-11-16: Android only. The watcher is a native Android
+                  foreground service with no iOS implementation, so don't
+                  show the toggle on iPhone at all — it can only confuse. */}
+              {isAiConfigured && isNativeApp() && Capacitor.getPlatform() === "android" && (
                 <div>
                   <button
                     onClick={toggleWatching}
