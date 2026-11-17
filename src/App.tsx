@@ -4960,14 +4960,21 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   const TRIAL_KEY = "rm_trial_ends_at";
   const readTrialEndsAt = async (userId: string): Promise<number | null> => {
     // Account-level record first (survives reinstall); device copy as fallback
-    // until the trial_ends_at column exists on profiles.
+    // only when the profile row can't be read at all.
+    // 2026-11-16 FIX: the old code fell back to the device copy whenever
+    // the account had no trial date — so one account's trial leaked onto
+    // every other account on the same phone, and the home pill wrongly
+    // switched to "Subscribe to Premium" instead of "Try Premium free".
+    // A profile row that exists with no trial date means NO trial used.
     try {
       if (supabase) {
         const { data } = await supabase.from("profiles").select("trial_ends_at").eq("id", userId).maybeSingle();
-        const v = (data as any)?.trial_ends_at;
-        if (v) return new Date(v).getTime();
+        if (data) {
+          const v = (data as any)?.trial_ends_at;
+          return v ? new Date(v).getTime() : null;
+        }
       }
-    } catch { /* column not added yet */ }
+    } catch { /* column not added yet — fall through to device copy */ }
     try {
       const raw = localStorage.getItem(TRIAL_KEY);
       return raw ? Number(raw) : null;
@@ -5018,12 +5025,13 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         /* keep the database value */
       }
       // No-card trial: while the trial is still running, premium stays on.
+      // 2026-11-16 FIX: always set the value, including null — the old
+      // code only set it when a trial existed, so a previous account's
+      // trial stayed stuck on screen after switching accounts / signing out.
       try {
         const endsAt = await readTrialEndsAt(userId);
-        if (endsAt) {
-          setTrialEndsAt(endsAt);
-          if (endsAt > Date.now()) setIsPremium(true);
-        }
+        setTrialEndsAt(endsAt);
+        if (endsAt && endsAt > Date.now()) setIsPremium(true);
       } catch { /* trial unavailable — premium stays as resolved above */ }
     } catch {
       setIsPremium(false);
@@ -5063,6 +5071,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         } catch { /* private mode */ }
       } else {
         setIsPremium(false);
+        // 2026-11-16 FIX: clear the trial state on sign-out, otherwise the
+        // home pill keeps showing "Subscribe to Premium" for the next
+        // account instead of "Try Premium free for 7 days — no card needed".
+        setTrialEndsAt(null);
         setHistory([]);
       }
     });
