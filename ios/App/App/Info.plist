@@ -25,6 +25,8 @@
 	<string>RouteMax uses the camera to scan meal receipts and delivery offers so it can read the numbers for you.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>RouteMax lets you pick screenshots and receipts from your photos so it can read the numbers for you.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>RouteMax saves scanned receipts and offers to your photos so you can find them later.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
