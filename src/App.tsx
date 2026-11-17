@@ -5230,13 +5230,27 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     try {
       const hour = new Date().getHours();
       const timeOfDay = hour < 6 ? "early morning" : hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night";
+      // 2026-11-16 FIX: the old prompt asked for "one specific tip" but the
+      // model returned a generic multi-sentence summary ("most city lots…",
+      // "a municipal garage…") — it read like an AI summary, not advice.
+      // Now: one direct recommendation, grounded in their real spot + time.
+      let where = "";
+      try {
+        const loc = (typeof geoBiasRef !== "undefined" && geoBiasRef.current) || JSON.parse(localStorage.getItem("routemax_user_loc") || "null");
+        if (loc && loc.lat != null && loc.lon != null) where = ` near ${Number(loc.lat).toFixed(3)}, ${Number(loc.lon).toFixed(3)}`;
+      } catch { /* tip still works without a location */ }
       const raw = await askGemini(
-        `You are Eric, a gig-work coach. The driver is looking for ${vehicleLabel} parking near their location (${timeOfDay}). Give ONE specific, useful parking tip for a ${vehicleLabel} driver right now — e.g. best strategy for this vehicle type at this time of day, what to watch for, or how to save on fees. One or two sentences max. Plain text, no markdown. Talk directly to them.`,
+        `You are Eric, a gig driver texting another driver. They need ${vehicleLabel} parking right now (${timeOfDay}${where}). Give ONE direct recommendation — tell them exactly what to do, e.g. which kind of spot to aim for and what to avoid. Two short sentences max. No generic facts, no summary, no "most lots" claims, no lecture. Plain words, like a driver talking to a friend.`,
         "",
         false
       );
-      const cleaned = cleanChatReply(raw);
-      if (cleaned) setParkingAiTip(cleaned);
+      let cleaned = cleanChatReply(raw);
+      if (cleaned) {
+        // Hard cap: keep the first two sentences even if the model rambles.
+        const sentences = cleaned.match(/[^.!?]+[.!?]+/g) || [cleaned];
+        cleaned = sentences.slice(0, 2).join(" ").trim();
+        setParkingAiTip(cleaned);
+      }
     } catch {
       // AI tip is a bonus — silently skip on failure
     }
