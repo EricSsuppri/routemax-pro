@@ -10159,25 +10159,11 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             </div>
 
 
-            {/* 2026-11-12: Phone tab back at Eric's request — SMS is the
-                default channel, so the button reads "Text me a sign-in
-                code". Still needs Twilio in Supabase (Auth → Providers →
-                Phone) or tapping it errors "Unsupported phone provider". */}
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white mb-3 shadow-lg">
-              {(["email", "phone"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => { setAuthMethod(m); setOtpChannel("sms"); resetPhoneFlow(); setShowResetChoice(false); setAuthError(""); setAuthInfo(""); }}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    authMethod === m
-                      ? "bg-zinc-900 text-white shadow"
-                      : "text-zinc-500"
-                  }`}
-                >
-                  {m === "email" ? "Email" : "Phone"}
-                </button>
-              ))}
-            </div>
+            {/* 2026-11-16: Phone sign-in removed at Eric's request — the
+                Email/Phone toggle is gone, so sign-in is email only (plus
+                Google below). The phone code (state, OTP handlers, phone
+                section) is still in this file behind authMethod, dormant,
+                so it can come back if Twilio is ever wired up. */}
 
             {authMethod === "email" && (
               <>
