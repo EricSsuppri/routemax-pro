@@ -2451,6 +2451,14 @@ function AppInner() {
   const [navTo, setNavTo] = useState<GeoSugg | null>(null);
   // Basecamp hub: hydration + break timer for drivers/riders/pilots/travelers.
   const [buddyOpen, setBuddyOpen] = useState(false);
+  // First-run permissions (2026-11-16): location + camera must be settled
+  // BEFORE the app is used, so Weather/Parking never spin forever and Scan
+  // never fails mid-flow. Shown once on first launch; re-openable from Settings.
+  const [permSheetOpen, setPermSheetOpen] = useState(false);
+  const [permLoc, setPermLoc] = useState<"unknown" | "granted" | "denied">("unknown");
+  const [permCam, setPermCam] = useState<"unknown" | "granted" | "denied">("unknown");
+  const [permLocBusy, setPermLocBusy] = useState(false);
+  const [permCamBusy, setPermCamBusy] = useState(false);
   useEffect(() => {
     const h = () => setBuddyOpen(true);
     window.addEventListener("open-basecamp", h);
@@ -2654,6 +2662,15 @@ function AppInner() {
     saveExpenses([ex, ...expenses]);
     setExpAmount(""); setExpNote(""); setExpVendor(""); setExpReceipt(null);
     setExpDate(new Date().toISOString().slice(0, 10));
+    // 2026-11-16 FIX: the save was silent — the form just cleared and the
+    // user couldn't tell if it saved or where it went. Say so, out loud:
+    // category + amount + the month file it landed in.
+    const _d = new Date(expDate + "T12:00:00");
+    const _month = isNaN(_d.getTime())
+      ? "Expenses"
+      : _d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    setDlToast(`Saved ✓ ${expCategory} $${ex.amount.toFixed(2)} · ${_month}`);
+    setTimeout(() => setDlToast(""), 3500);
   };
   const deleteExpense = (id: string) => saveExpenses(expenses.filter((x) => x.id !== id));
   // --- Import external bookkeeping CSVs into the expense vault ---
@@ -5167,8 +5184,22 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       return;
     }
     setParkingBusy(true);
+    // 2026-11-16 FIX: hard watchdog. On iOS without the location prompt
+    // settled, getCurrentPosition can hang past its own timeout and neither
+    // callback ever fires — the button sat on "Locating…" forever. After
+    // 12s, open Maps without coordinates instead of spinning forever.
+    let parkingDone = false;
+    const parkingWatchdog = setTimeout(() => {
+      if (parkingDone) return;
+      parkingDone = true;
+      setParkingBusy(false);
+      window.open(`https://www.google.com/maps/search/${cat.search}`, "_blank", "noopener");
+    }, 12000);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (parkingDone) return;
+        parkingDone = true;
+        clearTimeout(parkingWatchdog);
         const { latitude, longitude } = pos.coords;
         window.open(
           `https://www.google.com/maps/search/${cat.search}/@${latitude},${longitude},14z`,
@@ -5180,6 +5211,9 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         getParkingAiTip(cat.label, 0);
       },
       () => {
+        if (parkingDone) return;
+        parkingDone = true;
+        clearTimeout(parkingWatchdog);
         window.open(`https://www.google.com/maps/search/${cat.search}`, "_blank", "noopener");
         setParkingBusy(false);
       },
@@ -5209,13 +5243,81 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     setParkingAiBusy(false);
   };
 
+  // ---- App permissions, settled up front (2026-11-16) ----
+  // iOS only shows the location prompt when location is actually requested,
+  // and without NSLocationWhenInUseUsageDescription in Info.plist the request
+  // silently never resolves — that's why Weather and Parking sat on
+  // "Locating…" forever. So the app asks once, on first launch, before
+  // anything else needs a permission.
+  const requestPermLocation = () => {
+    if (!navigator.geolocation) { setPermLoc("denied"); return; }
+    setPermLocBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPermLoc("granted");
+        setPermLocBusy(false);
+        try {
+          const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          geoBiasRef.current = loc;
+          localStorage.setItem("routemax_user_loc", JSON.stringify(loc));
+        } catch { /* location still granted even if the cache fails */ }
+      },
+      () => { setPermLoc("denied"); setPermLocBusy(false); },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+    );
+  };
+  const requestPermCamera = async () => {
+    setPermCamBusy(true);
+    try {
+      const perm = await CapCamera.checkPermissions();
+      if (perm.camera === "granted") {
+        setPermCam("granted");
+      } else {
+        const req = await CapCamera.requestPermissions();
+        setPermCam(req.camera === "granted" ? "granted" : "denied");
+      }
+    } catch { setPermCam("denied"); }
+    setPermCamBusy(false);
+  };
+  const closePermSheet = () => {
+    try { localStorage.setItem("rm_permissions_done", "1"); } catch { /* ignore */ }
+    setPermSheetOpen(false);
+  };
+  useEffect(() => {
+    // First launch on a real device: open the permissions sheet once, so
+    // Location + Camera are cleared before the app is used.
+    try {
+      if (isNativeApp() && !localStorage.getItem("rm_permissions_done")) {
+        const t = setTimeout(() => setPermSheetOpen(true), 900);
+        return () => clearTimeout(t);
+      }
+    } catch { /* never block startup on a storage error */ }
+  }, []);
+
   // Live weather at the top of Basecamp — device location via GPS
   const fetchBasecampWeather = () => {
     if (bcWxBusy || !navigator.geolocation) return;
     setBcWxBusy(true);
     setBcWxErr("");
+    // 2026-11-16 FIX: hard watchdog + iOS-correct guidance. The old code
+    // could sit on "Locating…" forever when the location request never
+    // resolved, and it told iPhone users to open "App info" (Android-only).
+    // After 12s without an answer, stop spinning and say where to fix it.
+    const wxWhere = Capacitor.getPlatform() === "ios"
+      ? "Settings app > RouteMax > Location"
+      : "App info > Permissions > Location";
+    let wxDone = false;
+    const wxWatchdog = setTimeout(() => {
+      if (wxDone) return;
+      wxDone = true;
+      setBcWxErr(`Couldn't get your location — turn Location on for RouteMax in ${wxWhere}, then tap refresh.`);
+      setBcWxBusy(false);
+    }, 12000);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        if (wxDone) return;
+        wxDone = true;
+        clearTimeout(wxWatchdog);
         try {
           const { latitude, longitude } = pos.coords;
           const r = await fetch(
@@ -5235,7 +5337,10 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         setBcWxBusy(false);
       },
       () => {
-        setBcWxErr("Location is not permitted - allow it in App info > Permissions > Location, then tap refresh.");
+        if (wxDone) return;
+        wxDone = true;
+        clearTimeout(wxWatchdog);
+        setBcWxErr(`Location is not permitted — allow it in ${wxWhere}, then tap refresh.`);
         setBcWxBusy(false);
       },
       { timeout: 10000, maximumAge: 600000 }
@@ -9855,7 +9960,7 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
           )}
           <input ref={importFileRef} type="file" accept=".csv,.txt,text/csv,text/plain" onChange={importExpensesFile} className="hidden" aria-hidden="true" tabIndex={-1} />
           {dlToast ? (
-            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-4 py-2.5 rounded-xl bg-teal-500 text-[#0a0a0f] text-xs font-bold shadow-lg whitespace-nowrap">
+            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-4 py-2.5 rounded-xl bg-teal-500 text-[#0a0a0f] text-xs font-bold shadow-lg max-w-[90vw] text-center">
               {dlToast}
             </div>
           ) : null}
@@ -10393,6 +10498,22 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
                     </button>
                   </div>
 
+                  {/* Permissions — re-open the first-run permissions sheet */}
+                  <div className="posh-rise" style={{ animationDelay: "0.11s" }}>
+                    <button
+                      onClick={() => { setSettingsOpen(false); setPermSheetOpen(true); }}
+                      className="w-full flex items-center gap-3 px-3 py-3 text-left active:opacity-70 rounded-xl bg-amber-500/8 border border-amber-500/20"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                        <ShieldCheck className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-white">Permissions</div>
+                        <div className="text-[11px] text-zinc-500">Location, Camera &amp; Photos</div>
+                      </div>
+                    </button>
+                  </div>
+
                   {/* Chapter II — Profile */}
                   <div className="posh-rise" style={{ animationDelay: "0.13s" }}>
                     <div className="steel-chapter">Chapter II · Profile</div>
@@ -10702,6 +10823,70 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
             <div className="mt-4 text-center text-[10px] text-zinc-600">
               Powered by Google Maps
             </div>
+          </div>
+        </div>
+      )}
+
+      {permSheetOpen && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center" role="dialog" aria-modal="true" aria-label="Permissions">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div className="relative w-full max-w-lg bg-zinc-900 border border-amber-500/25 rounded-t-3xl p-5 pb-8 animate-sheetup">
+            <div className="w-10 h-1 rounded-full bg-zinc-700 mx-auto mb-4" />
+            <div className="flex items-center gap-2 mb-1">
+              <ShieldCheck className="w-5 h-5 text-amber-400" />
+              <h3 className="text-base font-extrabold text-white">Before you start</h3>
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+              RouteMax needs two permissions to work properly. Clear them now, once — then weather, parking, and scanning all just work.
+            </p>
+
+            <div className="space-y-2.5 mb-4">
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-800/50 border border-zinc-700/50">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-white">Location</div>
+                  <div className="text-[11px] text-zinc-500 leading-snug">Live weather, parking near you, places sorted by distance.</div>
+                  {permLoc === "denied" ? <div className="text-[11px] text-amber-300 mt-0.5">Not allowed — turn it on in Settings app &gt; RouteMax &gt; Location.</div> : null}
+                </div>
+                <button
+                  onClick={requestPermLocation}
+                  disabled={permLocBusy}
+                  className={`px-3 py-2 rounded-full text-[11px] font-extrabold active:scale-95 flex-shrink-0 ${permLoc === "granted" ? "bg-teal-500/15 text-teal-300 border border-teal-500/30" : "bg-amber-500 text-[#0a0a0f]"}`}
+                >
+                  {permLocBusy ? "Asking…" : permLoc === "granted" ? "Allowed ✓" : permLoc === "denied" ? "Try again" : "Allow"}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-800/50 border border-zinc-700/50">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center flex-shrink-0">
+                  <Camera className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-white">Camera &amp; Photos</div>
+                  <div className="text-[11px] text-zinc-500 leading-snug">Scan offers and receipts, save them to your photos.</div>
+                  {permCam === "denied" ? <div className="text-[11px] text-amber-300 mt-0.5">Not allowed — turn it on in Settings app &gt; RouteMax &gt; Camera.</div> : null}
+                </div>
+                <button
+                  onClick={requestPermCamera}
+                  disabled={permCamBusy}
+                  className={`px-3 py-2 rounded-full text-[11px] font-extrabold active:scale-95 flex-shrink-0 ${permCam === "granted" ? "bg-teal-500/15 text-teal-300 border border-teal-500/30" : "bg-amber-500 text-[#0a0a0f]"}`}
+                >
+                  {permCamBusy ? "Asking…" : permCam === "granted" ? "Allowed ✓" : permCam === "denied" ? "Try again" : "Allow"}
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={closePermSheet}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-sm font-extrabold text-[#0a0a0f] active:scale-[0.98]"
+            >
+              Continue
+            </button>
+            <button onClick={closePermSheet} className="w-full mt-2 py-2 text-xs font-bold text-zinc-500 active:opacity-70">
+              Not now
+            </button>
           </div>
         </div>
       )}
