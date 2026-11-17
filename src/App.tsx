@@ -5098,6 +5098,23 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // 2026-11-16 FIX: trial expiry must lock on return, not only on fresh open.
+  // fetchProfile runs on mount + auth change, so a trial could outlive day 7
+  // if the app sat backgrounded across the expiry moment. Re-check the
+  // account every time the app comes back to the foreground — if the trial
+  // ended while it was away, premium drops right then.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session?.user) fetchProfile(data.session.user.id);
+      }).catch(() => {});
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
   const deleteHistoryItem = async (id: string) => {
     if (!supabase) return;
     try {
