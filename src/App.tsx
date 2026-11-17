@@ -5763,9 +5763,13 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as Provider,
+        // 2026-11-17 FIX: Google reuses the last signed-in Safari session and
+        // auto-signs in with that one account, never showing the chooser —
+        // users with several Gmails can't pick. prompt=select_account forces
+        // Google to show the account chooser every time.
         options: isNativeApp()
-          ? { redirectTo: GOOGLE_OAUTH_REDIRECT, skipBrowserRedirect: true }
-          : { redirectTo: window.location.origin },
+          ? { redirectTo: GOOGLE_OAUTH_REDIRECT, skipBrowserRedirect: true, queryParams: { prompt: "select_account" } }
+          : { redirectTo: window.location.origin, queryParams: { prompt: "select_account" } },
       });
       if (error) throw error;
       if (!isNativeApp()) return; // web: supabase-js redirects the browser itself
