@@ -4547,6 +4547,11 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
   // handleAuth's success path intentionally does NOT use this.
   const dismissAuthModal = () => {
     clearPendingWhop();
+    // 2026-11-16: closing the sheet must also unstick the Google button.
+    // googleBusy was only cleared on OAuth success / error, so cancelling
+    // Google once left it saying "Opening Google…" forever.
+    setGoogleBusy(false);
+    setOauthBusy(null);
     setAuthOpen(false);
   };
 
@@ -5614,7 +5619,28 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       if (error) throw error;
       if (!isNativeApp()) return; // web: supabase-js redirects the browser itself
       if (data?.url) {
-        await Browser.open({ url: data.url });
+        // 2026-11-16 FIX: if the user closes the Google browser without
+        // finishing sign-in, no deep link ever comes back, so googleBusy
+        // used to stay true forever ("Opening Google…" stuck, button dead).
+        // browserFinished fires when that browser closes — use it to reset
+        // the button. A successful sign-in still clears it earlier via
+        // the appUrlOpen listener, so clearing again here is harmless.
+        let finishedListener: { remove: () => Promise<void> } | null = null;
+        try {
+          finishedListener = await Browser.addListener("browserFinished", () => {
+            if (provider === "google") setGoogleBusy(false);
+            else setOauthBusy(null);
+            finishedListener?.remove().catch(() => {});
+          });
+        } catch {
+          /* listener unavailable — dismiss still resets the button */
+        }
+        try {
+          await Browser.open({ url: data.url });
+        } catch (openErr) {
+          finishedListener?.remove().catch(() => {});
+          throw openErr;
+        }
       } else {
         throw new Error(`Couldn't start ${label} sign-in.`);
       }
