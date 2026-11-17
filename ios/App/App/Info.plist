@@ -27,6 +27,8 @@
 	<string>RouteMax lets you pick screenshots and receipts from your photos so it can read the numbers for you.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>RouteMax saves scanned receipts and offers to your photos so you can find them later.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>RouteMax uses your location for live route weather, parking spots near you, and sorting places by distance.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
