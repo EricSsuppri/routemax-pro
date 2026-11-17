@@ -190,7 +190,7 @@ Delete your account and all associated data anytime from Settings. Email routema
 Children
 RouteMax and RouteMax Pro are not directed at children under 13.`;
 
-const APP_FEATURES = `RouteMax and RouteMax Pro (free and premium tiers) help gig workers — delivery drivers, rideshare drivers, truckers, couriers, cyclists, pilots, and ferry & water-taxi operators — know their true profit per job after fuel, wear, and time. Features you can mention: Quick Presets for DoorDash, Amazon Flex, UberEats, Instacart, Rideshare, Trucking, E-Bike, Charter Flights, and Ferry, plus custom apps the user can add; snap a photo of any offer and Eric fills in payout and distance; a take-it-or-skip-it verdict from Eric comparing each offer to the user's own 30-day averages; per-provider input memory; your personal week in review; a "when should I work" shift planner that finds their best time blocks; a what-if simulator for minimum payouts; expandable monthly and quarterly earnings reports with instant auto-summaries; a tax mileage log counting only accepted trips; route history with per-app badges and filters plus a two-tap Clear with Recover to undo; premium unlocks compare, reports, tax tools, and the Basecamp wellness hub; Basecamp has an expense vault with receipt scanning, category filing, and AI filing advice, synced to the tax tab.`;
+const APP_FEATURES = `RouteMax and RouteMax Pro (free and premium tiers) help gig workers — delivery drivers, rideshare drivers, truckers, couriers, cyclists, pilots, and ferry & water-taxi operators — know their true profit per job after fuel, wear, and time. Features you can mention: Quick Presets for DoorDash, Amazon Flex, UberEats, Instacart, Rideshare, Trucking, E-Bike, Charter Flights, and Ferry, plus custom apps the user can add; snap a photo of any offer and Eric fills in payout and distance; a take-it-or-skip-it verdict from Eric comparing each offer to the user's own 30-day averages; per-provider input memory; your personal week in review; a "when should I work" shift planner that finds their best time blocks; a what-if simulator for minimum payouts; expandable monthly and quarterly earnings reports with instant auto-summaries; a tax mileage log counting only accepted trips; route history with per-app badges and filters plus a two-tap Clear with Recover to undo; premium unlocks reports, tax tools, and the Basecamp wellness hub; Basecamp has an expense vault with receipt scanning, category filing, and AI filing advice, synced to the tax tab.`;
 
 type PresetKey = string;
 
@@ -718,7 +718,7 @@ type TabKey = "calc" | "compare" | "reports" | "tax" | "accepted" | "basecamp";
 
 const TABS: { key: TabKey; label: string; icon: typeof Calculator; premium: boolean }[] = [
   { key: "calc", label: "Calculator", icon: Calculator, premium: false },
-  { key: "compare", label: "Compare", icon: Scale, premium: true },
+  { key: "compare", label: "Compare", icon: Scale, premium: false },
   { key: "reports", label: "Reports", icon: BarChart3, premium: true },
   { key: "tax", label: "Tax", icon: Receipt, premium: true },
   { key: "accepted", label: "Accepted", icon: CheckCircle2, premium: true },
@@ -1019,7 +1019,7 @@ const FREE_VS_PREMIUM: { label: string; free: boolean; premium: boolean }[] = [
   { label: "Custom break alarm (full songs, hrs/mins/secs, ring-until-time)", free: false, premium: true },
   { label: "Route history (auto-save)", free: true, premium: true },
   { label: "Accepted trips + tax counting", free: false, premium: true },
-  { label: "Compare two offers", free: false, premium: true },
+  { label: "Compare two offers", free: true, premium: true },
   { label: "Earnings reports", free: false, premium: true },
   { label: "Mileage log + AI guide", free: false, premium: true },
   { label: "Expense tracking with AI summaries + CSV import", free: false, premium: true },
@@ -6739,12 +6739,6 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
       : null;
 
   const renderCompareTab = () => {
-    if (!isPremium) {
-      return renderPremiumLock(
-        "Offer Comparison",
-        "Stack two offers side by side and see which one actually pays more per hour, after fuel, wear and waiting time."
-      );
-    }
     const offerCard = (
       key: "A" | "B",
       offer: CompareOffer,
