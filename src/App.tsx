@@ -12452,15 +12452,15 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
         </div>
       )}
       {buddyPaywall && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="Basecamp Premium">
+        <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label="RouteMax Pro Premium">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setBuddyPaywall(false)} />
           <div className="relative w-full max-w-lg bg-[#141419] border border-zinc-800 rounded-t-3xl p-5 pb-8 max-h-[82dvh] overflow-y-auto animate-sheetup">
             <div className="w-10 h-1 rounded-full bg-zinc-700 mx-auto mb-4" />
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div>
-                  <h3 className="text-base font-extrabold text-white">Basecamp</h3>
-                  <p className="text-[11px] text-zinc-500">{tr("premiumwellnesshub")}</p>
+                  <h3 className="text-base font-extrabold text-white">RouteMax Pro</h3>
+                  <p className="text-[11px] text-zinc-500">All premium features</p>
                 </div>
               </div>
               <button onClick={() => setBuddyPaywall(false)} aria-label="Close" className="w-8 h-8 rounded-full bg-zinc-800/70 flex items-center justify-center active:scale-95">
@@ -12471,8 +12471,8 @@ FORMATTING: Plain text only. No markdown, no bold, no tables, no bullet lists, n
               <div className="w-10 h-10 rounded-xl bg-[#ffecd0]/15 flex items-center justify-center mx-auto mb-3">
                 <Crown className="w-5 h-5 text-[#ffecd0]" strokeWidth={2.5} />
               </div>
-              <p className="text-sm font-bold text-white">{tr("basecampispremium")}</p>
-              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">Try free for 7 days, no card needed — your wellness crew, expense vault, meal scanner and AI coach, everything that keeps you sharp on the road. Cancel anytime, then $4.99/mo.</p>
+              <p className="text-sm font-bold text-white">{tr("upgradetopremium")}</p>
+              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">Try free for 7 days, no card needed — Compare, Reports, Tax, Accepted trips, and the Basecamp wellness hub. Cancel anytime, then $4.99/mo.</p>
             </div>
             <FreeVsPremium compact />
             <div className="mt-4">
