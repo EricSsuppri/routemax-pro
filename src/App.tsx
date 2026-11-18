@@ -5635,11 +5635,19 @@ Reply in 3-4 short sentences: (1) quick read of their state, (2) the ONE best ne
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("You are not signed in.");
-      await supabase.from("route_history").delete().eq("user_id", user.id);
-      await supabase.from("profiles").delete().eq("id", user.id);
-      await supabase.auth.signOut();
+      // Permanent delete: a small server function ("delete-account") removes
+      // the login itself — the app alone cannot delete its own login — plus
+      // the profile row and route history. The login is gone for good after
+      // this; signing up again with the same email makes a brand-new account.
+      const { error: fnError } = await supabase.functions.invoke("delete-account");
+      if (fnError) throw fnError;
+      // Clear this device's leftover trial state too.
+      try { localStorage.removeItem(TRIAL_KEY); } catch { /* ignore */ }
+      try { sessionStorage.removeItem("rm_pending_trial"); sessionStorage.removeItem("rm_pending_whop"); } catch { /* ignore */ }
+      try { await supabase.auth.signOut(); } catch { /* session already gone */ }
       setHistory([]);
       setIsPremium(false);
+      setTrialEndsAt(null);
       setDeleteStep("done");
     } catch (e: any) {
       setDeleteError(e?.message || "Delete failed. Please try again or email support.");
